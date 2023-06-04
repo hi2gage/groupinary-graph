@@ -6,18 +6,60 @@ package graph
 
 import (
 	"context"
-	"fmt"
 	"graphql-api/graph/model"
 )
 
 // CreateTodo is the resolver for the createTodo field.
 func (r *mutationResolver) CreateTodo(ctx context.Context, input model.NewTodo) (*model.Todo, error) {
-	panic(fmt.Errorf("not implemented: CreateTodo - createTodo"))
+	// Implement the logic to create a new todo item
+	// Retrieve the values from the `input` argument and create a new todo item
+	// You can interact with your database or any other data storage mechanism here
+
+	// Example implementation
+	todo := &model.Todo{
+		ID:   "1",        // Assign a unique ID to the new todo item
+		Text: input.Text, // Retrieve the text from the input argument
+		Done: false,      // Set the initial done status
+		User: &model.User{
+			ID:   input.UserID, // Retrieve the user ID from the input argument
+			Name: "John Doe",   // Set the user's name
+		},
+	}
+
+	// Return the created todo item
+	return todo, nil
 }
 
 // Todos is the resolver for the todos field.
 func (r *queryResolver) Todos(ctx context.Context) ([]*model.Todo, error) {
-	panic(fmt.Errorf("not implemented: Todos - todos"))
+	// Implement the logic to retrieve all todo items
+	// You can interact with your database or any other data storage mechanism here
+
+	// Example implementation
+	todos := []*model.Todo{
+		{
+			ID:   "1",
+			Text: "Todo 1",
+			Done: false,
+			User: &model.User{
+				ID:   "1",
+				Name: "John Doe",
+			},
+		},
+		{
+			ID:   "2",
+			Text: "Todo 2",
+			Done: true,
+			User: &model.User{
+				ID:   "2",
+				Name: "Jane Smith",
+			},
+		},
+		// Add more todo items as needed
+	}
+
+	// Return the list of todo items
+	return todos, nil
 }
 
 // Mutation returns MutationResolver implementation.
