@@ -5,6 +5,14 @@
 type Word {
   id: ID!
   text: String!
+  user: User!
+  definitions: [Definitions]
+}
+
+type Definitions {
+  id: ID!
+  text: String!
+  user: User!
 }
 
 type Todo {
@@ -28,6 +36,12 @@ input NewTodo {
   userId: String!
 }
 
+input NewWord {
+  userId: ID!
+  text: String!
+}
+
 type Mutation {
   createTodo(input: NewTodo!): Todo!
+  createWord(word: NewWord!): Word!
 }

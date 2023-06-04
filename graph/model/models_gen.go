@@ -2,9 +2,20 @@
 
 package model
 
+type Definitions struct {
+	ID   string `json:"id"`
+	Text string `json:"text"`
+	User *User  `json:"user"`
+}
+
 type NewTodo struct {
 	Text   string `json:"text"`
 	UserID string `json:"userId"`
+}
+
+type NewWord struct {
+	UserID string `json:"userId"`
+	Text   string `json:"text"`
 }
 
 type Todo struct {
@@ -20,6 +31,8 @@ type User struct {
 }
 
 type Word struct {
-	ID   string `json:"id"`
-	Text string `json:"text"`
+	ID          string         `json:"id"`
+	Text        string         `json:"text"`
+	User        *User          `json:"user"`
+	Definitions []*Definitions `json:"definitions,omitempty"`
 }
