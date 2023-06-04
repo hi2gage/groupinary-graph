@@ -8,9 +8,14 @@ import (
 
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/playground"
+	"github.com/rs/cors"
 )
 
-const defaultPort = "8080"
+const (
+	defaultPort     = "8080"
+	defaultCertFile = "cert.pem" // Path to your SSL/TLS certificate file
+	defaultKeyFile  = "key.pem"  // Path to your SSL/TLS key file
+)
 
 func main() {
 	port := os.Getenv("PORT")
@@ -20,9 +25,16 @@ func main() {
 
 	srv := handler.NewDefaultServer(graph.NewExecutableSchema(graph.Config{Resolvers: &graph.Resolver{}}))
 
-	http.Handle("/", playground.Handler("GraphQL playground", "/query"))
-	http.Handle("/query", srv)
+	corsOptions := cors.Options{
+		AllowedOrigins:   []string{"https://studio.apollographql.com"}, // or "*" for wildcard
+		AllowCredentials: true,
+	}
 
-	log.Printf("connect to http://localhost:%s/ for GraphQL playground", port)
-	log.Fatal(http.ListenAndServe(":"+port, nil))
+	corsHandler := cors.New(corsOptions).Handler(srv)
+
+	http.Handle("/", playground.Handler("GraphQL playground", "/query"))
+	http.Handle("/query", corsHandler)
+
+	log.Printf("connect to https://localhost:%s/ for GraphQL playground", port)
+	log.Fatal(http.ListenAndServeTLS(":"+port, defaultCertFile, defaultKeyFile, nil))
 }
