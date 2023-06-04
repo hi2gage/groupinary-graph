@@ -55,6 +55,15 @@ func (r *queryResolver) Todos(ctx context.Context) ([]*model.Todo, error) {
 				Name: "Jane Smith",
 			},
 		},
+		{
+			ID:   "3",
+			Text: "Todo 3",
+			Done: true,
+			User: &model.User{
+				ID:   "3",
+				Name: "Jane Smith",
+			},
+		},
 		// Add more todo items as needed
 	}
 
