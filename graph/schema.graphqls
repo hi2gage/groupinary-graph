@@ -2,6 +2,11 @@
 #
 # https://gqlgen.com/getting-started/
 
+type Word {
+  id: ID!
+  text: String!
+}
+
 type Todo {
   id: ID!
   text: String!

@@ -18,3 +18,8 @@ type User struct {
 	ID   string `json:"id"`
 	Name string `json:"name"`
 }
+
+type Word struct {
+	ID   string `json:"id"`
+	Text string `json:"text"`
+}
