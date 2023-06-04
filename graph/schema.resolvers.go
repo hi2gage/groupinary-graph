@@ -30,6 +30,20 @@ func (r *mutationResolver) CreateTodo(ctx context.Context, input model.NewTodo) 
 	return todo, nil
 }
 
+// CreateWord is the resolver for the createWord field.
+func (r *mutationResolver) CreateWord(ctx context.Context, word model.NewWord) (*model.Word, error) {
+	// panic(fmt.Errorf("not implemented: CreateWord - createWord"))
+
+	words := &model.Word{
+		ID:          "1",
+		Text:        word.Text,
+		User:        &model.User{},
+		Definitions: []*model.Definitions{},
+	}
+
+	return words, nil
+}
+
 // Todos is the resolver for the todos field.
 func (r *queryResolver) Todos(ctx context.Context) ([]*model.Todo, error) {
 	// Implement the logic to retrieve all todo items
