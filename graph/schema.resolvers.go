@@ -17,7 +17,7 @@ func (r *mutationResolver) CreateTodo(ctx context.Context, input model.NewTodo) 
 
 	// Example implementation
 	todo := &model.Todo{
-		ID:   "1",        // Assign a unique ID to the new todo item
+		ID:   "2",        // Assign a unique ID to the new todo item
 		Text: input.Text, // Retrieve the text from the input argument
 		Done: false,      // Set the initial done status
 		User: &model.User{
@@ -38,11 +38,11 @@ func (r *queryResolver) Todos(ctx context.Context) ([]*model.Todo, error) {
 	// Example implementation
 	todos := []*model.Todo{
 		{
-			ID:   "1",
+			ID:   "100",
 			Text: "Todo 1",
 			Done: false,
 			User: &model.User{
-				ID:   "1",
+				ID:   "4",
 				Name: "John Doe",
 			},
 		},
