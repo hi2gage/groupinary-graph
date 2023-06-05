@@ -10,6 +10,8 @@ services:
       - ./:/app
     depends_on:
       - db
+    environment:
+      - DATABASE_URL=postgres://yourusername:yourpassword@db:5432/yourdatabase?sslmode=disable
   db:
     image: postgres
     restart: always

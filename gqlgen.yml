@@ -1,6 +1,6 @@
 # Where are all the schema files located? globs are supported eg  src/**/*.graphqls
 schema:
-  - graph/*.graphqls
+  - ent.graphql
 
 # Where should the generated server code go?
 exec:
@@ -13,9 +13,9 @@ exec:
 #   package: graph
 
 # Where should any generated models go?
-model:
-  filename: graph/model/models_gen.go
-  package: model
+# model:
+#   filename: graph/model/models_gen.go
+#   package: model
 
 # Where should the resolver implementations go?
 resolver:
@@ -63,7 +63,8 @@ resolver:
 # gqlgen will search for any type names in the schema in these go packages
 # if they match it will use them, otherwise it will generate them.
 autobind:
-#  - "graphql-api/graph/model"
+ - "shrektionary_api/ent"
+#  - "shrektionary_api/ent/todo"
 
 # This section declares type mapping between the GraphQL and go type systems
 #
@@ -82,3 +83,6 @@ models:
       - github.com/99designs/gqlgen/graphql.Int
       - github.com/99designs/gqlgen/graphql.Int64
       - github.com/99designs/gqlgen/graphql.Int32
+  # Node:
+  #     model:
+  #       - todo/ent.Node
