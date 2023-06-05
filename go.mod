@@ -7,6 +7,7 @@ require (
 	entgo.io/ent v0.12.3
 	github.com/99designs/gqlgen v0.17.31
 	github.com/hashicorp/go-multierror v1.1.1
+	github.com/lib/pq v1.10.9
 	github.com/rs/cors v1.9.0
 	github.com/vektah/gqlparser/v2 v2.5.1
 	golang.org/x/sync v0.2.0
@@ -25,7 +26,6 @@ require (
 	github.com/hashicorp/errwrap v1.0.0 // indirect
 	github.com/hashicorp/golang-lru/v2 v2.0.2 // indirect
 	github.com/hashicorp/hcl/v2 v2.13.0 // indirect
-	github.com/lib/pq v1.10.9 // indirect
 	github.com/mitchellh/go-wordwrap v0.0.0-20150314170334-ad45545899c7 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
