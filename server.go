@@ -1,10 +1,17 @@
 package main
 
 import (
-	"graphql-api/graph"
+	"context"
 	"log"
 	"net/http"
 	"os"
+
+	"shrektionary_api/ent"
+	"shrektionary_api/ent/migrate"
+	"shrektionary_api/graph"
+
+	"entgo.io/ent/dialect"
+	_ "github.com/lib/pq" // Import the PostgreSQL driver package
 
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/playground"
@@ -23,7 +30,21 @@ func main() {
 		port = defaultPort
 	}
 
-	srv := handler.NewDefaultServer(graph.NewExecutableSchema(graph.Config{Resolvers: &graph.Resolver{}}))
+	// Create ent.Client and run the schema migration.
+	client, err := ent.Open(dialect.Postgres, os.Getenv("DATABASE_URL"))
+	if err != nil {
+		log.Fatal("opening ent client", err)
+	}
+
+	defer client.Close()
+	if err := client.Schema.Create(
+		context.Background(),
+		migrate.WithGlobalUniqueID(true),
+	); err != nil {
+		log.Fatal("opening ent client", err)
+	}
+
+	srv := handler.NewDefaultServer(graph.NewSchema(client))
 
 	corsOptions := cors.Options{
 		AllowedOrigins:   []string{"https://studio.apollographql.com"}, // or "*" for wildcard
