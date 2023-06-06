@@ -8,6 +8,18 @@ import (
 	"shrektionary_api/ent"
 )
 
+// The DefinitionFunc type is an adapter to allow the use of ordinary
+// function as Definition mutator.
+type DefinitionFunc func(context.Context, *ent.DefinitionMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f DefinitionFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.DefinitionMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.DefinitionMutation", m)
+}
+
 // The TodoFunc type is an adapter to allow the use of ordinary
 // function as Todo mutator.
 type TodoFunc func(context.Context, *ent.TodoMutation) (ent.Value, error)
@@ -18,6 +30,18 @@ func (f TodoFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error)
 		return f(ctx, mv)
 	}
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.TodoMutation", m)
+}
+
+// The WordFunc type is an adapter to allow the use of ordinary
+// function as Word mutator.
+type WordFunc func(context.Context, *ent.WordMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f WordFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.WordMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.WordMutation", m)
 }
 
 // Condition is a hook condition function.

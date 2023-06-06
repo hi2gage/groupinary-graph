@@ -64,7 +64,9 @@ resolver:
 # if they match it will use them, otherwise it will generate them.
 autobind:
  - "shrektionary_api/ent"
-#  - "shrektionary_api/ent/todo"
+ - "shrektionary_api/ent/todo"
+ - "shrektionary_api/ent/definition"
+ - "shrektionary_api/ent/word"
 
 # This section declares type mapping between the GraphQL and go type systems
 #
@@ -83,6 +85,6 @@ models:
       - github.com/99designs/gqlgen/graphql.Int
       - github.com/99designs/gqlgen/graphql.Int64
       - github.com/99designs/gqlgen/graphql.Int32
-  # Node:
-  #     model:
-  #       - todo/ent.Node
+  Node:
+      model:
+        - shrektionary_api/ent.Noder

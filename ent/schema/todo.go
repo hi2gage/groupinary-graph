@@ -16,7 +16,6 @@ type Todo struct {
 func (Todo) Fields() []ent.Field {
 	return []ent.Field{
 		field.String("title").NotEmpty(),
-		field.String("description"),
 	}
 }
 

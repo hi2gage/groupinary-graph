@@ -10,11 +10,14 @@ import (
 
 	"shrektionary_api/ent/migrate"
 
+	"shrektionary_api/ent/definition"
 	"shrektionary_api/ent/todo"
+	"shrektionary_api/ent/word"
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect"
 	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 )
 
 // Client is the client that holds all ent builders.
@@ -22,8 +25,12 @@ type Client struct {
 	config
 	// Schema is the client for creating, migrating and dropping schema.
 	Schema *migrate.Schema
+	// Definition is the client for interacting with the Definition builders.
+	Definition *DefinitionClient
 	// Todo is the client for interacting with the Todo builders.
 	Todo *TodoClient
+	// Word is the client for interacting with the Word builders.
+	Word *WordClient
 	// additional fields for node api
 	tables tables
 }
@@ -39,7 +46,9 @@ func NewClient(opts ...Option) *Client {
 
 func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
+	c.Definition = NewDefinitionClient(c.config)
 	c.Todo = NewTodoClient(c.config)
+	c.Word = NewWordClient(c.config)
 }
 
 type (
@@ -120,9 +129,11 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	cfg := c.config
 	cfg.driver = tx
 	return &Tx{
-		ctx:    ctx,
-		config: cfg,
-		Todo:   NewTodoClient(cfg),
+		ctx:        ctx,
+		config:     cfg,
+		Definition: NewDefinitionClient(cfg),
+		Todo:       NewTodoClient(cfg),
+		Word:       NewWordClient(cfg),
 	}, nil
 }
 
@@ -140,16 +151,18 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 	cfg := c.config
 	cfg.driver = &txDriver{tx: tx, drv: c.driver}
 	return &Tx{
-		ctx:    ctx,
-		config: cfg,
-		Todo:   NewTodoClient(cfg),
+		ctx:        ctx,
+		config:     cfg,
+		Definition: NewDefinitionClient(cfg),
+		Todo:       NewTodoClient(cfg),
+		Word:       NewWordClient(cfg),
 	}, nil
 }
 
 // Debug returns a new debug-client. It's used to get verbose logging on specific operations.
 //
 //	client.Debug().
-//		Todo.
+//		Definition.
 //		Query().
 //		Count(ctx)
 func (c *Client) Debug() *Client {
@@ -171,22 +184,164 @@ func (c *Client) Close() error {
 // Use adds the mutation hooks to all the entity clients.
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
+	c.Definition.Use(hooks...)
 	c.Todo.Use(hooks...)
+	c.Word.Use(hooks...)
 }
 
 // Intercept adds the query interceptors to all the entity clients.
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
+	c.Definition.Intercept(interceptors...)
 	c.Todo.Intercept(interceptors...)
+	c.Word.Intercept(interceptors...)
 }
 
 // Mutate implements the ent.Mutator interface.
 func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 	switch m := m.(type) {
+	case *DefinitionMutation:
+		return c.Definition.mutate(ctx, m)
 	case *TodoMutation:
 		return c.Todo.mutate(ctx, m)
+	case *WordMutation:
+		return c.Word.mutate(ctx, m)
 	default:
 		return nil, fmt.Errorf("ent: unknown mutation type %T", m)
+	}
+}
+
+// DefinitionClient is a client for the Definition schema.
+type DefinitionClient struct {
+	config
+}
+
+// NewDefinitionClient returns a client for the Definition from the given config.
+func NewDefinitionClient(c config) *DefinitionClient {
+	return &DefinitionClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `definition.Hooks(f(g(h())))`.
+func (c *DefinitionClient) Use(hooks ...Hook) {
+	c.hooks.Definition = append(c.hooks.Definition, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `definition.Intercept(f(g(h())))`.
+func (c *DefinitionClient) Intercept(interceptors ...Interceptor) {
+	c.inters.Definition = append(c.inters.Definition, interceptors...)
+}
+
+// Create returns a builder for creating a Definition entity.
+func (c *DefinitionClient) Create() *DefinitionCreate {
+	mutation := newDefinitionMutation(c.config, OpCreate)
+	return &DefinitionCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Definition entities.
+func (c *DefinitionClient) CreateBulk(builders ...*DefinitionCreate) *DefinitionCreateBulk {
+	return &DefinitionCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Definition.
+func (c *DefinitionClient) Update() *DefinitionUpdate {
+	mutation := newDefinitionMutation(c.config, OpUpdate)
+	return &DefinitionUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *DefinitionClient) UpdateOne(d *Definition) *DefinitionUpdateOne {
+	mutation := newDefinitionMutation(c.config, OpUpdateOne, withDefinition(d))
+	return &DefinitionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *DefinitionClient) UpdateOneID(id int) *DefinitionUpdateOne {
+	mutation := newDefinitionMutation(c.config, OpUpdateOne, withDefinitionID(id))
+	return &DefinitionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Definition.
+func (c *DefinitionClient) Delete() *DefinitionDelete {
+	mutation := newDefinitionMutation(c.config, OpDelete)
+	return &DefinitionDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *DefinitionClient) DeleteOne(d *Definition) *DefinitionDeleteOne {
+	return c.DeleteOneID(d.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *DefinitionClient) DeleteOneID(id int) *DefinitionDeleteOne {
+	builder := c.Delete().Where(definition.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &DefinitionDeleteOne{builder}
+}
+
+// Query returns a query builder for Definition.
+func (c *DefinitionClient) Query() *DefinitionQuery {
+	return &DefinitionQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeDefinition},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a Definition entity by its id.
+func (c *DefinitionClient) Get(ctx context.Context, id int) (*Definition, error) {
+	return c.Query().Where(definition.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *DefinitionClient) GetX(ctx context.Context, id int) *Definition {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryWord queries the word edge of a Definition.
+func (c *DefinitionClient) QueryWord(d *Definition) *WordQuery {
+	query := (&WordClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := d.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(definition.Table, definition.FieldID, id),
+			sqlgraph.To(word.Table, word.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, definition.WordTable, definition.WordColumn),
+		)
+		fromV = sqlgraph.Neighbors(d.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *DefinitionClient) Hooks() []Hook {
+	return c.hooks.Definition
+}
+
+// Interceptors returns the client interceptors.
+func (c *DefinitionClient) Interceptors() []Interceptor {
+	return c.inters.Definition
+}
+
+func (c *DefinitionClient) mutate(ctx context.Context, m *DefinitionMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&DefinitionCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&DefinitionUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&DefinitionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&DefinitionDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown Definition mutation op: %q", m.Op())
 	}
 }
 
@@ -308,12 +463,146 @@ func (c *TodoClient) mutate(ctx context.Context, m *TodoMutation) (Value, error)
 	}
 }
 
+// WordClient is a client for the Word schema.
+type WordClient struct {
+	config
+}
+
+// NewWordClient returns a client for the Word from the given config.
+func NewWordClient(c config) *WordClient {
+	return &WordClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `word.Hooks(f(g(h())))`.
+func (c *WordClient) Use(hooks ...Hook) {
+	c.hooks.Word = append(c.hooks.Word, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `word.Intercept(f(g(h())))`.
+func (c *WordClient) Intercept(interceptors ...Interceptor) {
+	c.inters.Word = append(c.inters.Word, interceptors...)
+}
+
+// Create returns a builder for creating a Word entity.
+func (c *WordClient) Create() *WordCreate {
+	mutation := newWordMutation(c.config, OpCreate)
+	return &WordCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Word entities.
+func (c *WordClient) CreateBulk(builders ...*WordCreate) *WordCreateBulk {
+	return &WordCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Word.
+func (c *WordClient) Update() *WordUpdate {
+	mutation := newWordMutation(c.config, OpUpdate)
+	return &WordUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *WordClient) UpdateOne(w *Word) *WordUpdateOne {
+	mutation := newWordMutation(c.config, OpUpdateOne, withWord(w))
+	return &WordUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *WordClient) UpdateOneID(id int) *WordUpdateOne {
+	mutation := newWordMutation(c.config, OpUpdateOne, withWordID(id))
+	return &WordUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Word.
+func (c *WordClient) Delete() *WordDelete {
+	mutation := newWordMutation(c.config, OpDelete)
+	return &WordDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *WordClient) DeleteOne(w *Word) *WordDeleteOne {
+	return c.DeleteOneID(w.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *WordClient) DeleteOneID(id int) *WordDeleteOne {
+	builder := c.Delete().Where(word.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &WordDeleteOne{builder}
+}
+
+// Query returns a query builder for Word.
+func (c *WordClient) Query() *WordQuery {
+	return &WordQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeWord},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a Word entity by its id.
+func (c *WordClient) Get(ctx context.Context, id int) (*Word, error) {
+	return c.Query().Where(word.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *WordClient) GetX(ctx context.Context, id int) *Word {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryDefinitions queries the definitions edge of a Word.
+func (c *WordClient) QueryDefinitions(w *Word) *DefinitionQuery {
+	query := (&DefinitionClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := w.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(word.Table, word.FieldID, id),
+			sqlgraph.To(definition.Table, definition.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, word.DefinitionsTable, word.DefinitionsColumn),
+		)
+		fromV = sqlgraph.Neighbors(w.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *WordClient) Hooks() []Hook {
+	return c.hooks.Word
+}
+
+// Interceptors returns the client interceptors.
+func (c *WordClient) Interceptors() []Interceptor {
+	return c.inters.Word
+}
+
+func (c *WordClient) mutate(ctx context.Context, m *WordMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&WordCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&WordUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&WordUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&WordDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown Word mutation op: %q", m.Op())
+	}
+}
+
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		Todo []ent.Hook
+		Definition, Todo, Word []ent.Hook
 	}
 	inters struct {
-		Todo []ent.Interceptor
+		Definition, Todo, Word []ent.Interceptor
 	}
 )

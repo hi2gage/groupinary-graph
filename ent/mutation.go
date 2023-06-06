@@ -6,8 +6,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"shrektionary_api/ent/definition"
 	"shrektionary_api/ent/predicate"
 	"shrektionary_api/ent/todo"
+	"shrektionary_api/ent/word"
 	"sync"
 
 	"entgo.io/ent"
@@ -23,8 +25,403 @@ const (
 	OpUpdateOne = ent.OpUpdateOne
 
 	// Node types.
-	TypeTodo = "Todo"
+	TypeDefinition = "Definition"
+	TypeTodo       = "Todo"
+	TypeWord       = "Word"
 )
+
+// DefinitionMutation represents an operation that mutates the Definition nodes in the graph.
+type DefinitionMutation struct {
+	config
+	op            Op
+	typ           string
+	id            *int
+	description   *string
+	clearedFields map[string]struct{}
+	word          *int
+	clearedword   bool
+	done          bool
+	oldValue      func(context.Context) (*Definition, error)
+	predicates    []predicate.Definition
+}
+
+var _ ent.Mutation = (*DefinitionMutation)(nil)
+
+// definitionOption allows management of the mutation configuration using functional options.
+type definitionOption func(*DefinitionMutation)
+
+// newDefinitionMutation creates new mutation for the Definition entity.
+func newDefinitionMutation(c config, op Op, opts ...definitionOption) *DefinitionMutation {
+	m := &DefinitionMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeDefinition,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withDefinitionID sets the ID field of the mutation.
+func withDefinitionID(id int) definitionOption {
+	return func(m *DefinitionMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *Definition
+		)
+		m.oldValue = func(ctx context.Context) (*Definition, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().Definition.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withDefinition sets the old Definition of the mutation.
+func withDefinition(node *Definition) definitionOption {
+	return func(m *DefinitionMutation) {
+		m.oldValue = func(context.Context) (*Definition, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m DefinitionMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m DefinitionMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *DefinitionMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *DefinitionMutation) IDs(ctx context.Context) ([]int, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().Definition.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetDescription sets the "description" field.
+func (m *DefinitionMutation) SetDescription(s string) {
+	m.description = &s
+}
+
+// Description returns the value of the "description" field in the mutation.
+func (m *DefinitionMutation) Description() (r string, exists bool) {
+	v := m.description
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDescription returns the old "description" field's value of the Definition entity.
+// If the Definition object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DefinitionMutation) OldDescription(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDescription is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDescription requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDescription: %w", err)
+	}
+	return oldValue.Description, nil
+}
+
+// ResetDescription resets all changes to the "description" field.
+func (m *DefinitionMutation) ResetDescription() {
+	m.description = nil
+}
+
+// SetWordID sets the "word" edge to the Word entity by id.
+func (m *DefinitionMutation) SetWordID(id int) {
+	m.word = &id
+}
+
+// ClearWord clears the "word" edge to the Word entity.
+func (m *DefinitionMutation) ClearWord() {
+	m.clearedword = true
+}
+
+// WordCleared reports if the "word" edge to the Word entity was cleared.
+func (m *DefinitionMutation) WordCleared() bool {
+	return m.clearedword
+}
+
+// WordID returns the "word" edge ID in the mutation.
+func (m *DefinitionMutation) WordID() (id int, exists bool) {
+	if m.word != nil {
+		return *m.word, true
+	}
+	return
+}
+
+// WordIDs returns the "word" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// WordID instead. It exists only for internal usage by the builders.
+func (m *DefinitionMutation) WordIDs() (ids []int) {
+	if id := m.word; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetWord resets all changes to the "word" edge.
+func (m *DefinitionMutation) ResetWord() {
+	m.word = nil
+	m.clearedword = false
+}
+
+// Where appends a list predicates to the DefinitionMutation builder.
+func (m *DefinitionMutation) Where(ps ...predicate.Definition) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the DefinitionMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *DefinitionMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.Definition, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *DefinitionMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *DefinitionMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (Definition).
+func (m *DefinitionMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *DefinitionMutation) Fields() []string {
+	fields := make([]string, 0, 1)
+	if m.description != nil {
+		fields = append(fields, definition.FieldDescription)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *DefinitionMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case definition.FieldDescription:
+		return m.Description()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *DefinitionMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case definition.FieldDescription:
+		return m.OldDescription(ctx)
+	}
+	return nil, fmt.Errorf("unknown Definition field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *DefinitionMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case definition.FieldDescription:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDescription(v)
+		return nil
+	}
+	return fmt.Errorf("unknown Definition field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *DefinitionMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *DefinitionMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *DefinitionMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown Definition numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *DefinitionMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *DefinitionMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *DefinitionMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown Definition nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *DefinitionMutation) ResetField(name string) error {
+	switch name {
+	case definition.FieldDescription:
+		m.ResetDescription()
+		return nil
+	}
+	return fmt.Errorf("unknown Definition field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *DefinitionMutation) AddedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.word != nil {
+		edges = append(edges, definition.EdgeWord)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *DefinitionMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case definition.EdgeWord:
+		if id := m.word; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *DefinitionMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 1)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *DefinitionMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *DefinitionMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.clearedword {
+		edges = append(edges, definition.EdgeWord)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *DefinitionMutation) EdgeCleared(name string) bool {
+	switch name {
+	case definition.EdgeWord:
+		return m.clearedword
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *DefinitionMutation) ClearEdge(name string) error {
+	switch name {
+	case definition.EdgeWord:
+		m.ClearWord()
+		return nil
+	}
+	return fmt.Errorf("unknown Definition unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *DefinitionMutation) ResetEdge(name string) error {
+	switch name {
+	case definition.EdgeWord:
+		m.ResetWord()
+		return nil
+	}
+	return fmt.Errorf("unknown Definition edge %s", name)
+}
 
 // TodoMutation represents an operation that mutates the Todo nodes in the graph.
 type TodoMutation struct {
@@ -33,7 +430,6 @@ type TodoMutation struct {
 	typ           string
 	id            *int
 	title         *string
-	description   *string
 	clearedFields map[string]struct{}
 	done          bool
 	oldValue      func(context.Context) (*Todo, error)
@@ -174,42 +570,6 @@ func (m *TodoMutation) ResetTitle() {
 	m.title = nil
 }
 
-// SetDescription sets the "description" field.
-func (m *TodoMutation) SetDescription(s string) {
-	m.description = &s
-}
-
-// Description returns the value of the "description" field in the mutation.
-func (m *TodoMutation) Description() (r string, exists bool) {
-	v := m.description
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldDescription returns the old "description" field's value of the Todo entity.
-// If the Todo object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *TodoMutation) OldDescription(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldDescription is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldDescription requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldDescription: %w", err)
-	}
-	return oldValue.Description, nil
-}
-
-// ResetDescription resets all changes to the "description" field.
-func (m *TodoMutation) ResetDescription() {
-	m.description = nil
-}
-
 // Where appends a list predicates to the TodoMutation builder.
 func (m *TodoMutation) Where(ps ...predicate.Todo) {
 	m.predicates = append(m.predicates, ps...)
@@ -244,12 +604,9 @@ func (m *TodoMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *TodoMutation) Fields() []string {
-	fields := make([]string, 0, 2)
+	fields := make([]string, 0, 1)
 	if m.title != nil {
 		fields = append(fields, todo.FieldTitle)
-	}
-	if m.description != nil {
-		fields = append(fields, todo.FieldDescription)
 	}
 	return fields
 }
@@ -261,8 +618,6 @@ func (m *TodoMutation) Field(name string) (ent.Value, bool) {
 	switch name {
 	case todo.FieldTitle:
 		return m.Title()
-	case todo.FieldDescription:
-		return m.Description()
 	}
 	return nil, false
 }
@@ -274,8 +629,6 @@ func (m *TodoMutation) OldField(ctx context.Context, name string) (ent.Value, er
 	switch name {
 	case todo.FieldTitle:
 		return m.OldTitle(ctx)
-	case todo.FieldDescription:
-		return m.OldDescription(ctx)
 	}
 	return nil, fmt.Errorf("unknown Todo field %s", name)
 }
@@ -291,13 +644,6 @@ func (m *TodoMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetTitle(v)
-		return nil
-	case todo.FieldDescription:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetDescription(v)
 		return nil
 	}
 	return fmt.Errorf("unknown Todo field %s", name)
@@ -351,9 +697,6 @@ func (m *TodoMutation) ResetField(name string) error {
 	case todo.FieldTitle:
 		m.ResetTitle()
 		return nil
-	case todo.FieldDescription:
-		m.ResetDescription()
-		return nil
 	}
 	return fmt.Errorf("unknown Todo field %s", name)
 }
@@ -404,4 +747,423 @@ func (m *TodoMutation) ClearEdge(name string) error {
 // It returns an error if the edge is not defined in the schema.
 func (m *TodoMutation) ResetEdge(name string) error {
 	return fmt.Errorf("unknown Todo edge %s", name)
+}
+
+// WordMutation represents an operation that mutates the Word nodes in the graph.
+type WordMutation struct {
+	config
+	op                 Op
+	typ                string
+	id                 *int
+	description        *string
+	clearedFields      map[string]struct{}
+	definitions        map[int]struct{}
+	removeddefinitions map[int]struct{}
+	cleareddefinitions bool
+	done               bool
+	oldValue           func(context.Context) (*Word, error)
+	predicates         []predicate.Word
+}
+
+var _ ent.Mutation = (*WordMutation)(nil)
+
+// wordOption allows management of the mutation configuration using functional options.
+type wordOption func(*WordMutation)
+
+// newWordMutation creates new mutation for the Word entity.
+func newWordMutation(c config, op Op, opts ...wordOption) *WordMutation {
+	m := &WordMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeWord,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withWordID sets the ID field of the mutation.
+func withWordID(id int) wordOption {
+	return func(m *WordMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *Word
+		)
+		m.oldValue = func(ctx context.Context) (*Word, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().Word.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withWord sets the old Word of the mutation.
+func withWord(node *Word) wordOption {
+	return func(m *WordMutation) {
+		m.oldValue = func(context.Context) (*Word, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m WordMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m WordMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *WordMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *WordMutation) IDs(ctx context.Context) ([]int, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().Word.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetDescription sets the "description" field.
+func (m *WordMutation) SetDescription(s string) {
+	m.description = &s
+}
+
+// Description returns the value of the "description" field in the mutation.
+func (m *WordMutation) Description() (r string, exists bool) {
+	v := m.description
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDescription returns the old "description" field's value of the Word entity.
+// If the Word object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *WordMutation) OldDescription(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDescription is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDescription requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDescription: %w", err)
+	}
+	return oldValue.Description, nil
+}
+
+// ResetDescription resets all changes to the "description" field.
+func (m *WordMutation) ResetDescription() {
+	m.description = nil
+}
+
+// AddDefinitionIDs adds the "definitions" edge to the Definition entity by ids.
+func (m *WordMutation) AddDefinitionIDs(ids ...int) {
+	if m.definitions == nil {
+		m.definitions = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.definitions[ids[i]] = struct{}{}
+	}
+}
+
+// ClearDefinitions clears the "definitions" edge to the Definition entity.
+func (m *WordMutation) ClearDefinitions() {
+	m.cleareddefinitions = true
+}
+
+// DefinitionsCleared reports if the "definitions" edge to the Definition entity was cleared.
+func (m *WordMutation) DefinitionsCleared() bool {
+	return m.cleareddefinitions
+}
+
+// RemoveDefinitionIDs removes the "definitions" edge to the Definition entity by IDs.
+func (m *WordMutation) RemoveDefinitionIDs(ids ...int) {
+	if m.removeddefinitions == nil {
+		m.removeddefinitions = make(map[int]struct{})
+	}
+	for i := range ids {
+		delete(m.definitions, ids[i])
+		m.removeddefinitions[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedDefinitions returns the removed IDs of the "definitions" edge to the Definition entity.
+func (m *WordMutation) RemovedDefinitionsIDs() (ids []int) {
+	for id := range m.removeddefinitions {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// DefinitionsIDs returns the "definitions" edge IDs in the mutation.
+func (m *WordMutation) DefinitionsIDs() (ids []int) {
+	for id := range m.definitions {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetDefinitions resets all changes to the "definitions" edge.
+func (m *WordMutation) ResetDefinitions() {
+	m.definitions = nil
+	m.cleareddefinitions = false
+	m.removeddefinitions = nil
+}
+
+// Where appends a list predicates to the WordMutation builder.
+func (m *WordMutation) Where(ps ...predicate.Word) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the WordMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *WordMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.Word, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *WordMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *WordMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (Word).
+func (m *WordMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *WordMutation) Fields() []string {
+	fields := make([]string, 0, 1)
+	if m.description != nil {
+		fields = append(fields, word.FieldDescription)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *WordMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case word.FieldDescription:
+		return m.Description()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *WordMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case word.FieldDescription:
+		return m.OldDescription(ctx)
+	}
+	return nil, fmt.Errorf("unknown Word field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *WordMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case word.FieldDescription:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDescription(v)
+		return nil
+	}
+	return fmt.Errorf("unknown Word field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *WordMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *WordMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *WordMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown Word numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *WordMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *WordMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *WordMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown Word nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *WordMutation) ResetField(name string) error {
+	switch name {
+	case word.FieldDescription:
+		m.ResetDescription()
+		return nil
+	}
+	return fmt.Errorf("unknown Word field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *WordMutation) AddedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.definitions != nil {
+		edges = append(edges, word.EdgeDefinitions)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *WordMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case word.EdgeDefinitions:
+		ids := make([]ent.Value, 0, len(m.definitions))
+		for id := range m.definitions {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *WordMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.removeddefinitions != nil {
+		edges = append(edges, word.EdgeDefinitions)
+	}
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *WordMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case word.EdgeDefinitions:
+		ids := make([]ent.Value, 0, len(m.removeddefinitions))
+		for id := range m.removeddefinitions {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *WordMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.cleareddefinitions {
+		edges = append(edges, word.EdgeDefinitions)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *WordMutation) EdgeCleared(name string) bool {
+	switch name {
+	case word.EdgeDefinitions:
+		return m.cleareddefinitions
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *WordMutation) ClearEdge(name string) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown Word unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *WordMutation) ResetEdge(name string) error {
+	switch name {
+	case word.EdgeDefinitions:
+		m.ResetDefinitions()
+		return nil
+	}
+	return fmt.Errorf("unknown Word edge %s", name)
 }

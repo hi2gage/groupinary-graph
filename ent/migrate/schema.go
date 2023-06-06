@@ -8,11 +8,30 @@ import (
 )
 
 var (
+	// DefinitionsColumns holds the columns for the "definitions" table.
+	DefinitionsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "description", Type: field.TypeString},
+		{Name: "word_definitions", Type: field.TypeInt, Nullable: true},
+	}
+	// DefinitionsTable holds the schema information for the "definitions" table.
+	DefinitionsTable = &schema.Table{
+		Name:       "definitions",
+		Columns:    DefinitionsColumns,
+		PrimaryKey: []*schema.Column{DefinitionsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "definitions_words_definitions",
+				Columns:    []*schema.Column{DefinitionsColumns[2]},
+				RefColumns: []*schema.Column{WordsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+	}
 	// TodosColumns holds the columns for the "todos" table.
 	TodosColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "title", Type: field.TypeString},
-		{Name: "description", Type: field.TypeString},
 	}
 	// TodosTable holds the schema information for the "todos" table.
 	TodosTable = &schema.Table{
@@ -20,11 +39,25 @@ var (
 		Columns:    TodosColumns,
 		PrimaryKey: []*schema.Column{TodosColumns[0]},
 	}
+	// WordsColumns holds the columns for the "words" table.
+	WordsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "description", Type: field.TypeString},
+	}
+	// WordsTable holds the schema information for the "words" table.
+	WordsTable = &schema.Table{
+		Name:       "words",
+		Columns:    WordsColumns,
+		PrimaryKey: []*schema.Column{WordsColumns[0]},
+	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
+		DefinitionsTable,
 		TodosTable,
+		WordsTable,
 	}
 )
 
 func init() {
+	DefinitionsTable.ForeignKeys[0].RefTable = WordsTable
 }

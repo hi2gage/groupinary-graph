@@ -3,18 +3,32 @@
 package ent
 
 import (
+	"shrektionary_api/ent/definition"
 	"shrektionary_api/ent/schema"
 	"shrektionary_api/ent/todo"
+	"shrektionary_api/ent/word"
 )
 
 // The init function reads all schema descriptors with runtime code
 // (default values, validators, hooks and policies) and stitches it
 // to their package variables.
 func init() {
+	definitionFields := schema.Definition{}.Fields()
+	_ = definitionFields
+	// definitionDescDescription is the schema descriptor for description field.
+	definitionDescDescription := definitionFields[0].Descriptor()
+	// definition.DescriptionValidator is a validator for the "description" field. It is called by the builders before save.
+	definition.DescriptionValidator = definitionDescDescription.Validators[0].(func(string) error)
 	todoFields := schema.Todo{}.Fields()
 	_ = todoFields
 	// todoDescTitle is the schema descriptor for title field.
 	todoDescTitle := todoFields[0].Descriptor()
 	// todo.TitleValidator is a validator for the "title" field. It is called by the builders before save.
 	todo.TitleValidator = todoDescTitle.Validators[0].(func(string) error)
+	wordFields := schema.Word{}.Fields()
+	_ = wordFields
+	// wordDescDescription is the schema descriptor for description field.
+	wordDescDescription := wordFields[0].Descriptor()
+	// word.DescriptionValidator is a validator for the "description" field. It is called by the builders before save.
+	word.DescriptionValidator = wordDescDescription.Validators[0].(func(string) error)
 }

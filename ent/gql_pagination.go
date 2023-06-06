@@ -5,7 +5,9 @@ package ent
 import (
 	"context"
 	"errors"
+	"shrektionary_api/ent/definition"
 	"shrektionary_api/ent/todo"
+	"shrektionary_api/ent/word"
 
 	"entgo.io/contrib/entgql"
 	"entgo.io/ent"
@@ -93,6 +95,254 @@ func paginateLimit(first, last *int) int {
 		limit = *last + 1
 	}
 	return limit
+}
+
+// DefinitionEdge is the edge representation of Definition.
+type DefinitionEdge struct {
+	Node   *Definition `json:"node"`
+	Cursor Cursor      `json:"cursor"`
+}
+
+// DefinitionConnection is the connection containing edges to Definition.
+type DefinitionConnection struct {
+	Edges      []*DefinitionEdge `json:"edges"`
+	PageInfo   PageInfo          `json:"pageInfo"`
+	TotalCount int               `json:"totalCount"`
+}
+
+func (c *DefinitionConnection) build(nodes []*Definition, pager *definitionPager, after *Cursor, first *int, before *Cursor, last *int) {
+	c.PageInfo.HasNextPage = before != nil
+	c.PageInfo.HasPreviousPage = after != nil
+	if first != nil && *first+1 == len(nodes) {
+		c.PageInfo.HasNextPage = true
+		nodes = nodes[:len(nodes)-1]
+	} else if last != nil && *last+1 == len(nodes) {
+		c.PageInfo.HasPreviousPage = true
+		nodes = nodes[:len(nodes)-1]
+	}
+	var nodeAt func(int) *Definition
+	if last != nil {
+		n := len(nodes) - 1
+		nodeAt = func(i int) *Definition {
+			return nodes[n-i]
+		}
+	} else {
+		nodeAt = func(i int) *Definition {
+			return nodes[i]
+		}
+	}
+	c.Edges = make([]*DefinitionEdge, len(nodes))
+	for i := range nodes {
+		node := nodeAt(i)
+		c.Edges[i] = &DefinitionEdge{
+			Node:   node,
+			Cursor: pager.toCursor(node),
+		}
+	}
+	if l := len(c.Edges); l > 0 {
+		c.PageInfo.StartCursor = &c.Edges[0].Cursor
+		c.PageInfo.EndCursor = &c.Edges[l-1].Cursor
+	}
+	if c.TotalCount == 0 {
+		c.TotalCount = len(nodes)
+	}
+}
+
+// DefinitionPaginateOption enables pagination customization.
+type DefinitionPaginateOption func(*definitionPager) error
+
+// WithDefinitionOrder configures pagination ordering.
+func WithDefinitionOrder(order *DefinitionOrder) DefinitionPaginateOption {
+	if order == nil {
+		order = DefaultDefinitionOrder
+	}
+	o := *order
+	return func(pager *definitionPager) error {
+		if err := o.Direction.Validate(); err != nil {
+			return err
+		}
+		if o.Field == nil {
+			o.Field = DefaultDefinitionOrder.Field
+		}
+		pager.order = &o
+		return nil
+	}
+}
+
+// WithDefinitionFilter configures pagination filter.
+func WithDefinitionFilter(filter func(*DefinitionQuery) (*DefinitionQuery, error)) DefinitionPaginateOption {
+	return func(pager *definitionPager) error {
+		if filter == nil {
+			return errors.New("DefinitionQuery filter cannot be nil")
+		}
+		pager.filter = filter
+		return nil
+	}
+}
+
+type definitionPager struct {
+	reverse bool
+	order   *DefinitionOrder
+	filter  func(*DefinitionQuery) (*DefinitionQuery, error)
+}
+
+func newDefinitionPager(opts []DefinitionPaginateOption, reverse bool) (*definitionPager, error) {
+	pager := &definitionPager{reverse: reverse}
+	for _, opt := range opts {
+		if err := opt(pager); err != nil {
+			return nil, err
+		}
+	}
+	if pager.order == nil {
+		pager.order = DefaultDefinitionOrder
+	}
+	return pager, nil
+}
+
+func (p *definitionPager) applyFilter(query *DefinitionQuery) (*DefinitionQuery, error) {
+	if p.filter != nil {
+		return p.filter(query)
+	}
+	return query, nil
+}
+
+func (p *definitionPager) toCursor(d *Definition) Cursor {
+	return p.order.Field.toCursor(d)
+}
+
+func (p *definitionPager) applyCursors(query *DefinitionQuery, after, before *Cursor) (*DefinitionQuery, error) {
+	direction := p.order.Direction
+	if p.reverse {
+		direction = direction.Reverse()
+	}
+	for _, predicate := range entgql.CursorsPredicate(after, before, DefaultDefinitionOrder.Field.column, p.order.Field.column, direction) {
+		query = query.Where(predicate)
+	}
+	return query, nil
+}
+
+func (p *definitionPager) applyOrder(query *DefinitionQuery) *DefinitionQuery {
+	direction := p.order.Direction
+	if p.reverse {
+		direction = direction.Reverse()
+	}
+	query = query.Order(p.order.Field.toTerm(direction.OrderTermOption()))
+	if p.order.Field != DefaultDefinitionOrder.Field {
+		query = query.Order(DefaultDefinitionOrder.Field.toTerm(direction.OrderTermOption()))
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(p.order.Field.column)
+	}
+	return query
+}
+
+func (p *definitionPager) orderExpr(query *DefinitionQuery) sql.Querier {
+	direction := p.order.Direction
+	if p.reverse {
+		direction = direction.Reverse()
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(p.order.Field.column)
+	}
+	return sql.ExprFunc(func(b *sql.Builder) {
+		b.Ident(p.order.Field.column).Pad().WriteString(string(direction))
+		if p.order.Field != DefaultDefinitionOrder.Field {
+			b.Comma().Ident(DefaultDefinitionOrder.Field.column).Pad().WriteString(string(direction))
+		}
+	})
+}
+
+// Paginate executes the query and returns a relay based cursor connection to Definition.
+func (d *DefinitionQuery) Paginate(
+	ctx context.Context, after *Cursor, first *int,
+	before *Cursor, last *int, opts ...DefinitionPaginateOption,
+) (*DefinitionConnection, error) {
+	if err := validateFirstLast(first, last); err != nil {
+		return nil, err
+	}
+	pager, err := newDefinitionPager(opts, last != nil)
+	if err != nil {
+		return nil, err
+	}
+	if d, err = pager.applyFilter(d); err != nil {
+		return nil, err
+	}
+	conn := &DefinitionConnection{Edges: []*DefinitionEdge{}}
+	ignoredEdges := !hasCollectedField(ctx, edgesField)
+	if hasCollectedField(ctx, totalCountField) || hasCollectedField(ctx, pageInfoField) {
+		hasPagination := after != nil || first != nil || before != nil || last != nil
+		if hasPagination || ignoredEdges {
+			c := d.Clone()
+			c.ctx.Fields = nil
+			if conn.TotalCount, err = c.Count(ctx); err != nil {
+				return nil, err
+			}
+			conn.PageInfo.HasNextPage = first != nil && conn.TotalCount > 0
+			conn.PageInfo.HasPreviousPage = last != nil && conn.TotalCount > 0
+		}
+	}
+	if ignoredEdges || (first != nil && *first == 0) || (last != nil && *last == 0) {
+		return conn, nil
+	}
+	if d, err = pager.applyCursors(d, after, before); err != nil {
+		return nil, err
+	}
+	if limit := paginateLimit(first, last); limit != 0 {
+		d.Limit(limit)
+	}
+	if field := collectedField(ctx, edgesField, nodeField); field != nil {
+		if err := d.collectField(ctx, graphql.GetOperationContext(ctx), *field, []string{edgesField, nodeField}); err != nil {
+			return nil, err
+		}
+	}
+	d = pager.applyOrder(d)
+	nodes, err := d.All(ctx)
+	if err != nil {
+		return nil, err
+	}
+	conn.build(nodes, pager, after, first, before, last)
+	return conn, nil
+}
+
+// DefinitionOrderField defines the ordering field of Definition.
+type DefinitionOrderField struct {
+	// Value extracts the ordering value from the given Definition.
+	Value    func(*Definition) (ent.Value, error)
+	column   string // field or computed.
+	toTerm   func(...sql.OrderTermOption) definition.OrderOption
+	toCursor func(*Definition) Cursor
+}
+
+// DefinitionOrder defines the ordering of Definition.
+type DefinitionOrder struct {
+	Direction OrderDirection        `json:"direction"`
+	Field     *DefinitionOrderField `json:"field"`
+}
+
+// DefaultDefinitionOrder is the default ordering of Definition.
+var DefaultDefinitionOrder = &DefinitionOrder{
+	Direction: entgql.OrderDirectionAsc,
+	Field: &DefinitionOrderField{
+		Value: func(d *Definition) (ent.Value, error) {
+			return d.ID, nil
+		},
+		column: definition.FieldID,
+		toTerm: definition.ByID,
+		toCursor: func(d *Definition) Cursor {
+			return Cursor{ID: d.ID}
+		},
+	},
+}
+
+// ToEdge converts Definition into DefinitionEdge.
+func (d *Definition) ToEdge(order *DefinitionOrder) *DefinitionEdge {
+	if order == nil {
+		order = DefaultDefinitionOrder
+	}
+	return &DefinitionEdge{
+		Node:   d,
+		Cursor: order.Field.toCursor(d),
+	}
 }
 
 // TodoEdge is the edge representation of Todo.
@@ -340,5 +590,253 @@ func (t *Todo) ToEdge(order *TodoOrder) *TodoEdge {
 	return &TodoEdge{
 		Node:   t,
 		Cursor: order.Field.toCursor(t),
+	}
+}
+
+// WordEdge is the edge representation of Word.
+type WordEdge struct {
+	Node   *Word  `json:"node"`
+	Cursor Cursor `json:"cursor"`
+}
+
+// WordConnection is the connection containing edges to Word.
+type WordConnection struct {
+	Edges      []*WordEdge `json:"edges"`
+	PageInfo   PageInfo    `json:"pageInfo"`
+	TotalCount int         `json:"totalCount"`
+}
+
+func (c *WordConnection) build(nodes []*Word, pager *wordPager, after *Cursor, first *int, before *Cursor, last *int) {
+	c.PageInfo.HasNextPage = before != nil
+	c.PageInfo.HasPreviousPage = after != nil
+	if first != nil && *first+1 == len(nodes) {
+		c.PageInfo.HasNextPage = true
+		nodes = nodes[:len(nodes)-1]
+	} else if last != nil && *last+1 == len(nodes) {
+		c.PageInfo.HasPreviousPage = true
+		nodes = nodes[:len(nodes)-1]
+	}
+	var nodeAt func(int) *Word
+	if last != nil {
+		n := len(nodes) - 1
+		nodeAt = func(i int) *Word {
+			return nodes[n-i]
+		}
+	} else {
+		nodeAt = func(i int) *Word {
+			return nodes[i]
+		}
+	}
+	c.Edges = make([]*WordEdge, len(nodes))
+	for i := range nodes {
+		node := nodeAt(i)
+		c.Edges[i] = &WordEdge{
+			Node:   node,
+			Cursor: pager.toCursor(node),
+		}
+	}
+	if l := len(c.Edges); l > 0 {
+		c.PageInfo.StartCursor = &c.Edges[0].Cursor
+		c.PageInfo.EndCursor = &c.Edges[l-1].Cursor
+	}
+	if c.TotalCount == 0 {
+		c.TotalCount = len(nodes)
+	}
+}
+
+// WordPaginateOption enables pagination customization.
+type WordPaginateOption func(*wordPager) error
+
+// WithWordOrder configures pagination ordering.
+func WithWordOrder(order *WordOrder) WordPaginateOption {
+	if order == nil {
+		order = DefaultWordOrder
+	}
+	o := *order
+	return func(pager *wordPager) error {
+		if err := o.Direction.Validate(); err != nil {
+			return err
+		}
+		if o.Field == nil {
+			o.Field = DefaultWordOrder.Field
+		}
+		pager.order = &o
+		return nil
+	}
+}
+
+// WithWordFilter configures pagination filter.
+func WithWordFilter(filter func(*WordQuery) (*WordQuery, error)) WordPaginateOption {
+	return func(pager *wordPager) error {
+		if filter == nil {
+			return errors.New("WordQuery filter cannot be nil")
+		}
+		pager.filter = filter
+		return nil
+	}
+}
+
+type wordPager struct {
+	reverse bool
+	order   *WordOrder
+	filter  func(*WordQuery) (*WordQuery, error)
+}
+
+func newWordPager(opts []WordPaginateOption, reverse bool) (*wordPager, error) {
+	pager := &wordPager{reverse: reverse}
+	for _, opt := range opts {
+		if err := opt(pager); err != nil {
+			return nil, err
+		}
+	}
+	if pager.order == nil {
+		pager.order = DefaultWordOrder
+	}
+	return pager, nil
+}
+
+func (p *wordPager) applyFilter(query *WordQuery) (*WordQuery, error) {
+	if p.filter != nil {
+		return p.filter(query)
+	}
+	return query, nil
+}
+
+func (p *wordPager) toCursor(w *Word) Cursor {
+	return p.order.Field.toCursor(w)
+}
+
+func (p *wordPager) applyCursors(query *WordQuery, after, before *Cursor) (*WordQuery, error) {
+	direction := p.order.Direction
+	if p.reverse {
+		direction = direction.Reverse()
+	}
+	for _, predicate := range entgql.CursorsPredicate(after, before, DefaultWordOrder.Field.column, p.order.Field.column, direction) {
+		query = query.Where(predicate)
+	}
+	return query, nil
+}
+
+func (p *wordPager) applyOrder(query *WordQuery) *WordQuery {
+	direction := p.order.Direction
+	if p.reverse {
+		direction = direction.Reverse()
+	}
+	query = query.Order(p.order.Field.toTerm(direction.OrderTermOption()))
+	if p.order.Field != DefaultWordOrder.Field {
+		query = query.Order(DefaultWordOrder.Field.toTerm(direction.OrderTermOption()))
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(p.order.Field.column)
+	}
+	return query
+}
+
+func (p *wordPager) orderExpr(query *WordQuery) sql.Querier {
+	direction := p.order.Direction
+	if p.reverse {
+		direction = direction.Reverse()
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(p.order.Field.column)
+	}
+	return sql.ExprFunc(func(b *sql.Builder) {
+		b.Ident(p.order.Field.column).Pad().WriteString(string(direction))
+		if p.order.Field != DefaultWordOrder.Field {
+			b.Comma().Ident(DefaultWordOrder.Field.column).Pad().WriteString(string(direction))
+		}
+	})
+}
+
+// Paginate executes the query and returns a relay based cursor connection to Word.
+func (w *WordQuery) Paginate(
+	ctx context.Context, after *Cursor, first *int,
+	before *Cursor, last *int, opts ...WordPaginateOption,
+) (*WordConnection, error) {
+	if err := validateFirstLast(first, last); err != nil {
+		return nil, err
+	}
+	pager, err := newWordPager(opts, last != nil)
+	if err != nil {
+		return nil, err
+	}
+	if w, err = pager.applyFilter(w); err != nil {
+		return nil, err
+	}
+	conn := &WordConnection{Edges: []*WordEdge{}}
+	ignoredEdges := !hasCollectedField(ctx, edgesField)
+	if hasCollectedField(ctx, totalCountField) || hasCollectedField(ctx, pageInfoField) {
+		hasPagination := after != nil || first != nil || before != nil || last != nil
+		if hasPagination || ignoredEdges {
+			c := w.Clone()
+			c.ctx.Fields = nil
+			if conn.TotalCount, err = c.Count(ctx); err != nil {
+				return nil, err
+			}
+			conn.PageInfo.HasNextPage = first != nil && conn.TotalCount > 0
+			conn.PageInfo.HasPreviousPage = last != nil && conn.TotalCount > 0
+		}
+	}
+	if ignoredEdges || (first != nil && *first == 0) || (last != nil && *last == 0) {
+		return conn, nil
+	}
+	if w, err = pager.applyCursors(w, after, before); err != nil {
+		return nil, err
+	}
+	if limit := paginateLimit(first, last); limit != 0 {
+		w.Limit(limit)
+	}
+	if field := collectedField(ctx, edgesField, nodeField); field != nil {
+		if err := w.collectField(ctx, graphql.GetOperationContext(ctx), *field, []string{edgesField, nodeField}); err != nil {
+			return nil, err
+		}
+	}
+	w = pager.applyOrder(w)
+	nodes, err := w.All(ctx)
+	if err != nil {
+		return nil, err
+	}
+	conn.build(nodes, pager, after, first, before, last)
+	return conn, nil
+}
+
+// WordOrderField defines the ordering field of Word.
+type WordOrderField struct {
+	// Value extracts the ordering value from the given Word.
+	Value    func(*Word) (ent.Value, error)
+	column   string // field or computed.
+	toTerm   func(...sql.OrderTermOption) word.OrderOption
+	toCursor func(*Word) Cursor
+}
+
+// WordOrder defines the ordering of Word.
+type WordOrder struct {
+	Direction OrderDirection  `json:"direction"`
+	Field     *WordOrderField `json:"field"`
+}
+
+// DefaultWordOrder is the default ordering of Word.
+var DefaultWordOrder = &WordOrder{
+	Direction: entgql.OrderDirectionAsc,
+	Field: &WordOrderField{
+		Value: func(w *Word) (ent.Value, error) {
+			return w.ID, nil
+		},
+		column: word.FieldID,
+		toTerm: word.ByID,
+		toCursor: func(w *Word) Cursor {
+			return Cursor{ID: w.ID}
+		},
+	},
+}
+
+// ToEdge converts Word into WordEdge.
+func (w *Word) ToEdge(order *WordOrder) *WordEdge {
+	if order == nil {
+		order = DefaultWordOrder
+	}
+	return &WordEdge{
+		Node:   w,
+		Cursor: order.Field.toCursor(w),
 	}
 }
