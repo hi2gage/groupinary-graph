@@ -7,7 +7,9 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
+	"shrektionary_api/ent/definition"
 	"shrektionary_api/ent/todo"
+	"shrektionary_api/ent/word"
 	"sync"
 
 	"entgo.io/ent"
@@ -73,7 +75,9 @@ var (
 func checkColumn(table, column string) error {
 	initCheck.Do(func() {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
-			todo.Table: todo.ValidColumn,
+			definition.Table: definition.ValidColumn,
+			todo.Table:       todo.ValidColumn,
+			word.Table:       word.ValidColumn,
 		})
 	})
 	return columnCheck(table, column)

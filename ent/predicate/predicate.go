@@ -6,5 +6,11 @@ import (
 	"entgo.io/ent/dialect/sql"
 )
 
+// Definition is the predicate function for definition builders.
+type Definition func(*sql.Selector)
+
 // Todo is the predicate function for todo builders.
 type Todo func(*sql.Selector)
+
+// Word is the predicate function for word builders.
+type Word func(*sql.Selector)

@@ -33,12 +33,6 @@ func (tu *TodoUpdate) SetTitle(s string) *TodoUpdate {
 	return tu
 }
 
-// SetDescription sets the "description" field.
-func (tu *TodoUpdate) SetDescription(s string) *TodoUpdate {
-	tu.mutation.SetDescription(s)
-	return tu
-}
-
 // Mutation returns the TodoMutation object of the builder.
 func (tu *TodoUpdate) Mutation() *TodoMutation {
 	return tu.mutation
@@ -96,9 +90,6 @@ func (tu *TodoUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := tu.mutation.Title(); ok {
 		_spec.SetField(todo.FieldTitle, field.TypeString, value)
 	}
-	if value, ok := tu.mutation.Description(); ok {
-		_spec.SetField(todo.FieldDescription, field.TypeString, value)
-	}
 	if n, err = sqlgraph.UpdateNodes(ctx, tu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{todo.Label}
@@ -122,12 +113,6 @@ type TodoUpdateOne struct {
 // SetTitle sets the "title" field.
 func (tuo *TodoUpdateOne) SetTitle(s string) *TodoUpdateOne {
 	tuo.mutation.SetTitle(s)
-	return tuo
-}
-
-// SetDescription sets the "description" field.
-func (tuo *TodoUpdateOne) SetDescription(s string) *TodoUpdateOne {
-	tuo.mutation.SetDescription(s)
 	return tuo
 }
 
@@ -217,9 +202,6 @@ func (tuo *TodoUpdateOne) sqlSave(ctx context.Context) (_node *Todo, err error) 
 	}
 	if value, ok := tuo.mutation.Title(); ok {
 		_spec.SetField(todo.FieldTitle, field.TypeString, value)
-	}
-	if value, ok := tuo.mutation.Description(); ok {
-		_spec.SetField(todo.FieldDescription, field.TypeString, value)
 	}
 	_node = &Todo{config: tuo.config}
 	_spec.Assign = _node.assignValues

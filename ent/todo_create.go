@@ -25,12 +25,6 @@ func (tc *TodoCreate) SetTitle(s string) *TodoCreate {
 	return tc
 }
 
-// SetDescription sets the "description" field.
-func (tc *TodoCreate) SetDescription(s string) *TodoCreate {
-	tc.mutation.SetDescription(s)
-	return tc
-}
-
 // Mutation returns the TodoMutation object of the builder.
 func (tc *TodoCreate) Mutation() *TodoMutation {
 	return tc.mutation
@@ -73,9 +67,6 @@ func (tc *TodoCreate) check() error {
 			return &ValidationError{Name: "title", err: fmt.Errorf(`ent: validator failed for field "Todo.title": %w`, err)}
 		}
 	}
-	if _, ok := tc.mutation.Description(); !ok {
-		return &ValidationError{Name: "description", err: errors.New(`ent: missing required field "Todo.description"`)}
-	}
 	return nil
 }
 
@@ -105,10 +96,6 @@ func (tc *TodoCreate) createSpec() (*Todo, *sqlgraph.CreateSpec) {
 	if value, ok := tc.mutation.Title(); ok {
 		_spec.SetField(todo.FieldTitle, field.TypeString, value)
 		_node.Title = value
-	}
-	if value, ok := tc.mutation.Description(); ok {
-		_spec.SetField(todo.FieldDescription, field.TypeString, value)
-		_node.Description = value
 	}
 	return _node, _spec
 }
