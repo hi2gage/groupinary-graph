@@ -63,6 +63,8 @@ func main() {
 
 	corsHandler := cors.New(corsOptions).Handler(srv)
 
+	// authMiddleware = middleware.EnsureValidToken()
+
 	http.Handle("/", playground.Handler("GraphQL playground", "/query"))
 	http.Handle("/query", corsHandler)
 
