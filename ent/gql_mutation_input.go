@@ -22,6 +22,54 @@ func (c *DefinitionCreate) SetInput(i CreateDefinitionInput) *DefinitionCreate {
 	return c
 }
 
+// UpdateDefinitionInput represents a mutation input for updating definitions.
+type UpdateDefinitionInput struct {
+	Description *string
+	ClearWord   bool
+	WordID      *int
+}
+
+// Mutate applies the UpdateDefinitionInput on the DefinitionMutation builder.
+func (i *UpdateDefinitionInput) Mutate(m *DefinitionMutation) {
+	if v := i.Description; v != nil {
+		m.SetDescription(*v)
+	}
+	if i.ClearWord {
+		m.ClearWord()
+	}
+	if v := i.WordID; v != nil {
+		m.SetWordID(*v)
+	}
+}
+
+// SetInput applies the change-set in the UpdateDefinitionInput on the DefinitionUpdate builder.
+func (c *DefinitionUpdate) SetInput(i UpdateDefinitionInput) *DefinitionUpdate {
+	i.Mutate(c.Mutation())
+	return c
+}
+
+// SetInput applies the change-set in the UpdateDefinitionInput on the DefinitionUpdateOne builder.
+func (c *DefinitionUpdateOne) SetInput(i UpdateDefinitionInput) *DefinitionUpdateOne {
+	i.Mutate(c.Mutation())
+	return c
+}
+
+// CreateGroupInput represents a mutation input for creating groups.
+type CreateGroupInput struct {
+	Description string
+}
+
+// Mutate applies the CreateGroupInput on the GroupMutation builder.
+func (i *CreateGroupInput) Mutate(m *GroupMutation) {
+	m.SetDescription(i.Description)
+}
+
+// SetInput applies the change-set in the CreateGroupInput on the GroupCreate builder.
+func (c *GroupCreate) SetInput(i CreateGroupInput) *GroupCreate {
+	i.Mutate(c.Mutation())
+	return c
+}
+
 // CreateWordInput represents a mutation input for creating words.
 type CreateWordInput struct {
 	Description   string
@@ -38,6 +86,22 @@ func (i *CreateWordInput) Mutate(m *WordMutation) {
 
 // SetInput applies the change-set in the CreateWordInput on the WordCreate builder.
 func (c *WordCreate) SetInput(i CreateWordInput) *WordCreate {
+	i.Mutate(c.Mutation())
+	return c
+}
+
+// CreateWordConnectionsInput represents a mutation input for creating wordconnectionsslice.
+type CreateWordConnectionsInput struct {
+	Description string
+}
+
+// Mutate applies the CreateWordConnectionsInput on the WordConnectionsMutation builder.
+func (i *CreateWordConnectionsInput) Mutate(m *WordConnectionsMutation) {
+	m.SetDescription(i.Description)
+}
+
+// SetInput applies the change-set in the CreateWordConnectionsInput on the WordConnectionsCreate builder.
+func (c *WordConnectionsCreate) SetInput(i CreateWordConnectionsInput) *WordConnectionsCreate {
 	i.Mutate(c.Mutation())
 	return c
 }

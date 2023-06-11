@@ -14,8 +14,12 @@ type Tx struct {
 	config
 	// Definition is the client for interacting with the Definition builders.
 	Definition *DefinitionClient
+	// Group is the client for interacting with the Group builders.
+	Group *GroupClient
 	// Word is the client for interacting with the Word builders.
 	Word *WordClient
+	// WordConnections is the client for interacting with the WordConnections builders.
+	WordConnections *WordConnectionsClient
 
 	// lazily loaded.
 	client     *Client
@@ -148,7 +152,9 @@ func (tx *Tx) Client() *Client {
 
 func (tx *Tx) init() {
 	tx.Definition = NewDefinitionClient(tx.config)
+	tx.Group = NewGroupClient(tx.config)
 	tx.Word = NewWordClient(tx.config)
+	tx.WordConnections = NewWordConnectionsClient(tx.config)
 }
 
 // txDriver wraps the given dialect.Tx with a nop dialect.Driver implementation.

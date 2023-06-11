@@ -6,7 +6,9 @@ import (
 	"context"
 	"fmt"
 	"shrektionary_api/ent/definition"
+	"shrektionary_api/ent/group"
 	"shrektionary_api/ent/word"
+	"shrektionary_api/ent/wordconnections"
 	"sync"
 	"sync/atomic"
 
@@ -28,7 +30,13 @@ type Noder interface {
 func (n *Definition) IsNode() {}
 
 // IsNode implements the Node interface check for GQLGen.
+func (n *Group) IsNode() {}
+
+// IsNode implements the Node interface check for GQLGen.
 func (n *Word) IsNode() {}
+
+// IsNode implements the Node interface check for GQLGen.
+func (n *WordConnections) IsNode() {}
 
 var errNodeInvalidID = &NotFoundError{"node"}
 
@@ -100,10 +108,34 @@ func (c *Client) noder(ctx context.Context, table string, id int) (Noder, error)
 			return nil, err
 		}
 		return n, nil
+	case group.Table:
+		query := c.Group.Query().
+			Where(group.ID(id))
+		query, err := query.CollectFields(ctx, "Group")
+		if err != nil {
+			return nil, err
+		}
+		n, err := query.Only(ctx)
+		if err != nil {
+			return nil, err
+		}
+		return n, nil
 	case word.Table:
 		query := c.Word.Query().
 			Where(word.ID(id))
 		query, err := query.CollectFields(ctx, "Word")
+		if err != nil {
+			return nil, err
+		}
+		n, err := query.Only(ctx)
+		if err != nil {
+			return nil, err
+		}
+		return n, nil
+	case wordconnections.Table:
+		query := c.WordConnections.Query().
+			Where(wordconnections.ID(id))
+		query, err := query.CollectFields(ctx, "WordConnections")
 		if err != nil {
 			return nil, err
 		}
@@ -201,10 +233,42 @@ func (c *Client) noders(ctx context.Context, table string, ids []int) ([]Noder, 
 				*noder = node
 			}
 		}
+	case group.Table:
+		query := c.Group.Query().
+			Where(group.IDIn(ids...))
+		query, err := query.CollectFields(ctx, "Group")
+		if err != nil {
+			return nil, err
+		}
+		nodes, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, node := range nodes {
+			for _, noder := range idmap[node.ID] {
+				*noder = node
+			}
+		}
 	case word.Table:
 		query := c.Word.Query().
 			Where(word.IDIn(ids...))
 		query, err := query.CollectFields(ctx, "Word")
+		if err != nil {
+			return nil, err
+		}
+		nodes, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, node := range nodes {
+			for _, noder := range idmap[node.ID] {
+				*noder = node
+			}
+		}
+	case wordconnections.Table:
+		query := c.WordConnections.Query().
+			Where(wordconnections.IDIn(ids...))
+		query, err := query.CollectFields(ctx, "WordConnections")
 		if err != nil {
 			return nil, err
 		}
