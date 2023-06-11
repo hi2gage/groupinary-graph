@@ -50,6 +50,17 @@ type ComplexityRoot struct {
 		Word        func(childComplexity int) int
 	}
 
+	DefinitionConnection struct {
+		Edges      func(childComplexity int) int
+		PageInfo   func(childComplexity int) int
+		TotalCount func(childComplexity int) int
+	}
+
+	DefinitionEdge struct {
+		Cursor func(childComplexity int) int
+		Node   func(childComplexity int) int
+	}
+
 	Group struct {
 		Description func(childComplexity int) int
 		ID          func(childComplexity int) int
@@ -63,7 +74,7 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
-		Definitions          func(childComplexity int) int
+		Definitions          func(childComplexity int, after *entgql.Cursor[int], first *int, before *entgql.Cursor[int], last *int, orderBy *ent.DefinitionOrder) int
 		Groups               func(childComplexity int) int
 		Node                 func(childComplexity int, id int) int
 		Nodes                func(childComplexity int, ids []int) int
@@ -97,7 +108,7 @@ type ComplexityRoot struct {
 type QueryResolver interface {
 	Node(ctx context.Context, id int) (ent.Noder, error)
 	Nodes(ctx context.Context, ids []int) ([]ent.Noder, error)
-	Definitions(ctx context.Context) ([]*ent.Definition, error)
+	Definitions(ctx context.Context, after *entgql.Cursor[int], first *int, before *entgql.Cursor[int], last *int, orderBy *ent.DefinitionOrder) (*ent.DefinitionConnection, error)
 	Groups(ctx context.Context) ([]*ent.Group, error)
 	Words(ctx context.Context) ([]*ent.Word, error)
 	WordConnectionsSlice(ctx context.Context, after *entgql.Cursor[int], first *int, before *entgql.Cursor[int], last *int) (*ent.WordConnectionsConnection, error)
@@ -138,6 +149,41 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Definition.Word(childComplexity), true
+
+	case "DefinitionConnection.edges":
+		if e.complexity.DefinitionConnection.Edges == nil {
+			break
+		}
+
+		return e.complexity.DefinitionConnection.Edges(childComplexity), true
+
+	case "DefinitionConnection.pageInfo":
+		if e.complexity.DefinitionConnection.PageInfo == nil {
+			break
+		}
+
+		return e.complexity.DefinitionConnection.PageInfo(childComplexity), true
+
+	case "DefinitionConnection.totalCount":
+		if e.complexity.DefinitionConnection.TotalCount == nil {
+			break
+		}
+
+		return e.complexity.DefinitionConnection.TotalCount(childComplexity), true
+
+	case "DefinitionEdge.cursor":
+		if e.complexity.DefinitionEdge.Cursor == nil {
+			break
+		}
+
+		return e.complexity.DefinitionEdge.Cursor(childComplexity), true
+
+	case "DefinitionEdge.node":
+		if e.complexity.DefinitionEdge.Node == nil {
+			break
+		}
+
+		return e.complexity.DefinitionEdge.Node(childComplexity), true
 
 	case "Group.description":
 		if e.complexity.Group.Description == nil {
@@ -186,7 +232,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			break
 		}
 
-		return e.complexity.Query.Definitions(childComplexity), true
+		args, err := ec.field_Query_definitions_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.Definitions(childComplexity, args["after"].(*entgql.Cursor[int]), args["first"].(*int), args["before"].(*entgql.Cursor[int]), args["last"].(*int), args["orderBy"].(*ent.DefinitionOrder)), true
 
 	case "Query.groups":
 		if e.complexity.Query.Groups == nil {
@@ -409,6 +460,22 @@ type Definition implements Node {
   description: String!
   word: Word
 }
+"""A connection to a list of items."""
+type DefinitionConnection {
+  """A list of edges."""
+  edges: [DefinitionEdge]
+  """Information to aid in pagination."""
+  pageInfo: PageInfo!
+  """Identifies the total count of items in the connection."""
+  totalCount: Int!
+}
+"""An edge in a connection."""
+type DefinitionEdge {
+  """The item at the end of the edge."""
+  node: Definition
+  """A cursor for use in pagination."""
+  cursor: Cursor!
+}
 """Ordering options for Definition connections"""
 input DefinitionOrder {
   """The ordering direction."""
@@ -464,7 +531,22 @@ type Query {
     """The list of node IDs."""
     ids: [ID!]!
   ): [Node]!
-  definitions: [Definition!]!
+  definitions(
+    """Returns the elements in the list that come after the specified cursor."""
+    after: Cursor
+
+    """Returns the first _n_ elements from the list."""
+    first: Int
+
+    """Returns the elements in the list that come before the specified cursor."""
+    before: Cursor
+
+    """Returns the last _n_ elements from the list."""
+    last: Int
+
+    """Ordering options for Definitions returned from the connection."""
+    orderBy: DefinitionOrder
+  ): DefinitionConnection!
   groups: [Group!]!
   words: [Word!]!
   wordConnectionsSlice(
@@ -535,6 +617,57 @@ func (ec *executionContext) field_Query___type_args(ctx context.Context, rawArgs
 		}
 	}
 	args["name"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_definitions_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *entgql.Cursor[int]
+	if tmp, ok := rawArgs["after"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("after"))
+		arg0, err = ec.unmarshalOCursor2ᚖentgoᚗioᚋcontribᚋentgqlᚐCursor(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["after"] = arg0
+	var arg1 *int
+	if tmp, ok := rawArgs["first"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("first"))
+		arg1, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["first"] = arg1
+	var arg2 *entgql.Cursor[int]
+	if tmp, ok := rawArgs["before"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("before"))
+		arg2, err = ec.unmarshalOCursor2ᚖentgoᚗioᚋcontribᚋentgqlᚐCursor(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["before"] = arg2
+	var arg3 *int
+	if tmp, ok := rawArgs["last"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("last"))
+		arg3, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["last"] = arg3
+	var arg4 *ent.DefinitionOrder
+	if tmp, ok := rawArgs["orderBy"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("orderBy"))
+		arg4, err = ec.unmarshalODefinitionOrder2ᚖshrektionary_apiᚋentᚐDefinitionOrder(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["orderBy"] = arg4
 	return args, nil
 }
 
@@ -780,6 +913,244 @@ func (ec *executionContext) fieldContext_Definition_word(ctx context.Context, fi
 				return ec.fieldContext_Word_definitions(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Word", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _DefinitionConnection_edges(ctx context.Context, field graphql.CollectedField, obj *ent.DefinitionConnection) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_DefinitionConnection_edges(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Edges, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*ent.DefinitionEdge)
+	fc.Result = res
+	return ec.marshalODefinitionEdge2ᚕᚖshrektionary_apiᚋentᚐDefinitionEdge(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_DefinitionConnection_edges(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "DefinitionConnection",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "node":
+				return ec.fieldContext_DefinitionEdge_node(ctx, field)
+			case "cursor":
+				return ec.fieldContext_DefinitionEdge_cursor(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type DefinitionEdge", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _DefinitionConnection_pageInfo(ctx context.Context, field graphql.CollectedField, obj *ent.DefinitionConnection) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_DefinitionConnection_pageInfo(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.PageInfo, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(entgql.PageInfo[int])
+	fc.Result = res
+	return ec.marshalNPageInfo2entgoᚗioᚋcontribᚋentgqlᚐPageInfo(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_DefinitionConnection_pageInfo(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "DefinitionConnection",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "hasNextPage":
+				return ec.fieldContext_PageInfo_hasNextPage(ctx, field)
+			case "hasPreviousPage":
+				return ec.fieldContext_PageInfo_hasPreviousPage(ctx, field)
+			case "startCursor":
+				return ec.fieldContext_PageInfo_startCursor(ctx, field)
+			case "endCursor":
+				return ec.fieldContext_PageInfo_endCursor(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type PageInfo", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _DefinitionConnection_totalCount(ctx context.Context, field graphql.CollectedField, obj *ent.DefinitionConnection) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_DefinitionConnection_totalCount(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TotalCount, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_DefinitionConnection_totalCount(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "DefinitionConnection",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _DefinitionEdge_node(ctx context.Context, field graphql.CollectedField, obj *ent.DefinitionEdge) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_DefinitionEdge_node(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Node, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*ent.Definition)
+	fc.Result = res
+	return ec.marshalODefinition2ᚖshrektionary_apiᚋentᚐDefinition(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_DefinitionEdge_node(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "DefinitionEdge",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Definition_id(ctx, field)
+			case "description":
+				return ec.fieldContext_Definition_description(ctx, field)
+			case "word":
+				return ec.fieldContext_Definition_word(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Definition", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _DefinitionEdge_cursor(ctx context.Context, field graphql.CollectedField, obj *ent.DefinitionEdge) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_DefinitionEdge_cursor(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Cursor, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(entgql.Cursor[int])
+	fc.Result = res
+	return ec.marshalNCursor2entgoᚗioᚋcontribᚋentgqlᚐCursor(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_DefinitionEdge_cursor(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "DefinitionEdge",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Cursor does not have child fields")
 		},
 	}
 	return fc, nil
@@ -1164,7 +1535,7 @@ func (ec *executionContext) _Query_definitions(ctx context.Context, field graphq
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Definitions(rctx)
+		return ec.resolvers.Query().Definitions(rctx, fc.Args["after"].(*entgql.Cursor[int]), fc.Args["first"].(*int), fc.Args["before"].(*entgql.Cursor[int]), fc.Args["last"].(*int), fc.Args["orderBy"].(*ent.DefinitionOrder))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1176,9 +1547,9 @@ func (ec *executionContext) _Query_definitions(ctx context.Context, field graphq
 		}
 		return graphql.Null
 	}
-	res := resTmp.([]*ent.Definition)
+	res := resTmp.(*ent.DefinitionConnection)
 	fc.Result = res
-	return ec.marshalNDefinition2ᚕᚖshrektionary_apiᚋentᚐDefinitionᚄ(ctx, field.Selections, res)
+	return ec.marshalNDefinitionConnection2ᚖshrektionary_apiᚋentᚐDefinitionConnection(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_definitions(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -1189,15 +1560,26 @@ func (ec *executionContext) fieldContext_Query_definitions(ctx context.Context, 
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "id":
-				return ec.fieldContext_Definition_id(ctx, field)
-			case "description":
-				return ec.fieldContext_Definition_description(ctx, field)
-			case "word":
-				return ec.fieldContext_Definition_word(ctx, field)
+			case "edges":
+				return ec.fieldContext_DefinitionConnection_edges(ctx, field)
+			case "pageInfo":
+				return ec.fieldContext_DefinitionConnection_pageInfo(ctx, field)
+			case "totalCount":
+				return ec.fieldContext_DefinitionConnection_totalCount(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type Definition", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type DefinitionConnection", field.Name)
 		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_definitions_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
 	}
 	return fc, nil
 }
@@ -4042,6 +4424,77 @@ func (ec *executionContext) _Definition(ctx context.Context, sel ast.SelectionSe
 	return out
 }
 
+var definitionConnectionImplementors = []string{"DefinitionConnection"}
+
+func (ec *executionContext) _DefinitionConnection(ctx context.Context, sel ast.SelectionSet, obj *ent.DefinitionConnection) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, definitionConnectionImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("DefinitionConnection")
+		case "edges":
+
+			out.Values[i] = ec._DefinitionConnection_edges(ctx, field, obj)
+
+		case "pageInfo":
+
+			out.Values[i] = ec._DefinitionConnection_pageInfo(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "totalCount":
+
+			out.Values[i] = ec._DefinitionConnection_totalCount(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var definitionEdgeImplementors = []string{"DefinitionEdge"}
+
+func (ec *executionContext) _DefinitionEdge(ctx context.Context, sel ast.SelectionSet, obj *ent.DefinitionEdge) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, definitionEdgeImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("DefinitionEdge")
+		case "node":
+
+			out.Values[i] = ec._DefinitionEdge_node(ctx, field, obj)
+
+		case "cursor":
+
+			out.Values[i] = ec._DefinitionEdge_cursor(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var groupImplementors = []string{"Group", "Node"}
 
 func (ec *executionContext) _Group(ctx context.Context, sel ast.SelectionSet, obj *ent.Group) graphql.Marshaler {
@@ -4798,50 +5251,6 @@ func (ec *executionContext) marshalNCursor2entgoᚗioᚋcontribᚋentgqlᚐCurso
 	return v
 }
 
-func (ec *executionContext) marshalNDefinition2ᚕᚖshrektionary_apiᚋentᚐDefinitionᚄ(ctx context.Context, sel ast.SelectionSet, v []*ent.Definition) graphql.Marshaler {
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		fc := &graphql.FieldContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithFieldContext(ctx, fc)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalNDefinition2ᚖshrektionary_apiᚋentᚐDefinition(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
-
-	}
-	wg.Wait()
-
-	for _, e := range ret {
-		if e == graphql.Null {
-			return graphql.Null
-		}
-	}
-
-	return ret
-}
-
 func (ec *executionContext) marshalNDefinition2ᚖshrektionary_apiᚋentᚐDefinition(ctx context.Context, sel ast.SelectionSet, v *ent.Definition) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
@@ -4850,6 +5259,20 @@ func (ec *executionContext) marshalNDefinition2ᚖshrektionary_apiᚋentᚐDefin
 		return graphql.Null
 	}
 	return ec._Definition(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNDefinitionConnection2shrektionary_apiᚋentᚐDefinitionConnection(ctx context.Context, sel ast.SelectionSet, v ent.DefinitionConnection) graphql.Marshaler {
+	return ec._DefinitionConnection(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNDefinitionConnection2ᚖshrektionary_apiᚋentᚐDefinitionConnection(ctx context.Context, sel ast.SelectionSet, v *ent.DefinitionConnection) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._DefinitionConnection(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNDefinitionOrderField2ᚖshrektionary_apiᚋentᚐDefinitionOrderField(ctx context.Context, v interface{}) (*ent.DefinitionOrderField, error) {
@@ -5459,6 +5882,69 @@ func (ec *executionContext) marshalODefinition2ᚕᚖshrektionary_apiᚋentᚐDe
 	}
 
 	return ret
+}
+
+func (ec *executionContext) marshalODefinition2ᚖshrektionary_apiᚋentᚐDefinition(ctx context.Context, sel ast.SelectionSet, v *ent.Definition) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._Definition(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalODefinitionEdge2ᚕᚖshrektionary_apiᚋentᚐDefinitionEdge(ctx context.Context, sel ast.SelectionSet, v []*ent.DefinitionEdge) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalODefinitionEdge2ᚖshrektionary_apiᚋentᚐDefinitionEdge(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	return ret
+}
+
+func (ec *executionContext) marshalODefinitionEdge2ᚖshrektionary_apiᚋentᚐDefinitionEdge(ctx context.Context, sel ast.SelectionSet, v *ent.DefinitionEdge) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._DefinitionEdge(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalODefinitionOrder2ᚖshrektionary_apiᚋentᚐDefinitionOrder(ctx context.Context, v interface{}) (*ent.DefinitionOrder, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputDefinitionOrder(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) unmarshalOID2ᚕintᚄ(ctx context.Context, v interface{}) ([]int, error) {

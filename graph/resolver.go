@@ -13,6 +13,11 @@ import (
 // Resolver is the resolver root.
 type Resolver struct{ client *ent.Client }
 
+// Hello resolves the "hello" query.
+func (r *Resolver) Hello() string {
+	return "Hello, world!"
+}
+
 // NewSchema creates a graphql executable schema.
 func NewSchema(client *ent.Client) graphql.ExecutableSchema {
 	return NewExecutableSchema(Config{
