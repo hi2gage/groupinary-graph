@@ -6,7 +6,6 @@ package graph
 
 import (
 	"context"
-	"fmt"
 	"shrektionary_api/ent"
 
 	"entgo.io/contrib/entgql"
@@ -32,13 +31,15 @@ func (r *queryResolver) Definitions(ctx context.Context, after *entgql.Cursor[in
 
 // Groups is the resolver for the groups field.
 func (r *queryResolver) Groups(ctx context.Context) ([]*ent.Group, error) {
-	r.Hello()
-	panic(fmt.Errorf("not implemented: Groups - groups"))
+	return r.client.Group.Query().All(ctx)
 }
 
 // Words is the resolver for the words field.
-func (r *queryResolver) Words(ctx context.Context) ([]*ent.Word, error) {
-	return r.client.Word.Query().All(ctx)
+func (r *queryResolver) Words(ctx context.Context, after *entgql.Cursor[int], first *int, before *entgql.Cursor[int], last *int) (*ent.WordConnection, error) {
+	return r.client.Word.Query().
+		Paginate(ctx, after, first, before, last,
+			ent.WithWordOrder(ent.DefaultWordOrder),
+		)
 }
 
 // Query returns QueryResolver implementation.

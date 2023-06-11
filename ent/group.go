@@ -17,8 +17,33 @@ type Group struct {
 	// ID of the ent.
 	ID int `json:"id,omitempty"`
 	// Description holds the value of the "description" field.
-	Description  string `json:"description,omitempty"`
+	Description string `json:"description,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the GroupQuery when eager-loading is set.
+	Edges        GroupEdges `json:"edges"`
 	selectValues sql.SelectValues
+}
+
+// GroupEdges holds the relations/edges for other nodes in the graph.
+type GroupEdges struct {
+	// Words holds the value of the words edge.
+	Words []*Word `json:"words,omitempty"`
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [1]bool
+	// totalCount holds the count of the edges above.
+	totalCount [1]map[string]int
+
+	namedWords map[string][]*Word
+}
+
+// WordsOrErr returns the Words value or an error if the edge
+// was not loaded in eager-loading.
+func (e GroupEdges) WordsOrErr() ([]*Word, error) {
+	if e.loadedTypes[0] {
+		return e.Words, nil
+	}
+	return nil, &NotLoadedError{edge: "words"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -70,6 +95,11 @@ func (gr *Group) Value(name string) (ent.Value, error) {
 	return gr.selectValues.Get(name)
 }
 
+// QueryWords queries the "words" edge of the Group entity.
+func (gr *Group) QueryWords() *WordQuery {
+	return NewGroupClient(gr.config).QueryWords(gr)
+}
+
 // Update returns a builder for updating this Group.
 // Note that you need to call Group.Unwrap() before calling this method if this Group
 // was returned from a transaction, and the transaction was committed or rolled back.
@@ -97,6 +127,30 @@ func (gr *Group) String() string {
 	builder.WriteString(gr.Description)
 	builder.WriteByte(')')
 	return builder.String()
+}
+
+// NamedWords returns the Words named value or an error if the edge was not
+// loaded in eager-loading with this name.
+func (gr *Group) NamedWords(name string) ([]*Word, error) {
+	if gr.Edges.namedWords == nil {
+		return nil, &NotLoadedError{edge: name}
+	}
+	nodes, ok := gr.Edges.namedWords[name]
+	if !ok {
+		return nil, &NotLoadedError{edge: name}
+	}
+	return nodes, nil
+}
+
+func (gr *Group) appendNamedWords(name string, edges ...*Word) {
+	if gr.Edges.namedWords == nil {
+		gr.Edges.namedWords = make(map[string][]*Word)
+	}
+	if len(edges) == 0 {
+		gr.Edges.namedWords[name] = []*Word{}
+	} else {
+		gr.Edges.namedWords[name] = append(gr.Edges.namedWords[name], edges...)
+	}
 }
 
 // Groups is a parsable slice of Group.

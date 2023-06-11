@@ -16,14 +16,40 @@ func (d *Definition) Word(ctx context.Context) (*Word, error) {
 	return result, MaskNotFound(err)
 }
 
-func (w *Word) Definitions(ctx context.Context) (result []*Definition, err error) {
-	if fc := graphql.GetFieldContext(ctx); fc != nil && fc.Field.Alias != "" {
-		result, err = w.NamedDefinitions(graphql.GetFieldContext(ctx).Field.Alias)
-	} else {
-		result, err = w.Edges.DefinitionsOrErr()
+func (gr *Group) Words(
+	ctx context.Context, after *Cursor, first *int, before *Cursor, last *int,
+) (*WordConnection, error) {
+	opts := []WordPaginateOption{}
+	alias := graphql.GetFieldContext(ctx).Field.Alias
+	totalCount, hasTotalCount := gr.Edges.totalCount[0][alias]
+	if nodes, err := gr.NamedWords(alias); err == nil || hasTotalCount {
+		pager, err := newWordPager(opts, last != nil)
+		if err != nil {
+			return nil, err
+		}
+		conn := &WordConnection{Edges: []*WordEdge{}, TotalCount: totalCount}
+		conn.build(nodes, pager, after, first, before, last)
+		return conn, nil
 	}
-	if IsNotLoaded(err) {
-		result, err = w.QueryDefinitions().All(ctx)
+	return gr.QueryWords().Paginate(ctx, after, first, before, last, opts...)
+}
+
+func (w *Word) Definitions(
+	ctx context.Context, after *Cursor, first *int, before *Cursor, last *int, orderBy *DefinitionOrder,
+) (*DefinitionConnection, error) {
+	opts := []DefinitionPaginateOption{
+		WithDefinitionOrder(orderBy),
 	}
-	return result, err
+	alias := graphql.GetFieldContext(ctx).Field.Alias
+	totalCount, hasTotalCount := w.Edges.totalCount[0][alias]
+	if nodes, err := w.NamedDefinitions(alias); err == nil || hasTotalCount {
+		pager, err := newDefinitionPager(opts, last != nil)
+		if err != nil {
+			return nil, err
+		}
+		conn := &DefinitionConnection{Edges: []*DefinitionEdge{}, TotalCount: totalCount}
+		conn.build(nodes, pager, after, first, before, last)
+		return conn, nil
+	}
+	return w.QueryDefinitions().Paginate(ctx, after, first, before, last, opts...)
 }

@@ -21,6 +21,7 @@ type Word struct {
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the WordQuery when eager-loading is set.
 	Edges        WordEdges `json:"edges"`
+	group_words  *int
 	selectValues sql.SelectValues
 }
 
@@ -55,6 +56,8 @@ func (*Word) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullInt64)
 		case word.FieldDescription:
 			values[i] = new(sql.NullString)
+		case word.ForeignKeys[0]: // group_words
+			values[i] = new(sql.NullInt64)
 		default:
 			values[i] = new(sql.UnknownType)
 		}
@@ -81,6 +84,13 @@ func (w *Word) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field description", values[i])
 			} else if value.Valid {
 				w.Description = value.String
+			}
+		case word.ForeignKeys[0]:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for edge-field group_words", value)
+			} else if value.Valid {
+				w.group_words = new(int)
+				*w.group_words = int(value.Int64)
 			}
 		default:
 			w.selectValues.Set(columns[i], values[i])

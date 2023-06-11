@@ -43,12 +43,21 @@ var (
 	WordsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "description", Type: field.TypeString},
+		{Name: "group_words", Type: field.TypeInt, Nullable: true},
 	}
 	// WordsTable holds the schema information for the "words" table.
 	WordsTable = &schema.Table{
 		Name:       "words",
 		Columns:    WordsColumns,
 		PrimaryKey: []*schema.Column{WordsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "words_groups_words",
+				Columns:    []*schema.Column{WordsColumns[2]},
+				RefColumns: []*schema.Column{GroupsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
 	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
@@ -60,4 +69,5 @@ var (
 
 func init() {
 	DefinitionsTable.ForeignKeys[0].RefTable = WordsTable
+	WordsTable.ForeignKeys[0].RefTable = GroupsTable
 }

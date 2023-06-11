@@ -18,17 +18,20 @@ func (Word) Fields() []ent.Field {
 	return []ent.Field{
 		field.String("description").NotEmpty(),
 	}
+
 }
 
 // Edges of the Word.
 func (Word) Edges() []ent.Edge {
 	return []ent.Edge{
-		edge.To("definitions", Definition.Type),
+		edge.To("definitions", Definition.Type).
+			Annotations(entgql.RelayConnection()),
 	}
 }
 
 func (Word) Annotations() []schema.Annotation {
 	return []schema.Annotation{
+		entgql.RelayConnection(),
 		entgql.QueryField(),
 		entgql.Mutations(entgql.MutationCreate()),
 	}

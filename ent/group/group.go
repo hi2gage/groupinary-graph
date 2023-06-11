@@ -4,6 +4,7 @@ package group
 
 import (
 	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 )
 
 const (
@@ -13,8 +14,17 @@ const (
 	FieldID = "id"
 	// FieldDescription holds the string denoting the description field in the database.
 	FieldDescription = "description"
+	// EdgeWords holds the string denoting the words edge name in mutations.
+	EdgeWords = "words"
 	// Table holds the table name of the group in the database.
 	Table = "groups"
+	// WordsTable is the table that holds the words relation/edge.
+	WordsTable = "words"
+	// WordsInverseTable is the table name for the Word entity.
+	// It exists in this package in order to avoid circular dependency with the "word" package.
+	WordsInverseTable = "words"
+	// WordsColumn is the table column denoting the words relation/edge.
+	WordsColumn = "group_words"
 )
 
 // Columns holds all SQL columns for group fields.
@@ -49,4 +59,25 @@ func ByID(opts ...sql.OrderTermOption) OrderOption {
 // ByDescription orders the results by the description field.
 func ByDescription(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldDescription, opts...).ToFunc()
+}
+
+// ByWordsCount orders the results by words count.
+func ByWordsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newWordsStep(), opts...)
+	}
+}
+
+// ByWords orders the results by words terms.
+func ByWords(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newWordsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+func newWordsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(WordsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, WordsTable, WordsColumn),
+	)
 }

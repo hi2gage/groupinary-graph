@@ -4,6 +4,7 @@ import (
 	"entgo.io/contrib/entgql"
 	"entgo.io/ent"
 	"entgo.io/ent/schema"
+	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 )
 
@@ -21,7 +22,10 @@ func (Group) Fields() []ent.Field {
 
 // Edges of the Group.
 func (Group) Edges() []ent.Edge {
-	return nil
+	return []ent.Edge{
+		edge.To("words", Word.Type).
+			Annotations(entgql.RelayConnection()),
+	}
 }
 
 func (Group) Annotations() []schema.Annotation {

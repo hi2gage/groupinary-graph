@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"shrektionary_api/ent/group"
+	"shrektionary_api/ent/word"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
@@ -23,6 +24,21 @@ type GroupCreate struct {
 func (gc *GroupCreate) SetDescription(s string) *GroupCreate {
 	gc.mutation.SetDescription(s)
 	return gc
+}
+
+// AddWordIDs adds the "words" edge to the Word entity by IDs.
+func (gc *GroupCreate) AddWordIDs(ids ...int) *GroupCreate {
+	gc.mutation.AddWordIDs(ids...)
+	return gc
+}
+
+// AddWords adds the "words" edges to the Word entity.
+func (gc *GroupCreate) AddWords(w ...*Word) *GroupCreate {
+	ids := make([]int, len(w))
+	for i := range w {
+		ids[i] = w[i].ID
+	}
+	return gc.AddWordIDs(ids...)
 }
 
 // Mutation returns the GroupMutation object of the builder.
@@ -96,6 +112,22 @@ func (gc *GroupCreate) createSpec() (*Group, *sqlgraph.CreateSpec) {
 	if value, ok := gc.mutation.Description(); ok {
 		_spec.SetField(group.FieldDescription, field.TypeString, value)
 		_node.Description = value
+	}
+	if nodes := gc.mutation.WordsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   group.WordsTable,
+			Columns: []string{group.WordsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(word.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
 }

@@ -57,11 +57,15 @@ func (c *DefinitionUpdateOne) SetInput(i UpdateDefinitionInput) *DefinitionUpdat
 // CreateGroupInput represents a mutation input for creating groups.
 type CreateGroupInput struct {
 	Description string
+	WordIDs     []int
 }
 
 // Mutate applies the CreateGroupInput on the GroupMutation builder.
 func (i *CreateGroupInput) Mutate(m *GroupMutation) {
 	m.SetDescription(i.Description)
+	if v := i.WordIDs; len(v) > 0 {
+		m.AddWordIDs(v...)
+	}
 }
 
 // SetInput applies the change-set in the CreateGroupInput on the GroupCreate builder.
