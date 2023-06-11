@@ -23,8 +23,11 @@ func (r *queryResolver) Nodes(ctx context.Context, ids []int) ([]ent.Noder, erro
 }
 
 // Definitions is the resolver for the definitions field.
-func (r *queryResolver) Definitions(ctx context.Context) ([]*ent.Definition, error) {
-	return r.client.Definition.Query().All(ctx)
+func (r *queryResolver) Definitions(ctx context.Context, after *entgql.Cursor[int], first *int, before *entgql.Cursor[int], last *int, orderBy *ent.DefinitionOrder) (*ent.DefinitionConnection, error) {
+	return r.client.Definition.Query().
+		Paginate(ctx, after, first, before, last,
+			ent.WithDefinitionOrder(ent.DefaultDefinitionOrder),
+		)
 }
 
 // Groups is the resolver for the groups field.

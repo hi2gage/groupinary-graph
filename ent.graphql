@@ -40,6 +40,22 @@ type Definition implements Node {
   description: String!
   word: Word
 }
+"""A connection to a list of items."""
+type DefinitionConnection {
+  """A list of edges."""
+  edges: [DefinitionEdge]
+  """Information to aid in pagination."""
+  pageInfo: PageInfo!
+  """Identifies the total count of items in the connection."""
+  totalCount: Int!
+}
+"""An edge in a connection."""
+type DefinitionEdge {
+  """The item at the end of the edge."""
+  node: Definition
+  """A cursor for use in pagination."""
+  cursor: Cursor!
+}
 """Ordering options for Definition connections"""
 input DefinitionOrder {
   """The ordering direction."""
@@ -95,7 +111,22 @@ type Query {
     """The list of node IDs."""
     ids: [ID!]!
   ): [Node]!
-  definitions: [Definition!]!
+  definitions(
+    """Returns the elements in the list that come after the specified cursor."""
+    after: Cursor
+
+    """Returns the first _n_ elements from the list."""
+    first: Int
+
+    """Returns the elements in the list that come before the specified cursor."""
+    before: Cursor
+
+    """Returns the last _n_ elements from the list."""
+    last: Int
+
+    """Ordering options for Definitions returned from the connection."""
+    orderBy: DefinitionOrder
+  ): DefinitionConnection!
   groups: [Group!]!
   words: [Word!]!
   wordConnectionsSlice(
