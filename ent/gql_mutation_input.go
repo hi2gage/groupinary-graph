@@ -22,22 +22,6 @@ func (c *DefinitionCreate) SetInput(i CreateDefinitionInput) *DefinitionCreate {
 	return c
 }
 
-// CreateTodoInput represents a mutation input for creating todos.
-type CreateTodoInput struct {
-	Title string
-}
-
-// Mutate applies the CreateTodoInput on the TodoMutation builder.
-func (i *CreateTodoInput) Mutate(m *TodoMutation) {
-	m.SetTitle(i.Title)
-}
-
-// SetInput applies the change-set in the CreateTodoInput on the TodoCreate builder.
-func (c *TodoCreate) SetInput(i CreateTodoInput) *TodoCreate {
-	i.Mutate(c.Mutation())
-	return c
-}
-
 // CreateWordInput represents a mutation input for creating words.
 type CreateWordInput struct {
 	Description   string
