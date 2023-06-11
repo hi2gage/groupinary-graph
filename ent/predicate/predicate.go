@@ -14,6 +14,3 @@ type Group func(*sql.Selector)
 
 // Word is the predicate function for word builders.
 type Word func(*sql.Selector)
-
-// WordConnections is the predicate function for wordconnections builders.
-type WordConnections func(*sql.Selector)

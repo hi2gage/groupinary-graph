@@ -13,7 +13,6 @@ import (
 	"shrektionary_api/ent/definition"
 	"shrektionary_api/ent/group"
 	"shrektionary_api/ent/word"
-	"shrektionary_api/ent/wordconnections"
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect"
@@ -32,8 +31,6 @@ type Client struct {
 	Group *GroupClient
 	// Word is the client for interacting with the Word builders.
 	Word *WordClient
-	// WordConnections is the client for interacting with the WordConnections builders.
-	WordConnections *WordConnectionsClient
 	// additional fields for node api
 	tables tables
 }
@@ -52,7 +49,6 @@ func (c *Client) init() {
 	c.Definition = NewDefinitionClient(c.config)
 	c.Group = NewGroupClient(c.config)
 	c.Word = NewWordClient(c.config)
-	c.WordConnections = NewWordConnectionsClient(c.config)
 }
 
 type (
@@ -133,12 +129,11 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	cfg := c.config
 	cfg.driver = tx
 	return &Tx{
-		ctx:             ctx,
-		config:          cfg,
-		Definition:      NewDefinitionClient(cfg),
-		Group:           NewGroupClient(cfg),
-		Word:            NewWordClient(cfg),
-		WordConnections: NewWordConnectionsClient(cfg),
+		ctx:        ctx,
+		config:     cfg,
+		Definition: NewDefinitionClient(cfg),
+		Group:      NewGroupClient(cfg),
+		Word:       NewWordClient(cfg),
 	}, nil
 }
 
@@ -156,12 +151,11 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 	cfg := c.config
 	cfg.driver = &txDriver{tx: tx, drv: c.driver}
 	return &Tx{
-		ctx:             ctx,
-		config:          cfg,
-		Definition:      NewDefinitionClient(cfg),
-		Group:           NewGroupClient(cfg),
-		Word:            NewWordClient(cfg),
-		WordConnections: NewWordConnectionsClient(cfg),
+		ctx:        ctx,
+		config:     cfg,
+		Definition: NewDefinitionClient(cfg),
+		Group:      NewGroupClient(cfg),
+		Word:       NewWordClient(cfg),
 	}, nil
 }
 
@@ -193,7 +187,6 @@ func (c *Client) Use(hooks ...Hook) {
 	c.Definition.Use(hooks...)
 	c.Group.Use(hooks...)
 	c.Word.Use(hooks...)
-	c.WordConnections.Use(hooks...)
 }
 
 // Intercept adds the query interceptors to all the entity clients.
@@ -202,7 +195,6 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 	c.Definition.Intercept(interceptors...)
 	c.Group.Intercept(interceptors...)
 	c.Word.Intercept(interceptors...)
-	c.WordConnections.Intercept(interceptors...)
 }
 
 // Mutate implements the ent.Mutator interface.
@@ -214,8 +206,6 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.Group.mutate(ctx, m)
 	case *WordMutation:
 		return c.Word.mutate(ctx, m)
-	case *WordConnectionsMutation:
-		return c.WordConnections.mutate(ctx, m)
 	default:
 		return nil, fmt.Errorf("ent: unknown mutation type %T", m)
 	}
@@ -607,130 +597,12 @@ func (c *WordClient) mutate(ctx context.Context, m *WordMutation) (Value, error)
 	}
 }
 
-// WordConnectionsClient is a client for the WordConnections schema.
-type WordConnectionsClient struct {
-	config
-}
-
-// NewWordConnectionsClient returns a client for the WordConnections from the given config.
-func NewWordConnectionsClient(c config) *WordConnectionsClient {
-	return &WordConnectionsClient{config: c}
-}
-
-// Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `wordconnections.Hooks(f(g(h())))`.
-func (c *WordConnectionsClient) Use(hooks ...Hook) {
-	c.hooks.WordConnections = append(c.hooks.WordConnections, hooks...)
-}
-
-// Intercept adds a list of query interceptors to the interceptors stack.
-// A call to `Intercept(f, g, h)` equals to `wordconnections.Intercept(f(g(h())))`.
-func (c *WordConnectionsClient) Intercept(interceptors ...Interceptor) {
-	c.inters.WordConnections = append(c.inters.WordConnections, interceptors...)
-}
-
-// Create returns a builder for creating a WordConnections entity.
-func (c *WordConnectionsClient) Create() *WordConnectionsCreate {
-	mutation := newWordConnectionsMutation(c.config, OpCreate)
-	return &WordConnectionsCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// CreateBulk returns a builder for creating a bulk of WordConnections entities.
-func (c *WordConnectionsClient) CreateBulk(builders ...*WordConnectionsCreate) *WordConnectionsCreateBulk {
-	return &WordConnectionsCreateBulk{config: c.config, builders: builders}
-}
-
-// Update returns an update builder for WordConnections.
-func (c *WordConnectionsClient) Update() *WordConnectionsUpdate {
-	mutation := newWordConnectionsMutation(c.config, OpUpdate)
-	return &WordConnectionsUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOne returns an update builder for the given entity.
-func (c *WordConnectionsClient) UpdateOne(wc *WordConnections) *WordConnectionsUpdateOne {
-	mutation := newWordConnectionsMutation(c.config, OpUpdateOne, withWordConnections(wc))
-	return &WordConnectionsUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOneID returns an update builder for the given id.
-func (c *WordConnectionsClient) UpdateOneID(id int) *WordConnectionsUpdateOne {
-	mutation := newWordConnectionsMutation(c.config, OpUpdateOne, withWordConnectionsID(id))
-	return &WordConnectionsUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// Delete returns a delete builder for WordConnections.
-func (c *WordConnectionsClient) Delete() *WordConnectionsDelete {
-	mutation := newWordConnectionsMutation(c.config, OpDelete)
-	return &WordConnectionsDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// DeleteOne returns a builder for deleting the given entity.
-func (c *WordConnectionsClient) DeleteOne(wc *WordConnections) *WordConnectionsDeleteOne {
-	return c.DeleteOneID(wc.ID)
-}
-
-// DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *WordConnectionsClient) DeleteOneID(id int) *WordConnectionsDeleteOne {
-	builder := c.Delete().Where(wordconnections.ID(id))
-	builder.mutation.id = &id
-	builder.mutation.op = OpDeleteOne
-	return &WordConnectionsDeleteOne{builder}
-}
-
-// Query returns a query builder for WordConnections.
-func (c *WordConnectionsClient) Query() *WordConnectionsQuery {
-	return &WordConnectionsQuery{
-		config: c.config,
-		ctx:    &QueryContext{Type: TypeWordConnections},
-		inters: c.Interceptors(),
-	}
-}
-
-// Get returns a WordConnections entity by its id.
-func (c *WordConnectionsClient) Get(ctx context.Context, id int) (*WordConnections, error) {
-	return c.Query().Where(wordconnections.ID(id)).Only(ctx)
-}
-
-// GetX is like Get, but panics if an error occurs.
-func (c *WordConnectionsClient) GetX(ctx context.Context, id int) *WordConnections {
-	obj, err := c.Get(ctx, id)
-	if err != nil {
-		panic(err)
-	}
-	return obj
-}
-
-// Hooks returns the client hooks.
-func (c *WordConnectionsClient) Hooks() []Hook {
-	return c.hooks.WordConnections
-}
-
-// Interceptors returns the client interceptors.
-func (c *WordConnectionsClient) Interceptors() []Interceptor {
-	return c.inters.WordConnections
-}
-
-func (c *WordConnectionsClient) mutate(ctx context.Context, m *WordConnectionsMutation) (Value, error) {
-	switch m.Op() {
-	case OpCreate:
-		return (&WordConnectionsCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpUpdate:
-		return (&WordConnectionsUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpUpdateOne:
-		return (&WordConnectionsUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpDelete, OpDeleteOne:
-		return (&WordConnectionsDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
-	default:
-		return nil, fmt.Errorf("ent: unknown WordConnections mutation op: %q", m.Op())
-	}
-}
-
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		Definition, Group, Word, WordConnections []ent.Hook
+		Definition, Group, Word []ent.Hook
 	}
 	inters struct {
-		Definition, Group, Word, WordConnections []ent.Interceptor
+		Definition, Group, Word []ent.Interceptor
 	}
 )

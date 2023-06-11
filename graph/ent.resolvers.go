@@ -32,17 +32,13 @@ func (r *queryResolver) Definitions(ctx context.Context, after *entgql.Cursor[in
 
 // Groups is the resolver for the groups field.
 func (r *queryResolver) Groups(ctx context.Context) ([]*ent.Group, error) {
+	r.Hello()
 	panic(fmt.Errorf("not implemented: Groups - groups"))
 }
 
 // Words is the resolver for the words field.
 func (r *queryResolver) Words(ctx context.Context) ([]*ent.Word, error) {
 	return r.client.Word.Query().All(ctx)
-}
-
-// WordConnectionsSlice is the resolver for the wordConnectionsSlice field.
-func (r *queryResolver) WordConnectionsSlice(ctx context.Context, after *entgql.Cursor[int], first *int, before *entgql.Cursor[int], last *int) (*ent.WordConnectionsConnection, error) {
-	panic(fmt.Errorf("not implemented: WordConnectionsSlice - wordConnectionsSlice"))
 }
 
 // Query returns QueryResolver implementation.
