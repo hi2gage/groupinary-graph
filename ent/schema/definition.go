@@ -16,7 +16,9 @@ type Definition struct {
 // Fields of the Definition.
 func (Definition) Fields() []ent.Field {
 	return []ent.Field{
-		field.String("description").NotEmpty(),
+		field.String("description").NotEmpty().Annotations(
+			entgql.OrderField("ALPHA"), // Specify the ordering tag
+		),
 	}
 }
 
@@ -36,6 +38,7 @@ func (Definition) Edges() []ent.Edge {
 
 func (Definition) Annotations() []schema.Annotation {
 	return []schema.Annotation{
+		entgql.RelayConnection(),
 		entgql.QueryField(),
 		entgql.Mutations(entgql.MutationCreate()),
 	}
