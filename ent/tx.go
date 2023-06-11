@@ -14,8 +14,6 @@ type Tx struct {
 	config
 	// Definition is the client for interacting with the Definition builders.
 	Definition *DefinitionClient
-	// Todo is the client for interacting with the Todo builders.
-	Todo *TodoClient
 	// Word is the client for interacting with the Word builders.
 	Word *WordClient
 
@@ -150,7 +148,6 @@ func (tx *Tx) Client() *Client {
 
 func (tx *Tx) init() {
 	tx.Definition = NewDefinitionClient(tx.config)
-	tx.Todo = NewTodoClient(tx.config)
 	tx.Word = NewWordClient(tx.config)
 }
 

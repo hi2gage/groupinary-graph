@@ -64,7 +64,6 @@ resolver:
 # if they match it will use them, otherwise it will generate them.
 autobind:
  - "shrektionary_api/ent"
- - "shrektionary_api/ent/todo"
  - "shrektionary_api/ent/definition"
  - "shrektionary_api/ent/word"
 

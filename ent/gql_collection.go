@@ -5,7 +5,6 @@ package ent
 import (
 	"context"
 	"shrektionary_api/ent/definition"
-	"shrektionary_api/ent/todo"
 	"shrektionary_api/ent/word"
 
 	"entgo.io/ent/dialect/sql"
@@ -39,7 +38,7 @@ func (d *DefinitionQuery) collectField(ctx context.Context, opCtx *graphql.Opera
 				path  = append(path, alias)
 				query = (&WordClient{config: d.config}).Query()
 			)
-			if err := query.collectField(ctx, opCtx, field, path, mayAddCondition(satisfies, wordImplementors)...); err != nil {
+			if err := query.collectField(ctx, opCtx, field, path, satisfies...); err != nil {
 				return err
 			}
 			d.withWord = query
@@ -87,70 +86,6 @@ func newDefinitionPaginateArgs(rv map[string]any) *definitionPaginateArgs {
 }
 
 // CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
-func (t *TodoQuery) CollectFields(ctx context.Context, satisfies ...string) (*TodoQuery, error) {
-	fc := graphql.GetFieldContext(ctx)
-	if fc == nil {
-		return t, nil
-	}
-	if err := t.collectField(ctx, graphql.GetOperationContext(ctx), fc.Field, nil, satisfies...); err != nil {
-		return nil, err
-	}
-	return t, nil
-}
-
-func (t *TodoQuery) collectField(ctx context.Context, opCtx *graphql.OperationContext, collected graphql.CollectedField, path []string, satisfies ...string) error {
-	path = append([]string(nil), path...)
-	var (
-		unknownSeen    bool
-		fieldSeen      = make(map[string]struct{}, len(todo.Columns))
-		selectedFields = []string{todo.FieldID}
-	)
-	for _, field := range graphql.CollectFields(opCtx, collected.Selections, satisfies) {
-		switch field.Name {
-		case "title":
-			if _, ok := fieldSeen[todo.FieldTitle]; !ok {
-				selectedFields = append(selectedFields, todo.FieldTitle)
-				fieldSeen[todo.FieldTitle] = struct{}{}
-			}
-		case "id":
-		case "__typename":
-		default:
-			unknownSeen = true
-		}
-	}
-	if !unknownSeen {
-		t.Select(selectedFields...)
-	}
-	return nil
-}
-
-type todoPaginateArgs struct {
-	first, last   *int
-	after, before *Cursor
-	opts          []TodoPaginateOption
-}
-
-func newTodoPaginateArgs(rv map[string]any) *todoPaginateArgs {
-	args := &todoPaginateArgs{}
-	if rv == nil {
-		return args
-	}
-	if v := rv[firstField]; v != nil {
-		args.first = v.(*int)
-	}
-	if v := rv[lastField]; v != nil {
-		args.last = v.(*int)
-	}
-	if v := rv[afterField]; v != nil {
-		args.after = v.(*Cursor)
-	}
-	if v := rv[beforeField]; v != nil {
-		args.before = v.(*Cursor)
-	}
-	return args
-}
-
-// CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
 func (w *WordQuery) CollectFields(ctx context.Context, satisfies ...string) (*WordQuery, error) {
 	fc := graphql.GetFieldContext(ctx)
 	if fc == nil {
@@ -177,7 +112,7 @@ func (w *WordQuery) collectField(ctx context.Context, opCtx *graphql.OperationCo
 				path  = append(path, alias)
 				query = (&DefinitionClient{config: w.config}).Query()
 			)
-			if err := query.collectField(ctx, opCtx, field, path, mayAddCondition(satisfies, definitionImplementors)...); err != nil {
+			if err := query.collectField(ctx, opCtx, field, path, satisfies...); err != nil {
 				return err
 			}
 			w.WithNamedDefinitions(alias, func(wq *DefinitionQuery) {
@@ -302,16 +237,15 @@ func limitRows(partitionBy string, limit int, orderBy ...sql.Querier) func(s *sq
 }
 
 // mayAddCondition appends another type condition to the satisfies list
-// if it does not exist in the list.
-func mayAddCondition(satisfies []string, typeCond []string) []string {
-Cond:
-	for _, c := range typeCond {
-		for _, s := range satisfies {
-			if c == s {
-				continue Cond
-			}
-		}
-		satisfies = append(satisfies, c)
+// if condition is enabled (Node/Nodes) and it does not exist in the list.
+func mayAddCondition(satisfies []string, typeCond string) []string {
+	if len(satisfies) == 0 {
+		return satisfies
 	}
-	return satisfies
+	for _, s := range satisfies {
+		if typeCond == s {
+			return satisfies
+		}
+	}
+	return append(satisfies, typeCond)
 }

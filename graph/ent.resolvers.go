@@ -25,11 +25,6 @@ func (r *queryResolver) Definitions(ctx context.Context) ([]*ent.Definition, err
 	return r.client.Definition.Query().All(ctx)
 }
 
-// Todos is the resolver for the todos field.
-func (r *queryResolver) Todos(ctx context.Context) ([]*ent.Todo, error) {
-	return r.client.Todo.Query().All(ctx)
-}
-
 // Words is the resolver for the words field.
 func (r *queryResolver) Words(ctx context.Context) ([]*ent.Word, error) {
 	return r.client.Word.Query().All(ctx)

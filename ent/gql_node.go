@@ -6,7 +6,6 @@ import (
 	"context"
 	"fmt"
 	"shrektionary_api/ent/definition"
-	"shrektionary_api/ent/todo"
 	"shrektionary_api/ent/word"
 	"sync"
 	"sync/atomic"
@@ -25,20 +24,11 @@ type Noder interface {
 	IsNode()
 }
 
-var definitionImplementors = []string{"Definition", "Node"}
+// IsNode implements the Node interface check for GQLGen.
+func (n *Definition) IsNode() {}
 
 // IsNode implements the Node interface check for GQLGen.
-func (*Definition) IsNode() {}
-
-var todoImplementors = []string{"Todo", "Node"}
-
-// IsNode implements the Node interface check for GQLGen.
-func (*Todo) IsNode() {}
-
-var wordImplementors = []string{"Word", "Node"}
-
-// IsNode implements the Node interface check for GQLGen.
-func (*Word) IsNode() {}
+func (n *Word) IsNode() {}
 
 var errNodeInvalidID = &NotFoundError{"node"}
 
@@ -101,19 +91,7 @@ func (c *Client) noder(ctx context.Context, table string, id int) (Noder, error)
 	case definition.Table:
 		query := c.Definition.Query().
 			Where(definition.ID(id))
-		query, err := query.CollectFields(ctx, definitionImplementors...)
-		if err != nil {
-			return nil, err
-		}
-		n, err := query.Only(ctx)
-		if err != nil {
-			return nil, err
-		}
-		return n, nil
-	case todo.Table:
-		query := c.Todo.Query().
-			Where(todo.ID(id))
-		query, err := query.CollectFields(ctx, todoImplementors...)
+		query, err := query.CollectFields(ctx, "Definition")
 		if err != nil {
 			return nil, err
 		}
@@ -125,7 +103,7 @@ func (c *Client) noder(ctx context.Context, table string, id int) (Noder, error)
 	case word.Table:
 		query := c.Word.Query().
 			Where(word.ID(id))
-		query, err := query.CollectFields(ctx, wordImplementors...)
+		query, err := query.CollectFields(ctx, "Word")
 		if err != nil {
 			return nil, err
 		}
@@ -210,23 +188,7 @@ func (c *Client) noders(ctx context.Context, table string, ids []int) ([]Noder, 
 	case definition.Table:
 		query := c.Definition.Query().
 			Where(definition.IDIn(ids...))
-		query, err := query.CollectFields(ctx, definitionImplementors...)
-		if err != nil {
-			return nil, err
-		}
-		nodes, err := query.All(ctx)
-		if err != nil {
-			return nil, err
-		}
-		for _, node := range nodes {
-			for _, noder := range idmap[node.ID] {
-				*noder = node
-			}
-		}
-	case todo.Table:
-		query := c.Todo.Query().
-			Where(todo.IDIn(ids...))
-		query, err := query.CollectFields(ctx, todoImplementors...)
+		query, err := query.CollectFields(ctx, "Definition")
 		if err != nil {
 			return nil, err
 		}
@@ -242,7 +204,7 @@ func (c *Client) noders(ctx context.Context, table string, ids []int) ([]Noder, 
 	case word.Table:
 		query := c.Word.Query().
 			Where(word.IDIn(ids...))
-		query, err := query.CollectFields(ctx, wordImplementors...)
+		query, err := query.CollectFields(ctx, "Word")
 		if err != nil {
 			return nil, err
 		}
