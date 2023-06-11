@@ -5,8 +5,11 @@ package ent
 import (
 	"context"
 	"errors"
+	"fmt"
+	"io"
 	"shrektionary_api/ent/definition"
 	"shrektionary_api/ent/word"
+	"strconv"
 
 	"entgo.io/contrib/entgql"
 	"entgo.io/ent"
@@ -299,6 +302,53 @@ func (d *DefinitionQuery) Paginate(
 	}
 	conn.build(nodes, pager, after, first, before, last)
 	return conn, nil
+}
+
+var (
+	// DefinitionOrderFieldDescription orders Definition by description.
+	DefinitionOrderFieldDescription = &DefinitionOrderField{
+		Value: func(d *Definition) (ent.Value, error) {
+			return d.Description, nil
+		},
+		column: definition.FieldDescription,
+		toTerm: definition.ByDescription,
+		toCursor: func(d *Definition) Cursor {
+			return Cursor{
+				ID:    d.ID,
+				Value: d.Description,
+			}
+		},
+	}
+)
+
+// String implement fmt.Stringer interface.
+func (f DefinitionOrderField) String() string {
+	var str string
+	switch f.column {
+	case DefinitionOrderFieldDescription.column:
+		str = "ALPHA"
+	}
+	return str
+}
+
+// MarshalGQL implements graphql.Marshaler interface.
+func (f DefinitionOrderField) MarshalGQL(w io.Writer) {
+	io.WriteString(w, strconv.Quote(f.String()))
+}
+
+// UnmarshalGQL implements graphql.Unmarshaler interface.
+func (f *DefinitionOrderField) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("DefinitionOrderField %T must be a string", v)
+	}
+	switch str {
+	case "ALPHA":
+		*f = *DefinitionOrderFieldDescription
+	default:
+		return fmt.Errorf("%s is not a valid DefinitionOrderField", str)
+	}
+	return nil
 }
 
 // DefinitionOrderField defines the ordering field of Definition.

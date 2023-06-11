@@ -6,23 +6,27 @@ package graph
 
 import (
 	"context"
-	"fmt"
 	"shrektionary_api/ent"
+
+	"entgo.io/contrib/entgql"
 )
 
 // Node is the resolver for the node field.
-func (r *queryResolver) Node(ctx context.Context, id string) (ent.Noder, error) {
-	panic(fmt.Errorf("not implemented: Node - node"))
+func (r *queryResolver) Node(ctx context.Context, id int) (ent.Noder, error) {
+	return r.client.Noder(ctx, id)
 }
 
 // Nodes is the resolver for the nodes field.
-func (r *queryResolver) Nodes(ctx context.Context, ids []string) ([]ent.Noder, error) {
-	panic(fmt.Errorf("not implemented: Nodes - nodes"))
+func (r *queryResolver) Nodes(ctx context.Context, ids []int) ([]ent.Noder, error) {
+	return r.client.Noders(ctx, ids)
 }
 
 // Definitions is the resolver for the definitions field.
-func (r *queryResolver) Definitions(ctx context.Context) ([]*ent.Definition, error) {
-	return r.client.Definition.Query().All(ctx)
+func (r *queryResolver) Definitions(ctx context.Context, after *entgql.Cursor[int], first *int, before *entgql.Cursor[int], last *int, orderBy *ent.DefinitionOrder) (*ent.DefinitionConnection, error) {
+	return r.client.Definition.Query().
+		Paginate(ctx, after, first, before, last,
+			ent.WithDefinitionOrder(ent.DefaultDefinitionOrder),
+		)
 }
 
 // Words is the resolver for the words field.
