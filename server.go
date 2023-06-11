@@ -91,12 +91,7 @@ func main() {
 	corsHandler := func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			// Set the Access-Control-Allow-Origin header
-			w.Header().Set("Access-Control-Allow-Origin", "https://studio.apollographql.com")
-
-			// Set other necessary CORS headers if needed
-			w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
-			w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
-
+			// w.Header().Set("Access-Control-Allow-Origin", "https://studio.apollographql.com")
 			// Call the next handler
 			next.ServeHTTP(w, r)
 		})
