@@ -24,6 +24,7 @@ type WordQuery struct {
 	inters               []Interceptor
 	predicates           []predicate.Word
 	withDefinitions      *DefinitionQuery
+	withFKs              bool
 	modifiers            []func(*sql.Selector)
 	loadTotal            []func(context.Context, []*Word) error
 	withNamedDefinitions map[string]*DefinitionQuery
@@ -372,11 +373,15 @@ func (wq *WordQuery) prepareQuery(ctx context.Context) error {
 func (wq *WordQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Word, error) {
 	var (
 		nodes       = []*Word{}
+		withFKs     = wq.withFKs
 		_spec       = wq.querySpec()
 		loadedTypes = [1]bool{
 			wq.withDefinitions != nil,
 		}
 	)
+	if withFKs {
+		_spec.Node.Columns = append(_spec.Node.Columns, word.ForeignKeys...)
+	}
 	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*Word).scanValues(nil, columns)
 	}

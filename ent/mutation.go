@@ -431,6 +431,9 @@ type GroupMutation struct {
 	id            *int
 	description   *string
 	clearedFields map[string]struct{}
+	words         map[int]struct{}
+	removedwords  map[int]struct{}
+	clearedwords  bool
 	done          bool
 	oldValue      func(context.Context) (*Group, error)
 	predicates    []predicate.Group
@@ -570,6 +573,60 @@ func (m *GroupMutation) ResetDescription() {
 	m.description = nil
 }
 
+// AddWordIDs adds the "words" edge to the Word entity by ids.
+func (m *GroupMutation) AddWordIDs(ids ...int) {
+	if m.words == nil {
+		m.words = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.words[ids[i]] = struct{}{}
+	}
+}
+
+// ClearWords clears the "words" edge to the Word entity.
+func (m *GroupMutation) ClearWords() {
+	m.clearedwords = true
+}
+
+// WordsCleared reports if the "words" edge to the Word entity was cleared.
+func (m *GroupMutation) WordsCleared() bool {
+	return m.clearedwords
+}
+
+// RemoveWordIDs removes the "words" edge to the Word entity by IDs.
+func (m *GroupMutation) RemoveWordIDs(ids ...int) {
+	if m.removedwords == nil {
+		m.removedwords = make(map[int]struct{})
+	}
+	for i := range ids {
+		delete(m.words, ids[i])
+		m.removedwords[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedWords returns the removed IDs of the "words" edge to the Word entity.
+func (m *GroupMutation) RemovedWordsIDs() (ids []int) {
+	for id := range m.removedwords {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// WordsIDs returns the "words" edge IDs in the mutation.
+func (m *GroupMutation) WordsIDs() (ids []int) {
+	for id := range m.words {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetWords resets all changes to the "words" edge.
+func (m *GroupMutation) ResetWords() {
+	m.words = nil
+	m.clearedwords = false
+	m.removedwords = nil
+}
+
 // Where appends a list predicates to the GroupMutation builder.
 func (m *GroupMutation) Where(ps ...predicate.Group) {
 	m.predicates = append(m.predicates, ps...)
@@ -703,49 +760,85 @@ func (m *GroupMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *GroupMutation) AddedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 1)
+	if m.words != nil {
+		edges = append(edges, group.EdgeWords)
+	}
 	return edges
 }
 
 // AddedIDs returns all IDs (to other nodes) that were added for the given edge
 // name in this mutation.
 func (m *GroupMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case group.EdgeWords:
+		ids := make([]ent.Value, 0, len(m.words))
+		for id := range m.words {
+			ids = append(ids, id)
+		}
+		return ids
+	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *GroupMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 1)
+	if m.removedwords != nil {
+		edges = append(edges, group.EdgeWords)
+	}
 	return edges
 }
 
 // RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
 // the given name in this mutation.
 func (m *GroupMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case group.EdgeWords:
+		ids := make([]ent.Value, 0, len(m.removedwords))
+		for id := range m.removedwords {
+			ids = append(ids, id)
+		}
+		return ids
+	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *GroupMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 1)
+	if m.clearedwords {
+		edges = append(edges, group.EdgeWords)
+	}
 	return edges
 }
 
 // EdgeCleared returns a boolean which indicates if the edge with the given name
 // was cleared in this mutation.
 func (m *GroupMutation) EdgeCleared(name string) bool {
+	switch name {
+	case group.EdgeWords:
+		return m.clearedwords
+	}
 	return false
 }
 
 // ClearEdge clears the value of the edge with the given name. It returns an error
 // if that edge is not defined in the schema.
 func (m *GroupMutation) ClearEdge(name string) error {
+	switch name {
+	}
 	return fmt.Errorf("unknown Group unique edge %s", name)
 }
 
 // ResetEdge resets all changes to the edge with the given name in this mutation.
 // It returns an error if the edge is not defined in the schema.
 func (m *GroupMutation) ResetEdge(name string) error {
+	switch name {
+	case group.EdgeWords:
+		m.ResetWords()
+		return nil
+	}
 	return fmt.Errorf("unknown Group edge %s", name)
 }
 
