@@ -7,6 +7,7 @@ import (
 	"shrektionary_api/ent/definition"
 	"shrektionary_api/ent/word"
 
+	"entgo.io/contrib/entgql"
 	"entgo.io/ent/dialect/sql"
 	"github.com/99designs/gqlgen/graphql"
 )
@@ -81,6 +82,28 @@ func newDefinitionPaginateArgs(rv map[string]any) *definitionPaginateArgs {
 	}
 	if v := rv[beforeField]; v != nil {
 		args.before = v.(*Cursor)
+	}
+	if v, ok := rv[orderByField]; ok {
+		switch v := v.(type) {
+		case map[string]any:
+			var (
+				err1, err2 error
+				order      = &DefinitionOrder{Field: &DefinitionOrderField{}, Direction: entgql.OrderDirectionAsc}
+			)
+			if d, ok := v[directionField]; ok {
+				err1 = order.Direction.UnmarshalGQL(d)
+			}
+			if f, ok := v[fieldField]; ok {
+				err2 = order.Field.UnmarshalGQL(f)
+			}
+			if err1 == nil && err2 == nil {
+				args.opts = append(args.opts, WithDefinitionOrder(order))
+			}
+		case *DefinitionOrder:
+			if v != nil {
+				args.opts = append(args.opts, WithDefinitionOrder(v))
+			}
+		}
 	}
 	return args
 }
