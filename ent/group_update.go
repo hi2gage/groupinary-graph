@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"shrektionary_api/ent/group"
 	"shrektionary_api/ent/predicate"
+	"shrektionary_api/ent/word"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -33,9 +34,45 @@ func (gu *GroupUpdate) SetDescription(s string) *GroupUpdate {
 	return gu
 }
 
+// AddWordIDs adds the "words" edge to the Word entity by IDs.
+func (gu *GroupUpdate) AddWordIDs(ids ...int) *GroupUpdate {
+	gu.mutation.AddWordIDs(ids...)
+	return gu
+}
+
+// AddWords adds the "words" edges to the Word entity.
+func (gu *GroupUpdate) AddWords(w ...*Word) *GroupUpdate {
+	ids := make([]int, len(w))
+	for i := range w {
+		ids[i] = w[i].ID
+	}
+	return gu.AddWordIDs(ids...)
+}
+
 // Mutation returns the GroupMutation object of the builder.
 func (gu *GroupUpdate) Mutation() *GroupMutation {
 	return gu.mutation
+}
+
+// ClearWords clears all "words" edges to the Word entity.
+func (gu *GroupUpdate) ClearWords() *GroupUpdate {
+	gu.mutation.ClearWords()
+	return gu
+}
+
+// RemoveWordIDs removes the "words" edge to Word entities by IDs.
+func (gu *GroupUpdate) RemoveWordIDs(ids ...int) *GroupUpdate {
+	gu.mutation.RemoveWordIDs(ids...)
+	return gu
+}
+
+// RemoveWords removes "words" edges to Word entities.
+func (gu *GroupUpdate) RemoveWords(w ...*Word) *GroupUpdate {
+	ids := make([]int, len(w))
+	for i := range w {
+		ids[i] = w[i].ID
+	}
+	return gu.RemoveWordIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -90,6 +127,51 @@ func (gu *GroupUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := gu.mutation.Description(); ok {
 		_spec.SetField(group.FieldDescription, field.TypeString, value)
 	}
+	if gu.mutation.WordsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   group.WordsTable,
+			Columns: []string{group.WordsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(word.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := gu.mutation.RemovedWordsIDs(); len(nodes) > 0 && !gu.mutation.WordsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   group.WordsTable,
+			Columns: []string{group.WordsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(word.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := gu.mutation.WordsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   group.WordsTable,
+			Columns: []string{group.WordsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(word.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, gu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{group.Label}
@@ -116,9 +198,45 @@ func (guo *GroupUpdateOne) SetDescription(s string) *GroupUpdateOne {
 	return guo
 }
 
+// AddWordIDs adds the "words" edge to the Word entity by IDs.
+func (guo *GroupUpdateOne) AddWordIDs(ids ...int) *GroupUpdateOne {
+	guo.mutation.AddWordIDs(ids...)
+	return guo
+}
+
+// AddWords adds the "words" edges to the Word entity.
+func (guo *GroupUpdateOne) AddWords(w ...*Word) *GroupUpdateOne {
+	ids := make([]int, len(w))
+	for i := range w {
+		ids[i] = w[i].ID
+	}
+	return guo.AddWordIDs(ids...)
+}
+
 // Mutation returns the GroupMutation object of the builder.
 func (guo *GroupUpdateOne) Mutation() *GroupMutation {
 	return guo.mutation
+}
+
+// ClearWords clears all "words" edges to the Word entity.
+func (guo *GroupUpdateOne) ClearWords() *GroupUpdateOne {
+	guo.mutation.ClearWords()
+	return guo
+}
+
+// RemoveWordIDs removes the "words" edge to Word entities by IDs.
+func (guo *GroupUpdateOne) RemoveWordIDs(ids ...int) *GroupUpdateOne {
+	guo.mutation.RemoveWordIDs(ids...)
+	return guo
+}
+
+// RemoveWords removes "words" edges to Word entities.
+func (guo *GroupUpdateOne) RemoveWords(w ...*Word) *GroupUpdateOne {
+	ids := make([]int, len(w))
+	for i := range w {
+		ids[i] = w[i].ID
+	}
+	return guo.RemoveWordIDs(ids...)
 }
 
 // Where appends a list predicates to the GroupUpdate builder.
@@ -202,6 +320,51 @@ func (guo *GroupUpdateOne) sqlSave(ctx context.Context) (_node *Group, err error
 	}
 	if value, ok := guo.mutation.Description(); ok {
 		_spec.SetField(group.FieldDescription, field.TypeString, value)
+	}
+	if guo.mutation.WordsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   group.WordsTable,
+			Columns: []string{group.WordsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(word.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := guo.mutation.RemovedWordsIDs(); len(nodes) > 0 && !guo.mutation.WordsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   group.WordsTable,
+			Columns: []string{group.WordsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(word.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := guo.mutation.WordsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   group.WordsTable,
+			Columns: []string{group.WordsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(word.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	_node = &Group{config: guo.config}
 	_spec.Assign = _node.assignValues

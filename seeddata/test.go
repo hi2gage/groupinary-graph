@@ -25,6 +25,22 @@ func Test(ctx context.Context, client *ent.Client) error {
 		return errDelete
 	}
 
+	// Delete records from the "Word" table
+	_, errDelete = client.Definition.
+		Delete().
+		Exec(ctx)
+	if errDelete != nil {
+		return errDelete
+	}
+
+	// Delete records from the "Word" table
+	_, errDelete = client.Group.
+		Delete().
+		Exec(ctx)
+	if errDelete != nil {
+		return errDelete
+	}
+
 	// Create definitions
 	definitions_shrekt := []*ent.Definition{
 		client.Definition.
@@ -57,25 +73,50 @@ func Test(ctx context.Context, client *ent.Client) error {
 	}
 
 	// Create words and associate definitions
-	words := []*ent.WordCreate{
-		client.Word.
-			Create().
-			SetDescription("Shrek").
-			AddDefinitions(
-				definitions_shrekt[0],
-				definitions_shrekt[1],
-				definitions_shrekt[2],
-			),
-		client.Word.
-			Create().
-			SetDescription("Bot").
-			AddDefinitions(
-				definitions_bot[0],
-				definitions_bot[1],
-				definitions_bot[2],
+	// words := []*ent.WordCreate{
+	// 	client.Word.
+	// 		Create().
+	// 		SetDescription("Shrek").
+	// 		AddDefinitions(
+	// 			definitions_shrekt[0],
+	// 			definitions_shrekt[1],
+	// 			definitions_shrekt[2],
+	// 		),
+	// 	client.Word.
+	// 		Create().
+	// 		SetDescription("Bot").
+	// 		AddDefinitions(
+	// 			definitions_bot[0],
+	// 			definitions_bot[1],
+	// 			definitions_bot[2],
+	// 		),
+	// }
+
+	// Creates group
+	group := []*ent.GroupCreate{
+		client.Group.Create().
+			SetDescription("the Boys").
+			AddWords(
+				client.Word.
+					Create().
+					SetDescription("Shrek").
+					AddDefinitions(
+						definitions_shrekt[0],
+						definitions_shrekt[1],
+						definitions_shrekt[2],
+					).
+					SaveX(ctx),
+				client.Word.Create().
+					SetDescription("Bot").
+					AddDefinitions(
+						definitions_bot[0],
+						definitions_bot[1],
+						definitions_bot[2],
+					).
+					SaveX(ctx),
 			),
 	}
 
-	_, err := client.Word.CreateBulk(words...).Save(ctx)
+	_, err := client.Group.CreateBulk(group...).Save(ctx)
 	return err
 }

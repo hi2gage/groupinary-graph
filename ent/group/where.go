@@ -6,6 +6,7 @@ import (
 	"shrektionary_api/ent/predicate"
 
 	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 )
 
 // ID filters vertices based on their ID field.
@@ -121,6 +122,29 @@ func DescriptionEqualFold(v string) predicate.Group {
 // DescriptionContainsFold applies the ContainsFold predicate on the "description" field.
 func DescriptionContainsFold(v string) predicate.Group {
 	return predicate.Group(sql.FieldContainsFold(FieldDescription, v))
+}
+
+// HasWords applies the HasEdge predicate on the "words" edge.
+func HasWords() predicate.Group {
+	return predicate.Group(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, WordsTable, WordsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasWordsWith applies the HasEdge predicate on the "words" edge with a given conditions (other predicates).
+func HasWordsWith(preds ...predicate.Word) predicate.Group {
+	return predicate.Group(func(s *sql.Selector) {
+		step := newWordsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
 }
 
 // And groups predicates with the AND operator between them.
