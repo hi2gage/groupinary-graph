@@ -14,6 +14,7 @@ import (
 	"shrektionary_api/seeddata"
 
 	"entgo.io/ent/dialect"
+	"github.com/joho/godotenv"
 	_ "github.com/lib/pq" // Import the PostgreSQL driver package
 
 	"github.com/99designs/gqlgen/graphql/handler"
@@ -27,6 +28,14 @@ const (
 )
 
 func main() {
+	// Load environment variables from .env file
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
+	environment := os.Getenv("ENVIRONMENT")
+	log.Printf("Starting Server in: %s ENVIRONMENT", environment)
+
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = defaultPort
