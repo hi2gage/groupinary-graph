@@ -5,7 +5,6 @@ import (
 	"log"
 	"net/http"
 	"net/url"
-	"os"
 	"strings"
 	"time"
 
@@ -27,10 +26,11 @@ func (c CustomClaims) Validate(ctx context.Context) error {
 
 // EnsureValidToken is a middleware that will check the validity of our JWT.
 func EnsureValidToken() func(next http.Handler) http.Handler {
-	issuerURL, err := url.Parse("https://" + os.Getenv("AUTH0_DOMAIN") + "/")
+	issuerURL, err := url.Parse("https://dev-afmzazq3cr35ktpl.us.auth0.com/")
 	if err != nil {
 		log.Fatalf("Failed to parse the issuer url: %v", err)
 	}
+	log.Printf("issuerURL: %s", issuerURL)
 
 	provider := jwks.NewCachingProvider(issuerURL, 5*time.Minute)
 
@@ -38,7 +38,7 @@ func EnsureValidToken() func(next http.Handler) http.Handler {
 		provider.KeyFunc,
 		validator.RS256,
 		issuerURL.String(),
-		[]string{os.Getenv("AUTH0_AUDIENCE")},
+		[]string{"https://shrektionary.com/api"},
 		validator.WithCustomClaims(
 			func() validator.CustomClaims {
 				return &CustomClaims{}
