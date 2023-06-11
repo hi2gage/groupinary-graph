@@ -113,5 +113,12 @@ func main() {
 	http.Handle("/query", loggingMiddleware(corsHandler(authMiddleware(srv))))
 
 	log.Printf("connect to https://localhost:%s/ for GraphQL playground", port)
-	log.Fatal(http.ListenAndServeTLS(":"+port, defaultCertFile, defaultKeyFile, nil))
+
+	if environment == "dev" {
+		log.Printf("started in TLS mode")
+		log.Fatal(http.ListenAndServeTLS(":"+port, defaultCertFile, defaultKeyFile, nil))
+	} else {
+		log.Fatal(http.ListenAndServe(":"+port, nil))
+	}
+
 }
