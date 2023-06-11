@@ -20,6 +20,18 @@ func (f DefinitionFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, 
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.DefinitionMutation", m)
 }
 
+// The GroupFunc type is an adapter to allow the use of ordinary
+// function as Group mutator.
+type GroupFunc func(context.Context, *ent.GroupMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f GroupFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.GroupMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.GroupMutation", m)
+}
+
 // The WordFunc type is an adapter to allow the use of ordinary
 // function as Word mutator.
 type WordFunc func(context.Context, *ent.WordMutation) (ent.Value, error)
@@ -30,6 +42,18 @@ func (f WordFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error)
 		return f(ctx, mv)
 	}
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.WordMutation", m)
+}
+
+// The WordConnectionsFunc type is an adapter to allow the use of ordinary
+// function as WordConnections mutator.
+type WordConnectionsFunc func(context.Context, *ent.WordConnectionsMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f WordConnectionsFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.WordConnectionsMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.WordConnectionsMutation", m)
 }
 
 // Condition is a hook condition function.

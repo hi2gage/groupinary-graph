@@ -23,8 +23,7 @@ func (Word) Fields() []ent.Field {
 // Edges of the Word.
 func (Word) Edges() []ent.Edge {
 	return []ent.Edge{
-		edge.To("definitions", Definition.Type).
-			Annotations(entgql.RelayConnection()),
+		edge.To("definitions", Definition.Type),
 	}
 }
 

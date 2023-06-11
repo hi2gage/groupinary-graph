@@ -6,6 +6,7 @@ package graph
 
 import (
 	"context"
+	"fmt"
 	"shrektionary_api/ent"
 
 	"entgo.io/contrib/entgql"
@@ -22,16 +23,23 @@ func (r *queryResolver) Nodes(ctx context.Context, ids []int) ([]ent.Noder, erro
 }
 
 // Definitions is the resolver for the definitions field.
-func (r *queryResolver) Definitions(ctx context.Context, after *entgql.Cursor[int], first *int, before *entgql.Cursor[int], last *int, orderBy *ent.DefinitionOrder) (*ent.DefinitionConnection, error) {
-	return r.client.Definition.Query().
-		Paginate(ctx, after, first, before, last,
-			ent.WithDefinitionOrder(ent.DefaultDefinitionOrder),
-		)
+func (r *queryResolver) Definitions(ctx context.Context) ([]*ent.Definition, error) {
+	return r.client.Definition.Query().All(ctx)
+}
+
+// Groups is the resolver for the groups field.
+func (r *queryResolver) Groups(ctx context.Context) ([]*ent.Group, error) {
+	panic(fmt.Errorf("not implemented: Groups - groups"))
 }
 
 // Words is the resolver for the words field.
 func (r *queryResolver) Words(ctx context.Context) ([]*ent.Word, error) {
 	return r.client.Word.Query().All(ctx)
+}
+
+// WordConnectionsSlice is the resolver for the wordConnectionsSlice field.
+func (r *queryResolver) WordConnectionsSlice(ctx context.Context, after *entgql.Cursor[int], first *int, before *entgql.Cursor[int], last *int) (*ent.WordConnectionsConnection, error) {
+	panic(fmt.Errorf("not implemented: WordConnectionsSlice - wordConnectionsSlice"))
 }
 
 // Query returns QueryResolver implementation.
