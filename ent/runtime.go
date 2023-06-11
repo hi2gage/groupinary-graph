@@ -7,7 +7,6 @@ import (
 	"shrektionary_api/ent/group"
 	"shrektionary_api/ent/schema"
 	"shrektionary_api/ent/word"
-	"shrektionary_api/ent/wordconnections"
 )
 
 // The init function reads all schema descriptors with runtime code
@@ -32,10 +31,4 @@ func init() {
 	wordDescDescription := wordFields[0].Descriptor()
 	// word.DescriptionValidator is a validator for the "description" field. It is called by the builders before save.
 	word.DescriptionValidator = wordDescDescription.Validators[0].(func(string) error)
-	wordconnectionsFields := schema.WordConnections{}.Fields()
-	_ = wordconnectionsFields
-	// wordconnectionsDescDescription is the schema descriptor for description field.
-	wordconnectionsDescDescription := wordconnectionsFields[0].Descriptor()
-	// wordconnections.DescriptionValidator is a validator for the "description" field. It is called by the builders before save.
-	wordconnections.DescriptionValidator = wordconnectionsDescDescription.Validators[0].(func(string) error)
 }
