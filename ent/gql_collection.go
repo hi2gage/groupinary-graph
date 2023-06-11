@@ -7,7 +7,6 @@ import (
 	"shrektionary_api/ent/definition"
 	"shrektionary_api/ent/group"
 	"shrektionary_api/ent/word"
-	"shrektionary_api/ent/wordconnections"
 
 	"entgo.io/contrib/entgql"
 	"entgo.io/ent/dialect/sql"
@@ -232,70 +231,6 @@ type wordPaginateArgs struct {
 
 func newWordPaginateArgs(rv map[string]any) *wordPaginateArgs {
 	args := &wordPaginateArgs{}
-	if rv == nil {
-		return args
-	}
-	if v := rv[firstField]; v != nil {
-		args.first = v.(*int)
-	}
-	if v := rv[lastField]; v != nil {
-		args.last = v.(*int)
-	}
-	if v := rv[afterField]; v != nil {
-		args.after = v.(*Cursor)
-	}
-	if v := rv[beforeField]; v != nil {
-		args.before = v.(*Cursor)
-	}
-	return args
-}
-
-// CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
-func (wc *WordConnectionsQuery) CollectFields(ctx context.Context, satisfies ...string) (*WordConnectionsQuery, error) {
-	fc := graphql.GetFieldContext(ctx)
-	if fc == nil {
-		return wc, nil
-	}
-	if err := wc.collectField(ctx, graphql.GetOperationContext(ctx), fc.Field, nil, satisfies...); err != nil {
-		return nil, err
-	}
-	return wc, nil
-}
-
-func (wc *WordConnectionsQuery) collectField(ctx context.Context, opCtx *graphql.OperationContext, collected graphql.CollectedField, path []string, satisfies ...string) error {
-	path = append([]string(nil), path...)
-	var (
-		unknownSeen    bool
-		fieldSeen      = make(map[string]struct{}, len(wordconnections.Columns))
-		selectedFields = []string{wordconnections.FieldID}
-	)
-	for _, field := range graphql.CollectFields(opCtx, collected.Selections, satisfies) {
-		switch field.Name {
-		case "description":
-			if _, ok := fieldSeen[wordconnections.FieldDescription]; !ok {
-				selectedFields = append(selectedFields, wordconnections.FieldDescription)
-				fieldSeen[wordconnections.FieldDescription] = struct{}{}
-			}
-		case "id":
-		case "__typename":
-		default:
-			unknownSeen = true
-		}
-	}
-	if !unknownSeen {
-		wc.Select(selectedFields...)
-	}
-	return nil
-}
-
-type wordconnectionsPaginateArgs struct {
-	first, last   *int
-	after, before *Cursor
-	opts          []WordConnectionsPaginateOption
-}
-
-func newWordConnectionsPaginateArgs(rv map[string]any) *wordconnectionsPaginateArgs {
-	args := &wordconnectionsPaginateArgs{}
 	if rv == nil {
 		return args
 	}

@@ -50,23 +50,11 @@ var (
 		Columns:    WordsColumns,
 		PrimaryKey: []*schema.Column{WordsColumns[0]},
 	}
-	// WordConnectionsColumns holds the columns for the "word_connections" table.
-	WordConnectionsColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeInt, Increment: true},
-		{Name: "description", Type: field.TypeString},
-	}
-	// WordConnectionsTable holds the schema information for the "word_connections" table.
-	WordConnectionsTable = &schema.Table{
-		Name:       "word_connections",
-		Columns:    WordConnectionsColumns,
-		PrimaryKey: []*schema.Column{WordConnectionsColumns[0]},
-	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
 		DefinitionsTable,
 		GroupsTable,
 		WordsTable,
-		WordConnectionsTable,
 	}
 )
 

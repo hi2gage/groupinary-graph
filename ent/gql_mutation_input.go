@@ -89,19 +89,3 @@ func (c *WordCreate) SetInput(i CreateWordInput) *WordCreate {
 	i.Mutate(c.Mutation())
 	return c
 }
-
-// CreateWordConnectionsInput represents a mutation input for creating wordconnectionsslice.
-type CreateWordConnectionsInput struct {
-	Description string
-}
-
-// Mutate applies the CreateWordConnectionsInput on the WordConnectionsMutation builder.
-func (i *CreateWordConnectionsInput) Mutate(m *WordConnectionsMutation) {
-	m.SetDescription(i.Description)
-}
-
-// SetInput applies the change-set in the CreateWordConnectionsInput on the WordConnectionsCreate builder.
-func (c *WordConnectionsCreate) SetInput(i CreateWordConnectionsInput) *WordConnectionsCreate {
-	i.Mutate(c.Mutation())
-	return c
-}
