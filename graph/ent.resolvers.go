@@ -22,10 +22,11 @@ func (r *queryResolver) Nodes(ctx context.Context, ids []int) ([]ent.Noder, erro
 }
 
 // Definitions is the resolver for the definitions field.
-func (r *queryResolver) Definitions(ctx context.Context, after *entgql.Cursor[int], first *int, before *entgql.Cursor[int], last *int, orderBy *ent.DefinitionOrder) (*ent.DefinitionConnection, error) {
+func (r *queryResolver) Definitions(ctx context.Context, after *entgql.Cursor[int], first *int, before *entgql.Cursor[int], last *int, orderBy *ent.DefinitionOrder, where *ent.DefinitionWhereInput) (*ent.DefinitionConnection, error) {
 	return r.client.Definition.Query().
 		Paginate(ctx, after, first, before, last,
 			ent.WithDefinitionOrder(ent.DefaultDefinitionOrder),
+			ent.WithDefinitionFilter(where.Filter),
 		)
 }
 
@@ -34,8 +35,13 @@ func (r *queryResolver) Groups(ctx context.Context) ([]*ent.Group, error) {
 	return r.client.Group.Query().All(ctx)
 }
 
+// Users is the resolver for the users field.
+func (r *queryResolver) Users(ctx context.Context) ([]*ent.User, error) {
+	return r.client.User.Query().All(ctx)
+}
+
 // Words is the resolver for the words field.
-func (r *queryResolver) Words(ctx context.Context, after *entgql.Cursor[int], first *int, before *entgql.Cursor[int], last *int) (*ent.WordConnection, error) {
+func (r *queryResolver) Words(ctx context.Context, after *entgql.Cursor[int], first *int, before *entgql.Cursor[int], last *int, where *ent.WordWhereInput) (*ent.WordConnection, error) {
 	return r.client.Word.Query().
 		Paginate(ctx, after, first, before, last,
 			ent.WithWordOrder(ent.DefaultWordOrder),

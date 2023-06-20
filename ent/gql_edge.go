@@ -17,9 +17,11 @@ func (d *Definition) Word(ctx context.Context) (*Word, error) {
 }
 
 func (gr *Group) Words(
-	ctx context.Context, after *Cursor, first *int, before *Cursor, last *int,
+	ctx context.Context, after *Cursor, first *int, before *Cursor, last *int, where *WordWhereInput,
 ) (*WordConnection, error) {
-	opts := []WordPaginateOption{}
+	opts := []WordPaginateOption{
+		WithWordFilter(where.Filter),
+	}
 	alias := graphql.GetFieldContext(ctx).Field.Alias
 	totalCount, hasTotalCount := gr.Edges.totalCount[0][alias]
 	if nodes, err := gr.NamedWords(alias); err == nil || hasTotalCount {
@@ -34,11 +36,36 @@ func (gr *Group) Words(
 	return gr.QueryWords().Paginate(ctx, after, first, before, last, opts...)
 }
 
+func (gr *Group) Users(ctx context.Context) (result []*User, err error) {
+	if fc := graphql.GetFieldContext(ctx); fc != nil && fc.Field.Alias != "" {
+		result, err = gr.NamedUsers(graphql.GetFieldContext(ctx).Field.Alias)
+	} else {
+		result, err = gr.Edges.UsersOrErr()
+	}
+	if IsNotLoaded(err) {
+		result, err = gr.QueryUsers().All(ctx)
+	}
+	return result, err
+}
+
+func (u *User) Groups(ctx context.Context) (result []*Group, err error) {
+	if fc := graphql.GetFieldContext(ctx); fc != nil && fc.Field.Alias != "" {
+		result, err = u.NamedGroups(graphql.GetFieldContext(ctx).Field.Alias)
+	} else {
+		result, err = u.Edges.GroupsOrErr()
+	}
+	if IsNotLoaded(err) {
+		result, err = u.QueryGroups().All(ctx)
+	}
+	return result, err
+}
+
 func (w *Word) Definitions(
-	ctx context.Context, after *Cursor, first *int, before *Cursor, last *int, orderBy *DefinitionOrder,
+	ctx context.Context, after *Cursor, first *int, before *Cursor, last *int, orderBy *DefinitionOrder, where *DefinitionWhereInput,
 ) (*DefinitionConnection, error) {
 	opts := []DefinitionPaginateOption{
 		WithDefinitionOrder(orderBy),
+		WithDefinitionFilter(where.Filter),
 	}
 	alias := graphql.GetFieldContext(ctx).Field.Alias
 	totalCount, hasTotalCount := w.Edges.totalCount[0][alias]

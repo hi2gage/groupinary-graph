@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"shrektionary_api/ent/definition"
 	"shrektionary_api/ent/group"
+	"shrektionary_api/ent/user"
 	"shrektionary_api/ent/word"
 
 	"entgo.io/contrib/entgql"
@@ -108,6 +109,9 @@ func newDefinitionPaginateArgs(rv map[string]any) *definitionPaginateArgs {
 			}
 		}
 	}
+	if v, ok := rv[whereField].(*DefinitionWhereInput); ok {
+		args.opts = append(args.opts, WithDefinitionFilter(v.Filter))
+	}
 	return args
 }
 
@@ -138,7 +142,7 @@ func (gr *GroupQuery) collectField(ctx context.Context, opCtx *graphql.Operation
 				path  = append(path, alias)
 				query = (&WordClient{config: gr.config}).Query()
 			)
-			args := newWordPaginateArgs(fieldArgs(ctx, nil, path...))
+			args := newWordPaginateArgs(fieldArgs(ctx, new(WordWhereInput), path...))
 			if err := validateFirstLast(args.first, args.last); err != nil {
 				return fmt.Errorf("validate first and last in path %q: %w", path, err)
 			}
@@ -216,6 +220,18 @@ func (gr *GroupQuery) collectField(ctx context.Context, opCtx *graphql.Operation
 			gr.WithNamedWords(alias, func(wq *WordQuery) {
 				*wq = *query
 			})
+		case "users":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = (&UserClient{config: gr.config}).Query()
+			)
+			if err := query.collectField(ctx, opCtx, field, path, satisfies...); err != nil {
+				return err
+			}
+			gr.WithNamedUsers(alias, func(wq *UserQuery) {
+				*wq = *query
+			})
 		case "description":
 			if _, ok := fieldSeen[group.FieldDescription]; !ok {
 				selectedFields = append(selectedFields, group.FieldDescription)
@@ -256,6 +272,88 @@ func newGroupPaginateArgs(rv map[string]any) *groupPaginateArgs {
 	if v := rv[beforeField]; v != nil {
 		args.before = v.(*Cursor)
 	}
+	if v, ok := rv[whereField].(*GroupWhereInput); ok {
+		args.opts = append(args.opts, WithGroupFilter(v.Filter))
+	}
+	return args
+}
+
+// CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
+func (u *UserQuery) CollectFields(ctx context.Context, satisfies ...string) (*UserQuery, error) {
+	fc := graphql.GetFieldContext(ctx)
+	if fc == nil {
+		return u, nil
+	}
+	if err := u.collectField(ctx, graphql.GetOperationContext(ctx), fc.Field, nil, satisfies...); err != nil {
+		return nil, err
+	}
+	return u, nil
+}
+
+func (u *UserQuery) collectField(ctx context.Context, opCtx *graphql.OperationContext, collected graphql.CollectedField, path []string, satisfies ...string) error {
+	path = append([]string(nil), path...)
+	var (
+		unknownSeen    bool
+		fieldSeen      = make(map[string]struct{}, len(user.Columns))
+		selectedFields = []string{user.FieldID}
+	)
+	for _, field := range graphql.CollectFields(opCtx, collected.Selections, satisfies) {
+		switch field.Name {
+		case "groups":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = (&GroupClient{config: u.config}).Query()
+			)
+			if err := query.collectField(ctx, opCtx, field, path, satisfies...); err != nil {
+				return err
+			}
+			u.WithNamedGroups(alias, func(wq *GroupQuery) {
+				*wq = *query
+			})
+		case "authid":
+			if _, ok := fieldSeen[user.FieldAuthID]; !ok {
+				selectedFields = append(selectedFields, user.FieldAuthID)
+				fieldSeen[user.FieldAuthID] = struct{}{}
+			}
+		case "id":
+		case "__typename":
+		default:
+			unknownSeen = true
+		}
+	}
+	if !unknownSeen {
+		u.Select(selectedFields...)
+	}
+	return nil
+}
+
+type userPaginateArgs struct {
+	first, last   *int
+	after, before *Cursor
+	opts          []UserPaginateOption
+}
+
+func newUserPaginateArgs(rv map[string]any) *userPaginateArgs {
+	args := &userPaginateArgs{}
+	if rv == nil {
+		return args
+	}
+	if v := rv[firstField]; v != nil {
+		args.first = v.(*int)
+	}
+	if v := rv[lastField]; v != nil {
+		args.last = v.(*int)
+	}
+	if v := rv[afterField]; v != nil {
+		args.after = v.(*Cursor)
+	}
+	if v := rv[beforeField]; v != nil {
+		args.before = v.(*Cursor)
+	}
+	if v, ok := rv[whereField].(*UserWhereInput); ok {
+		args.opts = append(args.opts, WithUserFilter(v.Filter))
+	}
 	return args
 }
 
@@ -286,7 +384,7 @@ func (w *WordQuery) collectField(ctx context.Context, opCtx *graphql.OperationCo
 				path  = append(path, alias)
 				query = (&DefinitionClient{config: w.config}).Query()
 			)
-			args := newDefinitionPaginateArgs(fieldArgs(ctx, nil, path...))
+			args := newDefinitionPaginateArgs(fieldArgs(ctx, new(DefinitionWhereInput), path...))
 			if err := validateFirstLast(args.first, args.last); err != nil {
 				return fmt.Errorf("validate first and last in path %q: %w", path, err)
 			}
@@ -403,6 +501,9 @@ func newWordPaginateArgs(rv map[string]any) *wordPaginateArgs {
 	}
 	if v := rv[beforeField]; v != nil {
 		args.before = v.(*Cursor)
+	}
+	if v, ok := rv[whereField].(*WordWhereInput); ok {
+		args.opts = append(args.opts, WithWordFilter(v.Filter))
 	}
 	return args
 }
