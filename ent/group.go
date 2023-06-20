@@ -28,13 +28,16 @@ type Group struct {
 type GroupEdges struct {
 	// Words holds the value of the words edge.
 	Words []*Word `json:"words,omitempty"`
+	// Users holds the value of the users edge.
+	Users []*User `json:"users,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
+	loadedTypes [2]bool
 	// totalCount holds the count of the edges above.
-	totalCount [1]map[string]int
+	totalCount [2]map[string]int
 
 	namedWords map[string][]*Word
+	namedUsers map[string][]*User
 }
 
 // WordsOrErr returns the Words value or an error if the edge
@@ -44,6 +47,15 @@ func (e GroupEdges) WordsOrErr() ([]*Word, error) {
 		return e.Words, nil
 	}
 	return nil, &NotLoadedError{edge: "words"}
+}
+
+// UsersOrErr returns the Users value or an error if the edge
+// was not loaded in eager-loading.
+func (e GroupEdges) UsersOrErr() ([]*User, error) {
+	if e.loadedTypes[1] {
+		return e.Users, nil
+	}
+	return nil, &NotLoadedError{edge: "users"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -100,6 +112,11 @@ func (gr *Group) QueryWords() *WordQuery {
 	return NewGroupClient(gr.config).QueryWords(gr)
 }
 
+// QueryUsers queries the "users" edge of the Group entity.
+func (gr *Group) QueryUsers() *UserQuery {
+	return NewGroupClient(gr.config).QueryUsers(gr)
+}
+
 // Update returns a builder for updating this Group.
 // Note that you need to call Group.Unwrap() before calling this method if this Group
 // was returned from a transaction, and the transaction was committed or rolled back.
@@ -150,6 +167,30 @@ func (gr *Group) appendNamedWords(name string, edges ...*Word) {
 		gr.Edges.namedWords[name] = []*Word{}
 	} else {
 		gr.Edges.namedWords[name] = append(gr.Edges.namedWords[name], edges...)
+	}
+}
+
+// NamedUsers returns the Users named value or an error if the edge was not
+// loaded in eager-loading with this name.
+func (gr *Group) NamedUsers(name string) ([]*User, error) {
+	if gr.Edges.namedUsers == nil {
+		return nil, &NotLoadedError{edge: name}
+	}
+	nodes, ok := gr.Edges.namedUsers[name]
+	if !ok {
+		return nil, &NotLoadedError{edge: name}
+	}
+	return nodes, nil
+}
+
+func (gr *Group) appendNamedUsers(name string, edges ...*User) {
+	if gr.Edges.namedUsers == nil {
+		gr.Edges.namedUsers = make(map[string][]*User)
+	}
+	if len(edges) == 0 {
+		gr.Edges.namedUsers[name] = []*User{}
+	} else {
+		gr.Edges.namedUsers[name] = append(gr.Edges.namedUsers[name], edges...)
 	}
 }
 

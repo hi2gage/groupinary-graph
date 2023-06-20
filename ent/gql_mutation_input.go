@@ -58,6 +58,7 @@ func (c *DefinitionUpdateOne) SetInput(i UpdateDefinitionInput) *DefinitionUpdat
 type CreateGroupInput struct {
 	Description string
 	WordIDs     []int
+	UserIDs     []int
 }
 
 // Mutate applies the CreateGroupInput on the GroupMutation builder.
@@ -66,10 +67,33 @@ func (i *CreateGroupInput) Mutate(m *GroupMutation) {
 	if v := i.WordIDs; len(v) > 0 {
 		m.AddWordIDs(v...)
 	}
+	if v := i.UserIDs; len(v) > 0 {
+		m.AddUserIDs(v...)
+	}
 }
 
 // SetInput applies the change-set in the CreateGroupInput on the GroupCreate builder.
 func (c *GroupCreate) SetInput(i CreateGroupInput) *GroupCreate {
+	i.Mutate(c.Mutation())
+	return c
+}
+
+// CreateUserInput represents a mutation input for creating users.
+type CreateUserInput struct {
+	AuthID   string
+	GroupIDs []int
+}
+
+// Mutate applies the CreateUserInput on the UserMutation builder.
+func (i *CreateUserInput) Mutate(m *UserMutation) {
+	m.SetAuthID(i.AuthID)
+	if v := i.GroupIDs; len(v) > 0 {
+		m.AddGroupIDs(v...)
+	}
+}
+
+// SetInput applies the change-set in the CreateUserInput on the UserCreate builder.
+func (c *UserCreate) SetInput(i CreateUserInput) *UserCreate {
 	i.Mutate(c.Mutation())
 	return c
 }

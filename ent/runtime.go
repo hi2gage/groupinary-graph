@@ -6,6 +6,7 @@ import (
 	"shrektionary_api/ent/definition"
 	"shrektionary_api/ent/group"
 	"shrektionary_api/ent/schema"
+	"shrektionary_api/ent/user"
 	"shrektionary_api/ent/word"
 )
 
@@ -25,6 +26,12 @@ func init() {
 	groupDescDescription := groupFields[0].Descriptor()
 	// group.DescriptionValidator is a validator for the "description" field. It is called by the builders before save.
 	group.DescriptionValidator = groupDescDescription.Validators[0].(func(string) error)
+	userFields := schema.User{}.Fields()
+	_ = userFields
+	// userDescAuthID is the schema descriptor for authID field.
+	userDescAuthID := userFields[0].Descriptor()
+	// user.AuthIDValidator is a validator for the "authID" field. It is called by the builders before save.
+	user.AuthIDValidator = userDescAuthID.Validators[0].(func(string) error)
 	wordFields := schema.Word{}.Fields()
 	_ = wordFields
 	// wordDescDescription is the schema descriptor for description field.

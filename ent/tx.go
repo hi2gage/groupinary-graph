@@ -16,6 +16,8 @@ type Tx struct {
 	Definition *DefinitionClient
 	// Group is the client for interacting with the Group builders.
 	Group *GroupClient
+	// User is the client for interacting with the User builders.
+	User *UserClient
 	// Word is the client for interacting with the Word builders.
 	Word *WordClient
 
@@ -151,6 +153,7 @@ func (tx *Tx) Client() *Client {
 func (tx *Tx) init() {
 	tx.Definition = NewDefinitionClient(tx.config)
 	tx.Group = NewGroupClient(tx.config)
+	tx.User = NewUserClient(tx.config)
 	tx.Word = NewWordClient(tx.config)
 }
 
