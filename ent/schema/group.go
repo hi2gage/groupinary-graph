@@ -25,6 +25,8 @@ func (Group) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.To("words", Word.Type).
 			Annotations(entgql.RelayConnection()),
+		edge.From("users", User.Type).
+			Ref("groups"),
 	}
 }
 

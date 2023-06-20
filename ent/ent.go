@@ -9,6 +9,7 @@ import (
 	"reflect"
 	"shrektionary_api/ent/definition"
 	"shrektionary_api/ent/group"
+	"shrektionary_api/ent/user"
 	"shrektionary_api/ent/word"
 	"sync"
 
@@ -77,6 +78,7 @@ func checkColumn(table, column string) error {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
 			definition.Table: definition.ValidColumn,
 			group.Table:      group.ValidColumn,
+			user.Table:       user.ValidColumn,
 			word.Table:       word.ValidColumn,
 		})
 	})

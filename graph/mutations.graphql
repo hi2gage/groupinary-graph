@@ -1,3 +1,4 @@
 type Mutation {
     createDefinition(input: CreateDefinitionInput!): Definition!
+    createUser(input: CreateUserInput!): User!
 }

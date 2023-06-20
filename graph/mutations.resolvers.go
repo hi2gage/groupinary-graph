@@ -14,6 +14,11 @@ func (r *mutationResolver) CreateDefinition(ctx context.Context, input ent.Creat
 	return r.client.Definition.Create().SetInput(input).Save(ctx)
 }
 
+// CreateUser is the resolver for the createUser field.
+func (r *mutationResolver) CreateUser(ctx context.Context, input ent.CreateUserInput) (*ent.User, error) {
+	return r.client.User.Create().SetInput(input).Save(ctx)
+}
+
 // Mutation returns MutationResolver implementation.
 func (r *Resolver) Mutation() MutationResolver { return &mutationResolver{r} }
 
