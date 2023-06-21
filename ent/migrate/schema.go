@@ -63,6 +63,7 @@ var (
 		{Name: "description", Type: field.TypeString},
 		{Name: "group_words", Type: field.TypeInt, Nullable: true},
 		{Name: "user_words", Type: field.TypeInt, Nullable: true},
+		{Name: "word_descendants", Type: field.TypeInt, Nullable: true},
 	}
 	// WordsTable holds the schema information for the "words" table.
 	WordsTable = &schema.Table{
@@ -80,6 +81,12 @@ var (
 				Symbol:     "words_users_words",
 				Columns:    []*schema.Column{WordsColumns[3]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "words_words_descendants",
+				Columns:    []*schema.Column{WordsColumns[4]},
+				RefColumns: []*schema.Column{WordsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 		},
@@ -124,6 +131,7 @@ func init() {
 	DefinitionsTable.ForeignKeys[1].RefTable = WordsTable
 	WordsTable.ForeignKeys[0].RefTable = GroupsTable
 	WordsTable.ForeignKeys[1].RefTable = UsersTable
+	WordsTable.ForeignKeys[2].RefTable = WordsTable
 	UserGroupsTable.ForeignKeys[0].RefTable = UsersTable
 	UserGroupsTable.ForeignKeys[1].RefTable = GroupsTable
 }

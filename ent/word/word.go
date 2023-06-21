@@ -14,10 +14,23 @@ const (
 	FieldID = "id"
 	// FieldDescription holds the string denoting the description field in the database.
 	FieldDescription = "description"
+	// EdgeCreator holds the string denoting the creator edge name in mutations.
+	EdgeCreator = "creator"
 	// EdgeDefinitions holds the string denoting the definitions edge name in mutations.
 	EdgeDefinitions = "definitions"
+	// EdgeDescendants holds the string denoting the descendants edge name in mutations.
+	EdgeDescendants = "descendants"
+	// EdgeParent holds the string denoting the parent edge name in mutations.
+	EdgeParent = "parent"
 	// Table holds the table name of the word in the database.
 	Table = "words"
+	// CreatorTable is the table that holds the creator relation/edge.
+	CreatorTable = "words"
+	// CreatorInverseTable is the table name for the User entity.
+	// It exists in this package in order to avoid circular dependency with the "user" package.
+	CreatorInverseTable = "users"
+	// CreatorColumn is the table column denoting the creator relation/edge.
+	CreatorColumn = "user_words"
 	// DefinitionsTable is the table that holds the definitions relation/edge.
 	DefinitionsTable = "definitions"
 	// DefinitionsInverseTable is the table name for the Definition entity.
@@ -25,6 +38,14 @@ const (
 	DefinitionsInverseTable = "definitions"
 	// DefinitionsColumn is the table column denoting the definitions relation/edge.
 	DefinitionsColumn = "word_definitions"
+	// DescendantsTable is the table that holds the descendants relation/edge.
+	DescendantsTable = "words"
+	// DescendantsColumn is the table column denoting the descendants relation/edge.
+	DescendantsColumn = "word_descendants"
+	// ParentTable is the table that holds the parent relation/edge.
+	ParentTable = "words"
+	// ParentColumn is the table column denoting the parent relation/edge.
+	ParentColumn = "word_descendants"
 )
 
 // Columns holds all SQL columns for word fields.
@@ -38,6 +59,7 @@ var Columns = []string{
 var ForeignKeys = []string{
 	"group_words",
 	"user_words",
+	"word_descendants",
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -73,6 +95,13 @@ func ByDescription(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldDescription, opts...).ToFunc()
 }
 
+// ByCreatorField orders the results by creator field.
+func ByCreatorField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newCreatorStep(), sql.OrderByField(field, opts...))
+	}
+}
+
 // ByDefinitionsCount orders the results by definitions count.
 func ByDefinitionsCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -86,10 +115,52 @@ func ByDefinitions(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newDefinitionsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByDescendantsCount orders the results by descendants count.
+func ByDescendantsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newDescendantsStep(), opts...)
+	}
+}
+
+// ByDescendants orders the results by descendants terms.
+func ByDescendants(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newDescendantsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByParentField orders the results by parent field.
+func ByParentField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newParentStep(), sql.OrderByField(field, opts...))
+	}
+}
+func newCreatorStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(CreatorInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, CreatorTable, CreatorColumn),
+	)
+}
 func newDefinitionsStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(DefinitionsInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, DefinitionsTable, DefinitionsColumn),
+	)
+}
+func newDescendantsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(Table, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, DescendantsTable, DescendantsColumn),
+	)
+}
+func newParentStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(Table, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, ParentTable, ParentColumn),
 	)
 }

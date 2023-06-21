@@ -710,9 +710,21 @@ type WordWhereInput struct {
 	DescriptionEqualFold    *string  `json:"descriptionEqualFold,omitempty"`
 	DescriptionContainsFold *string  `json:"descriptionContainsFold,omitempty"`
 
+	// "creator" edge predicates.
+	HasCreator     *bool             `json:"hasCreator,omitempty"`
+	HasCreatorWith []*UserWhereInput `json:"hasCreatorWith,omitempty"`
+
 	// "definitions" edge predicates.
 	HasDefinitions     *bool                   `json:"hasDefinitions,omitempty"`
 	HasDefinitionsWith []*DefinitionWhereInput `json:"hasDefinitionsWith,omitempty"`
+
+	// "descendants" edge predicates.
+	HasDescendants     *bool             `json:"hasDescendants,omitempty"`
+	HasDescendantsWith []*WordWhereInput `json:"hasDescendantsWith,omitempty"`
+
+	// "parent" edge predicates.
+	HasParent     *bool             `json:"hasParent,omitempty"`
+	HasParentWith []*WordWhereInput `json:"hasParentWith,omitempty"`
 }
 
 // AddPredicates adds custom predicates to the where input to be used during the filtering phase.
@@ -850,6 +862,24 @@ func (i *WordWhereInput) P() (predicate.Word, error) {
 		predicates = append(predicates, word.DescriptionContainsFold(*i.DescriptionContainsFold))
 	}
 
+	if i.HasCreator != nil {
+		p := word.HasCreator()
+		if !*i.HasCreator {
+			p = word.Not(p)
+		}
+		predicates = append(predicates, p)
+	}
+	if len(i.HasCreatorWith) > 0 {
+		with := make([]predicate.User, 0, len(i.HasCreatorWith))
+		for _, w := range i.HasCreatorWith {
+			p, err := w.P()
+			if err != nil {
+				return nil, fmt.Errorf("%w: field 'HasCreatorWith'", err)
+			}
+			with = append(with, p)
+		}
+		predicates = append(predicates, word.HasCreatorWith(with...))
+	}
 	if i.HasDefinitions != nil {
 		p := word.HasDefinitions()
 		if !*i.HasDefinitions {
@@ -867,6 +897,42 @@ func (i *WordWhereInput) P() (predicate.Word, error) {
 			with = append(with, p)
 		}
 		predicates = append(predicates, word.HasDefinitionsWith(with...))
+	}
+	if i.HasDescendants != nil {
+		p := word.HasDescendants()
+		if !*i.HasDescendants {
+			p = word.Not(p)
+		}
+		predicates = append(predicates, p)
+	}
+	if len(i.HasDescendantsWith) > 0 {
+		with := make([]predicate.Word, 0, len(i.HasDescendantsWith))
+		for _, w := range i.HasDescendantsWith {
+			p, err := w.P()
+			if err != nil {
+				return nil, fmt.Errorf("%w: field 'HasDescendantsWith'", err)
+			}
+			with = append(with, p)
+		}
+		predicates = append(predicates, word.HasDescendantsWith(with...))
+	}
+	if i.HasParent != nil {
+		p := word.HasParent()
+		if !*i.HasParent {
+			p = word.Not(p)
+		}
+		predicates = append(predicates, p)
+	}
+	if len(i.HasParentWith) > 0 {
+		with := make([]predicate.Word, 0, len(i.HasParentWith))
+		for _, w := range i.HasParentWith {
+			p, err := w.P()
+			if err != nil {
+				return nil, fmt.Errorf("%w: field 'HasParentWith'", err)
+			}
+			with = append(with, p)
+		}
+		predicates = append(predicates, word.HasParentWith(with...))
 	}
 	switch len(predicates) {
 	case 0:
