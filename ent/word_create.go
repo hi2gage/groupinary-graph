@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"shrektionary_api/ent/definition"
+	"shrektionary_api/ent/user"
 	"shrektionary_api/ent/word"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -26,6 +27,25 @@ func (wc *WordCreate) SetDescription(s string) *WordCreate {
 	return wc
 }
 
+// SetCreatorID sets the "creator" edge to the User entity by ID.
+func (wc *WordCreate) SetCreatorID(id int) *WordCreate {
+	wc.mutation.SetCreatorID(id)
+	return wc
+}
+
+// SetNillableCreatorID sets the "creator" edge to the User entity by ID if the given value is not nil.
+func (wc *WordCreate) SetNillableCreatorID(id *int) *WordCreate {
+	if id != nil {
+		wc = wc.SetCreatorID(*id)
+	}
+	return wc
+}
+
+// SetCreator sets the "creator" edge to the User entity.
+func (wc *WordCreate) SetCreator(u *User) *WordCreate {
+	return wc.SetCreatorID(u.ID)
+}
+
 // AddDefinitionIDs adds the "definitions" edge to the Definition entity by IDs.
 func (wc *WordCreate) AddDefinitionIDs(ids ...int) *WordCreate {
 	wc.mutation.AddDefinitionIDs(ids...)
@@ -39,6 +59,40 @@ func (wc *WordCreate) AddDefinitions(d ...*Definition) *WordCreate {
 		ids[i] = d[i].ID
 	}
 	return wc.AddDefinitionIDs(ids...)
+}
+
+// AddDescendantIDs adds the "descendants" edge to the Word entity by IDs.
+func (wc *WordCreate) AddDescendantIDs(ids ...int) *WordCreate {
+	wc.mutation.AddDescendantIDs(ids...)
+	return wc
+}
+
+// AddDescendants adds the "descendants" edges to the Word entity.
+func (wc *WordCreate) AddDescendants(w ...*Word) *WordCreate {
+	ids := make([]int, len(w))
+	for i := range w {
+		ids[i] = w[i].ID
+	}
+	return wc.AddDescendantIDs(ids...)
+}
+
+// SetParentID sets the "parent" edge to the Word entity by ID.
+func (wc *WordCreate) SetParentID(id int) *WordCreate {
+	wc.mutation.SetParentID(id)
+	return wc
+}
+
+// SetNillableParentID sets the "parent" edge to the Word entity by ID if the given value is not nil.
+func (wc *WordCreate) SetNillableParentID(id *int) *WordCreate {
+	if id != nil {
+		wc = wc.SetParentID(*id)
+	}
+	return wc
+}
+
+// SetParent sets the "parent" edge to the Word entity.
+func (wc *WordCreate) SetParent(w *Word) *WordCreate {
+	return wc.SetParentID(w.ID)
 }
 
 // Mutation returns the WordMutation object of the builder.
@@ -113,6 +167,23 @@ func (wc *WordCreate) createSpec() (*Word, *sqlgraph.CreateSpec) {
 		_spec.SetField(word.FieldDescription, field.TypeString, value)
 		_node.Description = value
 	}
+	if nodes := wc.mutation.CreatorIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   word.CreatorTable,
+			Columns: []string{word.CreatorColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.user_words = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
 	if nodes := wc.mutation.DefinitionsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -127,6 +198,39 @@ func (wc *WordCreate) createSpec() (*Word, *sqlgraph.CreateSpec) {
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := wc.mutation.DescendantsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   word.DescendantsTable,
+			Columns: []string{word.DescendantsColumn},
+			Bidi:    true,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(word.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := wc.mutation.ParentIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   word.ParentTable,
+			Columns: []string{word.ParentColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(word.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.word_descendants = &nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

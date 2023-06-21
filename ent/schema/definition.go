@@ -25,13 +25,8 @@ func (Definition) Fields() []ent.Field {
 // Edges of the Definition.
 func (Definition) Edges() []ent.Edge {
 	return []ent.Edge{
-		// Create an inverse-edge called "owner" of type `User`
-		// and reference it to the "cars" edge (in User schema)
-		// explicitly using the `Ref` method.
 		edge.From("word", Word.Type).
 			Ref("definitions").
-			// setting the edge to unique, ensure
-			// that a car can have only one owner.
 			Unique(),
 	}
 }

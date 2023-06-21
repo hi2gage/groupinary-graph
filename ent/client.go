@@ -764,6 +764,22 @@ func (c *WordClient) GetX(ctx context.Context, id int) *Word {
 	return obj
 }
 
+// QueryCreator queries the creator edge of a Word.
+func (c *WordClient) QueryCreator(w *Word) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := w.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(word.Table, word.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, word.CreatorTable, word.CreatorColumn),
+		)
+		fromV = sqlgraph.Neighbors(w.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // QueryDefinitions queries the definitions edge of a Word.
 func (c *WordClient) QueryDefinitions(w *Word) *DefinitionQuery {
 	query := (&DefinitionClient{config: c.config}).Query()
@@ -773,6 +789,38 @@ func (c *WordClient) QueryDefinitions(w *Word) *DefinitionQuery {
 			sqlgraph.From(word.Table, word.FieldID, id),
 			sqlgraph.To(definition.Table, definition.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, word.DefinitionsTable, word.DefinitionsColumn),
+		)
+		fromV = sqlgraph.Neighbors(w.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryDescendants queries the descendants edge of a Word.
+func (c *WordClient) QueryDescendants(w *Word) *WordQuery {
+	query := (&WordClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := w.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(word.Table, word.FieldID, id),
+			sqlgraph.To(word.Table, word.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, word.DescendantsTable, word.DescendantsColumn),
+		)
+		fromV = sqlgraph.Neighbors(w.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryParent queries the parent edge of a Word.
+func (c *WordClient) QueryParent(w *Word) *WordQuery {
+	query := (&WordClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := w.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(word.Table, word.FieldID, id),
+			sqlgraph.To(word.Table, word.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, word.ParentTable, word.ParentColumn),
 		)
 		fromV = sqlgraph.Neighbors(w.driver.Dialect(), step)
 		return fromV, nil

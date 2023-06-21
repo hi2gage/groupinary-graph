@@ -101,6 +101,14 @@ func (u *User) Words(
 	return u.QueryWords().Paginate(ctx, after, first, before, last, opts...)
 }
 
+func (w *Word) Creator(ctx context.Context) (*User, error) {
+	result, err := w.Edges.CreatorOrErr()
+	if IsNotLoaded(err) {
+		result, err = w.QueryCreator().Only(ctx)
+	}
+	return result, MaskNotFound(err)
+}
+
 func (w *Word) Definitions(
 	ctx context.Context, after *Cursor, first *int, before *Cursor, last *int, orderBy *DefinitionOrder, where *DefinitionWhereInput,
 ) (*DefinitionConnection, error) {
@@ -109,7 +117,7 @@ func (w *Word) Definitions(
 		WithDefinitionFilter(where.Filter),
 	}
 	alias := graphql.GetFieldContext(ctx).Field.Alias
-	totalCount, hasTotalCount := w.Edges.totalCount[0][alias]
+	totalCount, hasTotalCount := w.Edges.totalCount[1][alias]
 	if nodes, err := w.NamedDefinitions(alias); err == nil || hasTotalCount {
 		pager, err := newDefinitionPager(opts, last != nil)
 		if err != nil {
@@ -120,4 +128,32 @@ func (w *Word) Definitions(
 		return conn, nil
 	}
 	return w.QueryDefinitions().Paginate(ctx, after, first, before, last, opts...)
+}
+
+func (w *Word) Descendants(
+	ctx context.Context, after *Cursor, first *int, before *Cursor, last *int, where *WordWhereInput,
+) (*WordConnection, error) {
+	opts := []WordPaginateOption{
+		WithWordFilter(where.Filter),
+	}
+	alias := graphql.GetFieldContext(ctx).Field.Alias
+	totalCount, hasTotalCount := w.Edges.totalCount[2][alias]
+	if nodes, err := w.NamedDescendants(alias); err == nil || hasTotalCount {
+		pager, err := newWordPager(opts, last != nil)
+		if err != nil {
+			return nil, err
+		}
+		conn := &WordConnection{Edges: []*WordEdge{}, TotalCount: totalCount}
+		conn.build(nodes, pager, after, first, before, last)
+		return conn, nil
+	}
+	return w.QueryDescendants().Paginate(ctx, after, first, before, last, opts...)
+}
+
+func (w *Word) Parent(ctx context.Context) (*Word, error) {
+	result, err := w.Edges.ParentOrErr()
+	if IsNotLoaded(err) {
+		result, err = w.QueryParent().Only(ctx)
+	}
+	return result, MaskNotFound(err)
 }

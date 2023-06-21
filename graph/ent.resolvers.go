@@ -45,6 +45,7 @@ func (r *queryResolver) Words(ctx context.Context, after *entgql.Cursor[int], fi
 	return r.client.Word.Query().
 		Paginate(ctx, after, first, before, last,
 			ent.WithWordOrder(ent.DefaultWordOrder),
+			ent.WithWordFilter(where.Filter),
 		)
 }
 

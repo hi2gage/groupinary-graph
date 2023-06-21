@@ -57,6 +57,21 @@ func Test(ctx context.Context, client *ent.Client) error {
 			SaveX(ctx),
 	}
 
+	descendants_shrekt := []*ent.Word{
+		client.Word.
+			Create().
+			SetDescription("shrektard").
+			SaveX(ctx),
+		client.Word.
+			Create().
+			SetDescription("shrektdroid").
+			SaveX(ctx),
+		client.Word.
+			Create().
+			SetDescription("shrekt lord").
+			SaveX(ctx),
+	}
+
 	definitions_bot := []*ent.Definition{
 		client.Definition.
 			Create().
@@ -104,6 +119,11 @@ func Test(ctx context.Context, client *ent.Client) error {
 						definitions_shrekt[0],
 						definitions_shrekt[1],
 						definitions_shrekt[2],
+					).
+					AddDescendants(
+						descendants_shrekt[0],
+						descendants_shrekt[1],
+						descendants_shrekt[2],
 					).
 					SaveX(ctx),
 				client.Word.Create().
