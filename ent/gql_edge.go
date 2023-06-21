@@ -60,6 +60,47 @@ func (u *User) Groups(ctx context.Context) (result []*Group, err error) {
 	return result, err
 }
 
+func (u *User) Definitions(
+	ctx context.Context, after *Cursor, first *int, before *Cursor, last *int, orderBy *DefinitionOrder, where *DefinitionWhereInput,
+) (*DefinitionConnection, error) {
+	opts := []DefinitionPaginateOption{
+		WithDefinitionOrder(orderBy),
+		WithDefinitionFilter(where.Filter),
+	}
+	alias := graphql.GetFieldContext(ctx).Field.Alias
+	totalCount, hasTotalCount := u.Edges.totalCount[1][alias]
+	if nodes, err := u.NamedDefinitions(alias); err == nil || hasTotalCount {
+		pager, err := newDefinitionPager(opts, last != nil)
+		if err != nil {
+			return nil, err
+		}
+		conn := &DefinitionConnection{Edges: []*DefinitionEdge{}, TotalCount: totalCount}
+		conn.build(nodes, pager, after, first, before, last)
+		return conn, nil
+	}
+	return u.QueryDefinitions().Paginate(ctx, after, first, before, last, opts...)
+}
+
+func (u *User) Words(
+	ctx context.Context, after *Cursor, first *int, before *Cursor, last *int, where *WordWhereInput,
+) (*WordConnection, error) {
+	opts := []WordPaginateOption{
+		WithWordFilter(where.Filter),
+	}
+	alias := graphql.GetFieldContext(ctx).Field.Alias
+	totalCount, hasTotalCount := u.Edges.totalCount[2][alias]
+	if nodes, err := u.NamedWords(alias); err == nil || hasTotalCount {
+		pager, err := newWordPager(opts, last != nil)
+		if err != nil {
+			return nil, err
+		}
+		conn := &WordConnection{Edges: []*WordEdge{}, TotalCount: totalCount}
+		conn.build(nodes, pager, after, first, before, last)
+		return conn, nil
+	}
+	return u.QueryWords().Paginate(ctx, after, first, before, last, opts...)
+}
+
 func (w *Word) Definitions(
 	ctx context.Context, after *Cursor, first *int, before *Cursor, last *int, orderBy *DefinitionOrder, where *DefinitionWhereInput,
 ) (*DefinitionConnection, error) {

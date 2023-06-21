@@ -147,6 +147,52 @@ func HasGroupsWith(preds ...predicate.Group) predicate.User {
 	})
 }
 
+// HasDefinitions applies the HasEdge predicate on the "definitions" edge.
+func HasDefinitions() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, DefinitionsTable, DefinitionsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasDefinitionsWith applies the HasEdge predicate on the "definitions" edge with a given conditions (other predicates).
+func HasDefinitionsWith(preds ...predicate.Definition) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := newDefinitionsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasWords applies the HasEdge predicate on the "words" edge.
+func HasWords() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, WordsTable, WordsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasWordsWith applies the HasEdge predicate on the "words" edge with a given conditions (other predicates).
+func HasWordsWith(preds ...predicate.Word) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := newWordsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.User) predicate.User {
 	return predicate.User(func(s *sql.Selector) {
