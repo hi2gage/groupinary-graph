@@ -6,9 +6,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"shrektionary_api/ent/definition"
 	"shrektionary_api/ent/group"
 	"shrektionary_api/ent/predicate"
 	"shrektionary_api/ent/user"
+	"shrektionary_api/ent/word"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -49,6 +51,36 @@ func (uu *UserUpdate) AddGroups(g ...*Group) *UserUpdate {
 	return uu.AddGroupIDs(ids...)
 }
 
+// AddDefinitionIDs adds the "definitions" edge to the Definition entity by IDs.
+func (uu *UserUpdate) AddDefinitionIDs(ids ...int) *UserUpdate {
+	uu.mutation.AddDefinitionIDs(ids...)
+	return uu
+}
+
+// AddDefinitions adds the "definitions" edges to the Definition entity.
+func (uu *UserUpdate) AddDefinitions(d ...*Definition) *UserUpdate {
+	ids := make([]int, len(d))
+	for i := range d {
+		ids[i] = d[i].ID
+	}
+	return uu.AddDefinitionIDs(ids...)
+}
+
+// AddWordIDs adds the "words" edge to the Word entity by IDs.
+func (uu *UserUpdate) AddWordIDs(ids ...int) *UserUpdate {
+	uu.mutation.AddWordIDs(ids...)
+	return uu
+}
+
+// AddWords adds the "words" edges to the Word entity.
+func (uu *UserUpdate) AddWords(w ...*Word) *UserUpdate {
+	ids := make([]int, len(w))
+	for i := range w {
+		ids[i] = w[i].ID
+	}
+	return uu.AddWordIDs(ids...)
+}
+
 // Mutation returns the UserMutation object of the builder.
 func (uu *UserUpdate) Mutation() *UserMutation {
 	return uu.mutation
@@ -73,6 +105,48 @@ func (uu *UserUpdate) RemoveGroups(g ...*Group) *UserUpdate {
 		ids[i] = g[i].ID
 	}
 	return uu.RemoveGroupIDs(ids...)
+}
+
+// ClearDefinitions clears all "definitions" edges to the Definition entity.
+func (uu *UserUpdate) ClearDefinitions() *UserUpdate {
+	uu.mutation.ClearDefinitions()
+	return uu
+}
+
+// RemoveDefinitionIDs removes the "definitions" edge to Definition entities by IDs.
+func (uu *UserUpdate) RemoveDefinitionIDs(ids ...int) *UserUpdate {
+	uu.mutation.RemoveDefinitionIDs(ids...)
+	return uu
+}
+
+// RemoveDefinitions removes "definitions" edges to Definition entities.
+func (uu *UserUpdate) RemoveDefinitions(d ...*Definition) *UserUpdate {
+	ids := make([]int, len(d))
+	for i := range d {
+		ids[i] = d[i].ID
+	}
+	return uu.RemoveDefinitionIDs(ids...)
+}
+
+// ClearWords clears all "words" edges to the Word entity.
+func (uu *UserUpdate) ClearWords() *UserUpdate {
+	uu.mutation.ClearWords()
+	return uu
+}
+
+// RemoveWordIDs removes the "words" edge to Word entities by IDs.
+func (uu *UserUpdate) RemoveWordIDs(ids ...int) *UserUpdate {
+	uu.mutation.RemoveWordIDs(ids...)
+	return uu
+}
+
+// RemoveWords removes "words" edges to Word entities.
+func (uu *UserUpdate) RemoveWords(w ...*Word) *UserUpdate {
+	ids := make([]int, len(w))
+	for i := range w {
+		ids[i] = w[i].ID
+	}
+	return uu.RemoveWordIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -172,6 +246,96 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if uu.mutation.DefinitionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.DefinitionsTable,
+			Columns: []string{user.DefinitionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(definition.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uu.mutation.RemovedDefinitionsIDs(); len(nodes) > 0 && !uu.mutation.DefinitionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.DefinitionsTable,
+			Columns: []string{user.DefinitionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(definition.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uu.mutation.DefinitionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.DefinitionsTable,
+			Columns: []string{user.DefinitionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(definition.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if uu.mutation.WordsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.WordsTable,
+			Columns: []string{user.WordsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(word.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uu.mutation.RemovedWordsIDs(); len(nodes) > 0 && !uu.mutation.WordsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.WordsTable,
+			Columns: []string{user.WordsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(word.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uu.mutation.WordsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.WordsTable,
+			Columns: []string{user.WordsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(word.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, uu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{user.Label}
@@ -213,6 +377,36 @@ func (uuo *UserUpdateOne) AddGroups(g ...*Group) *UserUpdateOne {
 	return uuo.AddGroupIDs(ids...)
 }
 
+// AddDefinitionIDs adds the "definitions" edge to the Definition entity by IDs.
+func (uuo *UserUpdateOne) AddDefinitionIDs(ids ...int) *UserUpdateOne {
+	uuo.mutation.AddDefinitionIDs(ids...)
+	return uuo
+}
+
+// AddDefinitions adds the "definitions" edges to the Definition entity.
+func (uuo *UserUpdateOne) AddDefinitions(d ...*Definition) *UserUpdateOne {
+	ids := make([]int, len(d))
+	for i := range d {
+		ids[i] = d[i].ID
+	}
+	return uuo.AddDefinitionIDs(ids...)
+}
+
+// AddWordIDs adds the "words" edge to the Word entity by IDs.
+func (uuo *UserUpdateOne) AddWordIDs(ids ...int) *UserUpdateOne {
+	uuo.mutation.AddWordIDs(ids...)
+	return uuo
+}
+
+// AddWords adds the "words" edges to the Word entity.
+func (uuo *UserUpdateOne) AddWords(w ...*Word) *UserUpdateOne {
+	ids := make([]int, len(w))
+	for i := range w {
+		ids[i] = w[i].ID
+	}
+	return uuo.AddWordIDs(ids...)
+}
+
 // Mutation returns the UserMutation object of the builder.
 func (uuo *UserUpdateOne) Mutation() *UserMutation {
 	return uuo.mutation
@@ -237,6 +431,48 @@ func (uuo *UserUpdateOne) RemoveGroups(g ...*Group) *UserUpdateOne {
 		ids[i] = g[i].ID
 	}
 	return uuo.RemoveGroupIDs(ids...)
+}
+
+// ClearDefinitions clears all "definitions" edges to the Definition entity.
+func (uuo *UserUpdateOne) ClearDefinitions() *UserUpdateOne {
+	uuo.mutation.ClearDefinitions()
+	return uuo
+}
+
+// RemoveDefinitionIDs removes the "definitions" edge to Definition entities by IDs.
+func (uuo *UserUpdateOne) RemoveDefinitionIDs(ids ...int) *UserUpdateOne {
+	uuo.mutation.RemoveDefinitionIDs(ids...)
+	return uuo
+}
+
+// RemoveDefinitions removes "definitions" edges to Definition entities.
+func (uuo *UserUpdateOne) RemoveDefinitions(d ...*Definition) *UserUpdateOne {
+	ids := make([]int, len(d))
+	for i := range d {
+		ids[i] = d[i].ID
+	}
+	return uuo.RemoveDefinitionIDs(ids...)
+}
+
+// ClearWords clears all "words" edges to the Word entity.
+func (uuo *UserUpdateOne) ClearWords() *UserUpdateOne {
+	uuo.mutation.ClearWords()
+	return uuo
+}
+
+// RemoveWordIDs removes the "words" edge to Word entities by IDs.
+func (uuo *UserUpdateOne) RemoveWordIDs(ids ...int) *UserUpdateOne {
+	uuo.mutation.RemoveWordIDs(ids...)
+	return uuo
+}
+
+// RemoveWords removes "words" edges to Word entities.
+func (uuo *UserUpdateOne) RemoveWords(w ...*Word) *UserUpdateOne {
+	ids := make([]int, len(w))
+	for i := range w {
+		ids[i] = w[i].ID
+	}
+	return uuo.RemoveWordIDs(ids...)
 }
 
 // Where appends a list predicates to the UserUpdate builder.
@@ -359,6 +595,96 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(group.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if uuo.mutation.DefinitionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.DefinitionsTable,
+			Columns: []string{user.DefinitionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(definition.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uuo.mutation.RemovedDefinitionsIDs(); len(nodes) > 0 && !uuo.mutation.DefinitionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.DefinitionsTable,
+			Columns: []string{user.DefinitionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(definition.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uuo.mutation.DefinitionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.DefinitionsTable,
+			Columns: []string{user.DefinitionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(definition.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if uuo.mutation.WordsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.WordsTable,
+			Columns: []string{user.WordsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(word.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uuo.mutation.RemovedWordsIDs(); len(nodes) > 0 && !uuo.mutation.WordsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.WordsTable,
+			Columns: []string{user.WordsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(word.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uuo.mutation.WordsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.WordsTable,
+			Columns: []string{user.WordsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(word.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

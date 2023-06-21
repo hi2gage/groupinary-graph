@@ -24,6 +24,10 @@ func (User) Fields() []ent.Field {
 func (User) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.To("groups", Group.Type),
+		edge.To("definitions", Definition.Type).
+			Annotations(entgql.RelayConnection()),
+		edge.To("words", Word.Type).
+			Annotations(entgql.RelayConnection()),
 	}
 }
 

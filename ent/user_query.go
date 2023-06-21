@@ -7,9 +7,11 @@ import (
 	"database/sql/driver"
 	"fmt"
 	"math"
+	"shrektionary_api/ent/definition"
 	"shrektionary_api/ent/group"
 	"shrektionary_api/ent/predicate"
 	"shrektionary_api/ent/user"
+	"shrektionary_api/ent/word"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -19,14 +21,18 @@ import (
 // UserQuery is the builder for querying User entities.
 type UserQuery struct {
 	config
-	ctx             *QueryContext
-	order           []user.OrderOption
-	inters          []Interceptor
-	predicates      []predicate.User
-	withGroups      *GroupQuery
-	modifiers       []func(*sql.Selector)
-	loadTotal       []func(context.Context, []*User) error
-	withNamedGroups map[string]*GroupQuery
+	ctx                  *QueryContext
+	order                []user.OrderOption
+	inters               []Interceptor
+	predicates           []predicate.User
+	withGroups           *GroupQuery
+	withDefinitions      *DefinitionQuery
+	withWords            *WordQuery
+	modifiers            []func(*sql.Selector)
+	loadTotal            []func(context.Context, []*User) error
+	withNamedGroups      map[string]*GroupQuery
+	withNamedDefinitions map[string]*DefinitionQuery
+	withNamedWords       map[string]*WordQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -78,6 +84,50 @@ func (uq *UserQuery) QueryGroups() *GroupQuery {
 			sqlgraph.From(user.Table, user.FieldID, selector),
 			sqlgraph.To(group.Table, group.FieldID),
 			sqlgraph.Edge(sqlgraph.M2M, false, user.GroupsTable, user.GroupsPrimaryKey...),
+		)
+		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryDefinitions chains the current query on the "definitions" edge.
+func (uq *UserQuery) QueryDefinitions() *DefinitionQuery {
+	query := (&DefinitionClient{config: uq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := uq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := uq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(definition.Table, definition.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.DefinitionsTable, user.DefinitionsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryWords chains the current query on the "words" edge.
+func (uq *UserQuery) QueryWords() *WordQuery {
+	query := (&WordClient{config: uq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := uq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := uq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(word.Table, word.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.WordsTable, user.WordsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
 		return fromU, nil
@@ -272,12 +322,14 @@ func (uq *UserQuery) Clone() *UserQuery {
 		return nil
 	}
 	return &UserQuery{
-		config:     uq.config,
-		ctx:        uq.ctx.Clone(),
-		order:      append([]user.OrderOption{}, uq.order...),
-		inters:     append([]Interceptor{}, uq.inters...),
-		predicates: append([]predicate.User{}, uq.predicates...),
-		withGroups: uq.withGroups.Clone(),
+		config:          uq.config,
+		ctx:             uq.ctx.Clone(),
+		order:           append([]user.OrderOption{}, uq.order...),
+		inters:          append([]Interceptor{}, uq.inters...),
+		predicates:      append([]predicate.User{}, uq.predicates...),
+		withGroups:      uq.withGroups.Clone(),
+		withDefinitions: uq.withDefinitions.Clone(),
+		withWords:       uq.withWords.Clone(),
 		// clone intermediate query.
 		sql:  uq.sql.Clone(),
 		path: uq.path,
@@ -292,6 +344,28 @@ func (uq *UserQuery) WithGroups(opts ...func(*GroupQuery)) *UserQuery {
 		opt(query)
 	}
 	uq.withGroups = query
+	return uq
+}
+
+// WithDefinitions tells the query-builder to eager-load the nodes that are connected to
+// the "definitions" edge. The optional arguments are used to configure the query builder of the edge.
+func (uq *UserQuery) WithDefinitions(opts ...func(*DefinitionQuery)) *UserQuery {
+	query := (&DefinitionClient{config: uq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	uq.withDefinitions = query
+	return uq
+}
+
+// WithWords tells the query-builder to eager-load the nodes that are connected to
+// the "words" edge. The optional arguments are used to configure the query builder of the edge.
+func (uq *UserQuery) WithWords(opts ...func(*WordQuery)) *UserQuery {
+	query := (&WordClient{config: uq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	uq.withWords = query
 	return uq
 }
 
@@ -373,8 +447,10 @@ func (uq *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 	var (
 		nodes       = []*User{}
 		_spec       = uq.querySpec()
-		loadedTypes = [1]bool{
+		loadedTypes = [3]bool{
 			uq.withGroups != nil,
+			uq.withDefinitions != nil,
+			uq.withWords != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -405,10 +481,38 @@ func (uq *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 			return nil, err
 		}
 	}
+	if query := uq.withDefinitions; query != nil {
+		if err := uq.loadDefinitions(ctx, query, nodes,
+			func(n *User) { n.Edges.Definitions = []*Definition{} },
+			func(n *User, e *Definition) { n.Edges.Definitions = append(n.Edges.Definitions, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := uq.withWords; query != nil {
+		if err := uq.loadWords(ctx, query, nodes,
+			func(n *User) { n.Edges.Words = []*Word{} },
+			func(n *User, e *Word) { n.Edges.Words = append(n.Edges.Words, e) }); err != nil {
+			return nil, err
+		}
+	}
 	for name, query := range uq.withNamedGroups {
 		if err := uq.loadGroups(ctx, query, nodes,
 			func(n *User) { n.appendNamedGroups(name) },
 			func(n *User, e *Group) { n.appendNamedGroups(name, e) }); err != nil {
+			return nil, err
+		}
+	}
+	for name, query := range uq.withNamedDefinitions {
+		if err := uq.loadDefinitions(ctx, query, nodes,
+			func(n *User) { n.appendNamedDefinitions(name) },
+			func(n *User, e *Definition) { n.appendNamedDefinitions(name, e) }); err != nil {
+			return nil, err
+		}
+	}
+	for name, query := range uq.withNamedWords {
+		if err := uq.loadWords(ctx, query, nodes,
+			func(n *User) { n.appendNamedWords(name) },
+			func(n *User, e *Word) { n.appendNamedWords(name, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -478,6 +582,68 @@ func (uq *UserQuery) loadGroups(ctx context.Context, query *GroupQuery, nodes []
 		for kn := range nodes {
 			assign(kn, n)
 		}
+	}
+	return nil
+}
+func (uq *UserQuery) loadDefinitions(ctx context.Context, query *DefinitionQuery, nodes []*User, init func(*User), assign func(*User, *Definition)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[int]*User)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.withFKs = true
+	query.Where(predicate.Definition(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(user.DefinitionsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.user_definitions
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "user_definitions" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "user_definitions" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (uq *UserQuery) loadWords(ctx context.Context, query *WordQuery, nodes []*User, init func(*User), assign func(*User, *Word)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[int]*User)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.withFKs = true
+	query.Where(predicate.Word(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(user.WordsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.user_words
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "user_words" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "user_words" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
 	}
 	return nil
 }
@@ -577,6 +743,34 @@ func (uq *UserQuery) WithNamedGroups(name string, opts ...func(*GroupQuery)) *Us
 		uq.withNamedGroups = make(map[string]*GroupQuery)
 	}
 	uq.withNamedGroups[name] = query
+	return uq
+}
+
+// WithNamedDefinitions tells the query-builder to eager-load the nodes that are connected to the "definitions"
+// edge with the given name. The optional arguments are used to configure the query builder of the edge.
+func (uq *UserQuery) WithNamedDefinitions(name string, opts ...func(*DefinitionQuery)) *UserQuery {
+	query := (&DefinitionClient{config: uq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	if uq.withNamedDefinitions == nil {
+		uq.withNamedDefinitions = make(map[string]*DefinitionQuery)
+	}
+	uq.withNamedDefinitions[name] = query
+	return uq
+}
+
+// WithNamedWords tells the query-builder to eager-load the nodes that are connected to the "words"
+// edge with the given name. The optional arguments are used to configure the query builder of the edge.
+func (uq *UserQuery) WithNamedWords(name string, opts ...func(*WordQuery)) *UserQuery {
+	query := (&WordClient{config: uq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	if uq.withNamedWords == nil {
+		uq.withNamedWords = make(map[string]*WordQuery)
+	}
+	uq.withNamedWords[name] = query
 	return uq
 }
 

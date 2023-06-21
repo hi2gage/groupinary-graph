@@ -469,6 +469,14 @@ type UserWhereInput struct {
 	// "groups" edge predicates.
 	HasGroups     *bool              `json:"hasGroups,omitempty"`
 	HasGroupsWith []*GroupWhereInput `json:"hasGroupsWith,omitempty"`
+
+	// "definitions" edge predicates.
+	HasDefinitions     *bool                   `json:"hasDefinitions,omitempty"`
+	HasDefinitionsWith []*DefinitionWhereInput `json:"hasDefinitionsWith,omitempty"`
+
+	// "words" edge predicates.
+	HasWords     *bool             `json:"hasWords,omitempty"`
+	HasWordsWith []*WordWhereInput `json:"hasWordsWith,omitempty"`
 }
 
 // AddPredicates adds custom predicates to the where input to be used during the filtering phase.
@@ -623,6 +631,42 @@ func (i *UserWhereInput) P() (predicate.User, error) {
 			with = append(with, p)
 		}
 		predicates = append(predicates, user.HasGroupsWith(with...))
+	}
+	if i.HasDefinitions != nil {
+		p := user.HasDefinitions()
+		if !*i.HasDefinitions {
+			p = user.Not(p)
+		}
+		predicates = append(predicates, p)
+	}
+	if len(i.HasDefinitionsWith) > 0 {
+		with := make([]predicate.Definition, 0, len(i.HasDefinitionsWith))
+		for _, w := range i.HasDefinitionsWith {
+			p, err := w.P()
+			if err != nil {
+				return nil, fmt.Errorf("%w: field 'HasDefinitionsWith'", err)
+			}
+			with = append(with, p)
+		}
+		predicates = append(predicates, user.HasDefinitionsWith(with...))
+	}
+	if i.HasWords != nil {
+		p := user.HasWords()
+		if !*i.HasWords {
+			p = user.Not(p)
+		}
+		predicates = append(predicates, p)
+	}
+	if len(i.HasWordsWith) > 0 {
+		with := make([]predicate.Word, 0, len(i.HasWordsWith))
+		for _, w := range i.HasWordsWith {
+			p, err := w.P()
+			if err != nil {
+				return nil, fmt.Errorf("%w: field 'HasWordsWith'", err)
+			}
+			with = append(with, p)
+		}
+		predicates = append(predicates, user.HasWordsWith(with...))
 	}
 	switch len(predicates) {
 	case 0:

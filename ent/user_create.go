@@ -6,8 +6,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"shrektionary_api/ent/definition"
 	"shrektionary_api/ent/group"
 	"shrektionary_api/ent/user"
+	"shrektionary_api/ent/word"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
@@ -39,6 +41,36 @@ func (uc *UserCreate) AddGroups(g ...*Group) *UserCreate {
 		ids[i] = g[i].ID
 	}
 	return uc.AddGroupIDs(ids...)
+}
+
+// AddDefinitionIDs adds the "definitions" edge to the Definition entity by IDs.
+func (uc *UserCreate) AddDefinitionIDs(ids ...int) *UserCreate {
+	uc.mutation.AddDefinitionIDs(ids...)
+	return uc
+}
+
+// AddDefinitions adds the "definitions" edges to the Definition entity.
+func (uc *UserCreate) AddDefinitions(d ...*Definition) *UserCreate {
+	ids := make([]int, len(d))
+	for i := range d {
+		ids[i] = d[i].ID
+	}
+	return uc.AddDefinitionIDs(ids...)
+}
+
+// AddWordIDs adds the "words" edge to the Word entity by IDs.
+func (uc *UserCreate) AddWordIDs(ids ...int) *UserCreate {
+	uc.mutation.AddWordIDs(ids...)
+	return uc
+}
+
+// AddWords adds the "words" edges to the Word entity.
+func (uc *UserCreate) AddWords(w ...*Word) *UserCreate {
+	ids := make([]int, len(w))
+	for i := range w {
+		ids[i] = w[i].ID
+	}
+	return uc.AddWordIDs(ids...)
 }
 
 // Mutation returns the UserMutation object of the builder.
@@ -122,6 +154,38 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(group.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := uc.mutation.DefinitionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.DefinitionsTable,
+			Columns: []string{user.DefinitionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(definition.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := uc.mutation.WordsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.WordsTable,
+			Columns: []string{user.WordsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(word.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
