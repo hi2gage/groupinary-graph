@@ -9,6 +9,7 @@ import (
 	"math"
 	"shrektionary_api/ent/definition"
 	"shrektionary_api/ent/predicate"
+	"shrektionary_api/ent/user"
 	"shrektionary_api/ent/word"
 
 	"entgo.io/ent/dialect/sql"
@@ -23,11 +24,15 @@ type WordQuery struct {
 	order                []word.OrderOption
 	inters               []Interceptor
 	predicates           []predicate.Word
+	withCreator          *UserQuery
 	withDefinitions      *DefinitionQuery
+	withDescendants      *WordQuery
+	withParent           *WordQuery
 	withFKs              bool
 	modifiers            []func(*sql.Selector)
 	loadTotal            []func(context.Context, []*Word) error
 	withNamedDefinitions map[string]*DefinitionQuery
+	withNamedDescendants map[string]*WordQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -64,6 +69,28 @@ func (wq *WordQuery) Order(o ...word.OrderOption) *WordQuery {
 	return wq
 }
 
+// QueryCreator chains the current query on the "creator" edge.
+func (wq *WordQuery) QueryCreator() *UserQuery {
+	query := (&UserClient{config: wq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := wq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := wq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(word.Table, word.FieldID, selector),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, word.CreatorTable, word.CreatorColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(wq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
 // QueryDefinitions chains the current query on the "definitions" edge.
 func (wq *WordQuery) QueryDefinitions() *DefinitionQuery {
 	query := (&DefinitionClient{config: wq.config}).Query()
@@ -79,6 +106,50 @@ func (wq *WordQuery) QueryDefinitions() *DefinitionQuery {
 			sqlgraph.From(word.Table, word.FieldID, selector),
 			sqlgraph.To(definition.Table, definition.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, word.DefinitionsTable, word.DefinitionsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(wq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryDescendants chains the current query on the "descendants" edge.
+func (wq *WordQuery) QueryDescendants() *WordQuery {
+	query := (&WordClient{config: wq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := wq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := wq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(word.Table, word.FieldID, selector),
+			sqlgraph.To(word.Table, word.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, word.DescendantsTable, word.DescendantsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(wq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryParent chains the current query on the "parent" edge.
+func (wq *WordQuery) QueryParent() *WordQuery {
+	query := (&WordClient{config: wq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := wq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := wq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(word.Table, word.FieldID, selector),
+			sqlgraph.To(word.Table, word.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, word.ParentTable, word.ParentColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(wq.driver.Dialect(), step)
 		return fromU, nil
@@ -278,11 +349,25 @@ func (wq *WordQuery) Clone() *WordQuery {
 		order:           append([]word.OrderOption{}, wq.order...),
 		inters:          append([]Interceptor{}, wq.inters...),
 		predicates:      append([]predicate.Word{}, wq.predicates...),
+		withCreator:     wq.withCreator.Clone(),
 		withDefinitions: wq.withDefinitions.Clone(),
+		withDescendants: wq.withDescendants.Clone(),
+		withParent:      wq.withParent.Clone(),
 		// clone intermediate query.
 		sql:  wq.sql.Clone(),
 		path: wq.path,
 	}
+}
+
+// WithCreator tells the query-builder to eager-load the nodes that are connected to
+// the "creator" edge. The optional arguments are used to configure the query builder of the edge.
+func (wq *WordQuery) WithCreator(opts ...func(*UserQuery)) *WordQuery {
+	query := (&UserClient{config: wq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	wq.withCreator = query
+	return wq
 }
 
 // WithDefinitions tells the query-builder to eager-load the nodes that are connected to
@@ -293,6 +378,28 @@ func (wq *WordQuery) WithDefinitions(opts ...func(*DefinitionQuery)) *WordQuery 
 		opt(query)
 	}
 	wq.withDefinitions = query
+	return wq
+}
+
+// WithDescendants tells the query-builder to eager-load the nodes that are connected to
+// the "descendants" edge. The optional arguments are used to configure the query builder of the edge.
+func (wq *WordQuery) WithDescendants(opts ...func(*WordQuery)) *WordQuery {
+	query := (&WordClient{config: wq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	wq.withDescendants = query
+	return wq
+}
+
+// WithParent tells the query-builder to eager-load the nodes that are connected to
+// the "parent" edge. The optional arguments are used to configure the query builder of the edge.
+func (wq *WordQuery) WithParent(opts ...func(*WordQuery)) *WordQuery {
+	query := (&WordClient{config: wq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	wq.withParent = query
 	return wq
 }
 
@@ -375,10 +482,16 @@ func (wq *WordQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Word, e
 		nodes       = []*Word{}
 		withFKs     = wq.withFKs
 		_spec       = wq.querySpec()
-		loadedTypes = [1]bool{
+		loadedTypes = [4]bool{
+			wq.withCreator != nil,
 			wq.withDefinitions != nil,
+			wq.withDescendants != nil,
+			wq.withParent != nil,
 		}
 	)
+	if wq.withCreator != nil || wq.withParent != nil {
+		withFKs = true
+	}
 	if withFKs {
 		_spec.Node.Columns = append(_spec.Node.Columns, word.ForeignKeys...)
 	}
@@ -403,6 +516,12 @@ func (wq *WordQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Word, e
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
+	if query := wq.withCreator; query != nil {
+		if err := wq.loadCreator(ctx, query, nodes, nil,
+			func(n *Word, e *User) { n.Edges.Creator = e }); err != nil {
+			return nil, err
+		}
+	}
 	if query := wq.withDefinitions; query != nil {
 		if err := wq.loadDefinitions(ctx, query, nodes,
 			func(n *Word) { n.Edges.Definitions = []*Definition{} },
@@ -410,10 +529,30 @@ func (wq *WordQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Word, e
 			return nil, err
 		}
 	}
+	if query := wq.withDescendants; query != nil {
+		if err := wq.loadDescendants(ctx, query, nodes,
+			func(n *Word) { n.Edges.Descendants = []*Word{} },
+			func(n *Word, e *Word) { n.Edges.Descendants = append(n.Edges.Descendants, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := wq.withParent; query != nil {
+		if err := wq.loadParent(ctx, query, nodes, nil,
+			func(n *Word, e *Word) { n.Edges.Parent = e }); err != nil {
+			return nil, err
+		}
+	}
 	for name, query := range wq.withNamedDefinitions {
 		if err := wq.loadDefinitions(ctx, query, nodes,
 			func(n *Word) { n.appendNamedDefinitions(name) },
 			func(n *Word, e *Definition) { n.appendNamedDefinitions(name, e) }); err != nil {
+			return nil, err
+		}
+	}
+	for name, query := range wq.withNamedDescendants {
+		if err := wq.loadDescendants(ctx, query, nodes,
+			func(n *Word) { n.appendNamedDescendants(name) },
+			func(n *Word, e *Word) { n.appendNamedDescendants(name, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -425,6 +564,38 @@ func (wq *WordQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Word, e
 	return nodes, nil
 }
 
+func (wq *WordQuery) loadCreator(ctx context.Context, query *UserQuery, nodes []*Word, init func(*Word), assign func(*Word, *User)) error {
+	ids := make([]int, 0, len(nodes))
+	nodeids := make(map[int][]*Word)
+	for i := range nodes {
+		if nodes[i].user_words == nil {
+			continue
+		}
+		fk := *nodes[i].user_words
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(user.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "user_words" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
+}
 func (wq *WordQuery) loadDefinitions(ctx context.Context, query *DefinitionQuery, nodes []*Word, init func(*Word), assign func(*Word, *Definition)) error {
 	fks := make([]driver.Value, 0, len(nodes))
 	nodeids := make(map[int]*Word)
@@ -453,6 +624,69 @@ func (wq *WordQuery) loadDefinitions(ctx context.Context, query *DefinitionQuery
 			return fmt.Errorf(`unexpected referenced foreign-key "word_definitions" returned %v for node %v`, *fk, n.ID)
 		}
 		assign(node, n)
+	}
+	return nil
+}
+func (wq *WordQuery) loadDescendants(ctx context.Context, query *WordQuery, nodes []*Word, init func(*Word), assign func(*Word, *Word)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[int]*Word)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.withFKs = true
+	query.Where(predicate.Word(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(word.DescendantsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.word_descendants
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "word_descendants" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "word_descendants" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (wq *WordQuery) loadParent(ctx context.Context, query *WordQuery, nodes []*Word, init func(*Word), assign func(*Word, *Word)) error {
+	ids := make([]int, 0, len(nodes))
+	nodeids := make(map[int][]*Word)
+	for i := range nodes {
+		if nodes[i].word_descendants == nil {
+			continue
+		}
+		fk := *nodes[i].word_descendants
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(word.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "word_descendants" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
 	}
 	return nil
 }
@@ -552,6 +786,20 @@ func (wq *WordQuery) WithNamedDefinitions(name string, opts ...func(*DefinitionQ
 		wq.withNamedDefinitions = make(map[string]*DefinitionQuery)
 	}
 	wq.withNamedDefinitions[name] = query
+	return wq
+}
+
+// WithNamedDescendants tells the query-builder to eager-load the nodes that are connected to the "descendants"
+// edge with the given name. The optional arguments are used to configure the query builder of the edge.
+func (wq *WordQuery) WithNamedDescendants(name string, opts ...func(*WordQuery)) *WordQuery {
+	query := (&WordClient{config: wq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	if wq.withNamedDescendants == nil {
+		wq.withNamedDescendants = make(map[string]*WordQuery)
+	}
+	wq.withNamedDescendants[name] = query
 	return wq
 }
 
