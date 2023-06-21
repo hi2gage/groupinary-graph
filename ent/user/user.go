@@ -16,6 +16,10 @@ const (
 	FieldAuthID = "auth_id"
 	// EdgeGroups holds the string denoting the groups edge name in mutations.
 	EdgeGroups = "groups"
+	// EdgeDefinitions holds the string denoting the definitions edge name in mutations.
+	EdgeDefinitions = "definitions"
+	// EdgeWords holds the string denoting the words edge name in mutations.
+	EdgeWords = "words"
 	// Table holds the table name of the user in the database.
 	Table = "users"
 	// GroupsTable is the table that holds the groups relation/edge. The primary key declared below.
@@ -23,6 +27,20 @@ const (
 	// GroupsInverseTable is the table name for the Group entity.
 	// It exists in this package in order to avoid circular dependency with the "group" package.
 	GroupsInverseTable = "groups"
+	// DefinitionsTable is the table that holds the definitions relation/edge.
+	DefinitionsTable = "definitions"
+	// DefinitionsInverseTable is the table name for the Definition entity.
+	// It exists in this package in order to avoid circular dependency with the "definition" package.
+	DefinitionsInverseTable = "definitions"
+	// DefinitionsColumn is the table column denoting the definitions relation/edge.
+	DefinitionsColumn = "user_definitions"
+	// WordsTable is the table that holds the words relation/edge.
+	WordsTable = "words"
+	// WordsInverseTable is the table name for the Word entity.
+	// It exists in this package in order to avoid circular dependency with the "word" package.
+	WordsInverseTable = "words"
+	// WordsColumn is the table column denoting the words relation/edge.
+	WordsColumn = "user_words"
 )
 
 // Columns holds all SQL columns for user fields.
@@ -78,10 +96,52 @@ func ByGroups(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newGroupsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByDefinitionsCount orders the results by definitions count.
+func ByDefinitionsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newDefinitionsStep(), opts...)
+	}
+}
+
+// ByDefinitions orders the results by definitions terms.
+func ByDefinitions(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newDefinitionsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByWordsCount orders the results by words count.
+func ByWordsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newWordsStep(), opts...)
+	}
+}
+
+// ByWords orders the results by words terms.
+func ByWords(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newWordsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newGroupsStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(GroupsInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2M, false, GroupsTable, GroupsPrimaryKey...),
+	)
+}
+func newDefinitionsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(DefinitionsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, DefinitionsTable, DefinitionsColumn),
+	)
+}
+func newWordsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(WordsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, WordsTable, WordsColumn),
 	)
 }

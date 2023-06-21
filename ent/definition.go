@@ -22,6 +22,7 @@ type Definition struct {
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the DefinitionQuery when eager-loading is set.
 	Edges            DefinitionEdges `json:"edges"`
+	user_definitions *int
 	word_definitions *int
 	selectValues     sql.SelectValues
 }
@@ -59,7 +60,9 @@ func (*Definition) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullInt64)
 		case definition.FieldDescription:
 			values[i] = new(sql.NullString)
-		case definition.ForeignKeys[0]: // word_definitions
+		case definition.ForeignKeys[0]: // user_definitions
+			values[i] = new(sql.NullInt64)
+		case definition.ForeignKeys[1]: // word_definitions
 			values[i] = new(sql.NullInt64)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -89,6 +92,13 @@ func (d *Definition) assignValues(columns []string, values []any) error {
 				d.Description = value.String
 			}
 		case definition.ForeignKeys[0]:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for edge-field user_definitions", value)
+			} else if value.Valid {
+				d.user_definitions = new(int)
+				*d.user_definitions = int(value.Int64)
+			}
+		case definition.ForeignKeys[1]:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for edge-field word_definitions", value)
 			} else if value.Valid {

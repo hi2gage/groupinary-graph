@@ -12,6 +12,7 @@ var (
 	DefinitionsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "description", Type: field.TypeString},
+		{Name: "user_definitions", Type: field.TypeInt, Nullable: true},
 		{Name: "word_definitions", Type: field.TypeInt, Nullable: true},
 	}
 	// DefinitionsTable holds the schema information for the "definitions" table.
@@ -21,8 +22,14 @@ var (
 		PrimaryKey: []*schema.Column{DefinitionsColumns[0]},
 		ForeignKeys: []*schema.ForeignKey{
 			{
-				Symbol:     "definitions_words_definitions",
+				Symbol:     "definitions_users_definitions",
 				Columns:    []*schema.Column{DefinitionsColumns[2]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "definitions_words_definitions",
+				Columns:    []*schema.Column{DefinitionsColumns[3]},
 				RefColumns: []*schema.Column{WordsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -55,6 +62,7 @@ var (
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "description", Type: field.TypeString},
 		{Name: "group_words", Type: field.TypeInt, Nullable: true},
+		{Name: "user_words", Type: field.TypeInt, Nullable: true},
 	}
 	// WordsTable holds the schema information for the "words" table.
 	WordsTable = &schema.Table{
@@ -66,6 +74,12 @@ var (
 				Symbol:     "words_groups_words",
 				Columns:    []*schema.Column{WordsColumns[2]},
 				RefColumns: []*schema.Column{GroupsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "words_users_words",
+				Columns:    []*schema.Column{WordsColumns[3]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 		},
@@ -106,8 +120,10 @@ var (
 )
 
 func init() {
-	DefinitionsTable.ForeignKeys[0].RefTable = WordsTable
+	DefinitionsTable.ForeignKeys[0].RefTable = UsersTable
+	DefinitionsTable.ForeignKeys[1].RefTable = WordsTable
 	WordsTable.ForeignKeys[0].RefTable = GroupsTable
+	WordsTable.ForeignKeys[1].RefTable = UsersTable
 	UserGroupsTable.ForeignKeys[0].RefTable = UsersTable
 	UserGroupsTable.ForeignKeys[1].RefTable = GroupsTable
 }

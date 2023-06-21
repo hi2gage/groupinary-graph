@@ -930,17 +930,23 @@ func (m *GroupMutation) ResetEdge(name string) error {
 // UserMutation represents an operation that mutates the User nodes in the graph.
 type UserMutation struct {
 	config
-	op            Op
-	typ           string
-	id            *int
-	authID        *string
-	clearedFields map[string]struct{}
-	groups        map[int]struct{}
-	removedgroups map[int]struct{}
-	clearedgroups bool
-	done          bool
-	oldValue      func(context.Context) (*User, error)
-	predicates    []predicate.User
+	op                 Op
+	typ                string
+	id                 *int
+	authID             *string
+	clearedFields      map[string]struct{}
+	groups             map[int]struct{}
+	removedgroups      map[int]struct{}
+	clearedgroups      bool
+	definitions        map[int]struct{}
+	removeddefinitions map[int]struct{}
+	cleareddefinitions bool
+	words              map[int]struct{}
+	removedwords       map[int]struct{}
+	clearedwords       bool
+	done               bool
+	oldValue           func(context.Context) (*User, error)
+	predicates         []predicate.User
 }
 
 var _ ent.Mutation = (*UserMutation)(nil)
@@ -1131,6 +1137,114 @@ func (m *UserMutation) ResetGroups() {
 	m.removedgroups = nil
 }
 
+// AddDefinitionIDs adds the "definitions" edge to the Definition entity by ids.
+func (m *UserMutation) AddDefinitionIDs(ids ...int) {
+	if m.definitions == nil {
+		m.definitions = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.definitions[ids[i]] = struct{}{}
+	}
+}
+
+// ClearDefinitions clears the "definitions" edge to the Definition entity.
+func (m *UserMutation) ClearDefinitions() {
+	m.cleareddefinitions = true
+}
+
+// DefinitionsCleared reports if the "definitions" edge to the Definition entity was cleared.
+func (m *UserMutation) DefinitionsCleared() bool {
+	return m.cleareddefinitions
+}
+
+// RemoveDefinitionIDs removes the "definitions" edge to the Definition entity by IDs.
+func (m *UserMutation) RemoveDefinitionIDs(ids ...int) {
+	if m.removeddefinitions == nil {
+		m.removeddefinitions = make(map[int]struct{})
+	}
+	for i := range ids {
+		delete(m.definitions, ids[i])
+		m.removeddefinitions[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedDefinitions returns the removed IDs of the "definitions" edge to the Definition entity.
+func (m *UserMutation) RemovedDefinitionsIDs() (ids []int) {
+	for id := range m.removeddefinitions {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// DefinitionsIDs returns the "definitions" edge IDs in the mutation.
+func (m *UserMutation) DefinitionsIDs() (ids []int) {
+	for id := range m.definitions {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetDefinitions resets all changes to the "definitions" edge.
+func (m *UserMutation) ResetDefinitions() {
+	m.definitions = nil
+	m.cleareddefinitions = false
+	m.removeddefinitions = nil
+}
+
+// AddWordIDs adds the "words" edge to the Word entity by ids.
+func (m *UserMutation) AddWordIDs(ids ...int) {
+	if m.words == nil {
+		m.words = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.words[ids[i]] = struct{}{}
+	}
+}
+
+// ClearWords clears the "words" edge to the Word entity.
+func (m *UserMutation) ClearWords() {
+	m.clearedwords = true
+}
+
+// WordsCleared reports if the "words" edge to the Word entity was cleared.
+func (m *UserMutation) WordsCleared() bool {
+	return m.clearedwords
+}
+
+// RemoveWordIDs removes the "words" edge to the Word entity by IDs.
+func (m *UserMutation) RemoveWordIDs(ids ...int) {
+	if m.removedwords == nil {
+		m.removedwords = make(map[int]struct{})
+	}
+	for i := range ids {
+		delete(m.words, ids[i])
+		m.removedwords[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedWords returns the removed IDs of the "words" edge to the Word entity.
+func (m *UserMutation) RemovedWordsIDs() (ids []int) {
+	for id := range m.removedwords {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// WordsIDs returns the "words" edge IDs in the mutation.
+func (m *UserMutation) WordsIDs() (ids []int) {
+	for id := range m.words {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetWords resets all changes to the "words" edge.
+func (m *UserMutation) ResetWords() {
+	m.words = nil
+	m.clearedwords = false
+	m.removedwords = nil
+}
+
 // Where appends a list predicates to the UserMutation builder.
 func (m *UserMutation) Where(ps ...predicate.User) {
 	m.predicates = append(m.predicates, ps...)
@@ -1264,9 +1378,15 @@ func (m *UserMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *UserMutation) AddedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 3)
 	if m.groups != nil {
 		edges = append(edges, user.EdgeGroups)
+	}
+	if m.definitions != nil {
+		edges = append(edges, user.EdgeDefinitions)
+	}
+	if m.words != nil {
+		edges = append(edges, user.EdgeWords)
 	}
 	return edges
 }
@@ -1281,15 +1401,33 @@ func (m *UserMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case user.EdgeDefinitions:
+		ids := make([]ent.Value, 0, len(m.definitions))
+		for id := range m.definitions {
+			ids = append(ids, id)
+		}
+		return ids
+	case user.EdgeWords:
+		ids := make([]ent.Value, 0, len(m.words))
+		for id := range m.words {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *UserMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 3)
 	if m.removedgroups != nil {
 		edges = append(edges, user.EdgeGroups)
+	}
+	if m.removeddefinitions != nil {
+		edges = append(edges, user.EdgeDefinitions)
+	}
+	if m.removedwords != nil {
+		edges = append(edges, user.EdgeWords)
 	}
 	return edges
 }
@@ -1304,15 +1442,33 @@ func (m *UserMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case user.EdgeDefinitions:
+		ids := make([]ent.Value, 0, len(m.removeddefinitions))
+		for id := range m.removeddefinitions {
+			ids = append(ids, id)
+		}
+		return ids
+	case user.EdgeWords:
+		ids := make([]ent.Value, 0, len(m.removedwords))
+		for id := range m.removedwords {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *UserMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 3)
 	if m.clearedgroups {
 		edges = append(edges, user.EdgeGroups)
+	}
+	if m.cleareddefinitions {
+		edges = append(edges, user.EdgeDefinitions)
+	}
+	if m.clearedwords {
+		edges = append(edges, user.EdgeWords)
 	}
 	return edges
 }
@@ -1323,6 +1479,10 @@ func (m *UserMutation) EdgeCleared(name string) bool {
 	switch name {
 	case user.EdgeGroups:
 		return m.clearedgroups
+	case user.EdgeDefinitions:
+		return m.cleareddefinitions
+	case user.EdgeWords:
+		return m.clearedwords
 	}
 	return false
 }
@@ -1341,6 +1501,12 @@ func (m *UserMutation) ResetEdge(name string) error {
 	switch name {
 	case user.EdgeGroups:
 		m.ResetGroups()
+		return nil
+	case user.EdgeDefinitions:
+		m.ResetDefinitions()
+		return nil
+	case user.EdgeWords:
+		m.ResetWords()
 		return nil
 	}
 	return fmt.Errorf("unknown User edge %s", name)

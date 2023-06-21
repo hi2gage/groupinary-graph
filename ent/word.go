@@ -22,6 +22,7 @@ type Word struct {
 	// The values are being populated by the WordQuery when eager-loading is set.
 	Edges        WordEdges `json:"edges"`
 	group_words  *int
+	user_words   *int
 	selectValues sql.SelectValues
 }
 
@@ -58,6 +59,8 @@ func (*Word) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullString)
 		case word.ForeignKeys[0]: // group_words
 			values[i] = new(sql.NullInt64)
+		case word.ForeignKeys[1]: // user_words
+			values[i] = new(sql.NullInt64)
 		default:
 			values[i] = new(sql.UnknownType)
 		}
@@ -91,6 +94,13 @@ func (w *Word) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				w.group_words = new(int)
 				*w.group_words = int(value.Int64)
+			}
+		case word.ForeignKeys[1]:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for edge-field user_words", value)
+			} else if value.Valid {
+				w.user_words = new(int)
+				*w.user_words = int(value.Int64)
 			}
 		default:
 			w.selectValues.Set(columns[i], values[i])
