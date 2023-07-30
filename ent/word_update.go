@@ -35,6 +35,12 @@ func (wu *WordUpdate) SetDescription(s string) *WordUpdate {
 	return wu
 }
 
+// SetRoot sets the "root" field.
+func (wu *WordUpdate) SetRoot(b bool) *WordUpdate {
+	wu.mutation.SetRoot(b)
+	return wu
+}
+
 // SetCreatorID sets the "creator" edge to the User entity by ID.
 func (wu *WordUpdate) SetCreatorID(id int) *WordUpdate {
 	wu.mutation.SetCreatorID(id)
@@ -214,6 +220,9 @@ func (wu *WordUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := wu.mutation.Description(); ok {
 		_spec.SetField(word.FieldDescription, field.TypeString, value)
 	}
+	if value, ok := wu.mutation.Root(); ok {
+		_spec.SetField(word.FieldRoot, field.TypeBool, value)
+	}
 	if wu.mutation.CreatorCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -385,6 +394,12 @@ type WordUpdateOne struct {
 // SetDescription sets the "description" field.
 func (wuo *WordUpdateOne) SetDescription(s string) *WordUpdateOne {
 	wuo.mutation.SetDescription(s)
+	return wuo
+}
+
+// SetRoot sets the "root" field.
+func (wuo *WordUpdateOne) SetRoot(b bool) *WordUpdateOne {
+	wuo.mutation.SetRoot(b)
 	return wuo
 }
 
@@ -596,6 +611,9 @@ func (wuo *WordUpdateOne) sqlSave(ctx context.Context) (_node *Word, err error) 
 	}
 	if value, ok := wuo.mutation.Description(); ok {
 		_spec.SetField(word.FieldDescription, field.TypeString, value)
+	}
+	if value, ok := wuo.mutation.Root(); ok {
+		_spec.SetField(word.FieldRoot, field.TypeBool, value)
 	}
 	if wuo.mutation.CreatorCleared() {
 		edge := &sqlgraph.EdgeSpec{

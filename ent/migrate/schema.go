@@ -61,6 +61,7 @@ var (
 	WordsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "description", Type: field.TypeString},
+		{Name: "root", Type: field.TypeBool},
 		{Name: "group_words", Type: field.TypeInt, Nullable: true},
 		{Name: "user_words", Type: field.TypeInt, Nullable: true},
 		{Name: "word_descendants", Type: field.TypeInt, Nullable: true},
@@ -73,19 +74,19 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "words_groups_words",
-				Columns:    []*schema.Column{WordsColumns[2]},
+				Columns:    []*schema.Column{WordsColumns[3]},
 				RefColumns: []*schema.Column{GroupsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "words_users_words",
-				Columns:    []*schema.Column{WordsColumns[3]},
+				Columns:    []*schema.Column{WordsColumns[4]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "words_words_descendants",
-				Columns:    []*schema.Column{WordsColumns[4]},
+				Columns:    []*schema.Column{WordsColumns[5]},
 				RefColumns: []*schema.Column{WordsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},

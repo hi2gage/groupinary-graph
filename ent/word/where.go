@@ -59,6 +59,11 @@ func Description(v string) predicate.Word {
 	return predicate.Word(sql.FieldEQ(FieldDescription, v))
 }
 
+// Root applies equality check predicate on the "root" field. It's identical to RootEQ.
+func Root(v bool) predicate.Word {
+	return predicate.Word(sql.FieldEQ(FieldRoot, v))
+}
+
 // DescriptionEQ applies the EQ predicate on the "description" field.
 func DescriptionEQ(v string) predicate.Word {
 	return predicate.Word(sql.FieldEQ(FieldDescription, v))
@@ -122,6 +127,16 @@ func DescriptionEqualFold(v string) predicate.Word {
 // DescriptionContainsFold applies the ContainsFold predicate on the "description" field.
 func DescriptionContainsFold(v string) predicate.Word {
 	return predicate.Word(sql.FieldContainsFold(FieldDescription, v))
+}
+
+// RootEQ applies the EQ predicate on the "root" field.
+func RootEQ(v bool) predicate.Word {
+	return predicate.Word(sql.FieldEQ(FieldRoot, v))
+}
+
+// RootNEQ applies the NEQ predicate on the "root" field.
+func RootNEQ(v bool) predicate.Word {
+	return predicate.Word(sql.FieldNEQ(FieldRoot, v))
 }
 
 // HasCreator applies the HasEdge predicate on the "creator" edge.
