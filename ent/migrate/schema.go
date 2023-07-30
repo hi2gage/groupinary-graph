@@ -61,7 +61,7 @@ var (
 	WordsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "description", Type: field.TypeString},
-		{Name: "root", Type: field.TypeBool},
+		{Name: "root", Type: field.TypeBool, Nullable: true},
 		{Name: "group_words", Type: field.TypeInt, Nullable: true},
 		{Name: "user_words", Type: field.TypeInt, Nullable: true},
 		{Name: "word_descendants", Type: field.TypeInt, Nullable: true},

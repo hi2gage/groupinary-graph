@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"shrektionary_api/ent/definition"
 	"shrektionary_api/ent/predicate"
+	"shrektionary_api/ent/user"
 	"shrektionary_api/ent/word"
 
 	"entgo.io/ent/dialect/sql"
@@ -53,6 +54,25 @@ func (du *DefinitionUpdate) SetWord(w *Word) *DefinitionUpdate {
 	return du.SetWordID(w.ID)
 }
 
+// SetCreatorID sets the "creator" edge to the User entity by ID.
+func (du *DefinitionUpdate) SetCreatorID(id int) *DefinitionUpdate {
+	du.mutation.SetCreatorID(id)
+	return du
+}
+
+// SetNillableCreatorID sets the "creator" edge to the User entity by ID if the given value is not nil.
+func (du *DefinitionUpdate) SetNillableCreatorID(id *int) *DefinitionUpdate {
+	if id != nil {
+		du = du.SetCreatorID(*id)
+	}
+	return du
+}
+
+// SetCreator sets the "creator" edge to the User entity.
+func (du *DefinitionUpdate) SetCreator(u *User) *DefinitionUpdate {
+	return du.SetCreatorID(u.ID)
+}
+
 // Mutation returns the DefinitionMutation object of the builder.
 func (du *DefinitionUpdate) Mutation() *DefinitionMutation {
 	return du.mutation
@@ -61,6 +81,12 @@ func (du *DefinitionUpdate) Mutation() *DefinitionMutation {
 // ClearWord clears the "word" edge to the Word entity.
 func (du *DefinitionUpdate) ClearWord() *DefinitionUpdate {
 	du.mutation.ClearWord()
+	return du
+}
+
+// ClearCreator clears the "creator" edge to the User entity.
+func (du *DefinitionUpdate) ClearCreator() *DefinitionUpdate {
+	du.mutation.ClearCreator()
 	return du
 }
 
@@ -145,6 +171,35 @@ func (du *DefinitionUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if du.mutation.CreatorCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   definition.CreatorTable,
+			Columns: []string{definition.CreatorColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := du.mutation.CreatorIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   definition.CreatorTable,
+			Columns: []string{definition.CreatorColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, du.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{definition.Label}
@@ -190,6 +245,25 @@ func (duo *DefinitionUpdateOne) SetWord(w *Word) *DefinitionUpdateOne {
 	return duo.SetWordID(w.ID)
 }
 
+// SetCreatorID sets the "creator" edge to the User entity by ID.
+func (duo *DefinitionUpdateOne) SetCreatorID(id int) *DefinitionUpdateOne {
+	duo.mutation.SetCreatorID(id)
+	return duo
+}
+
+// SetNillableCreatorID sets the "creator" edge to the User entity by ID if the given value is not nil.
+func (duo *DefinitionUpdateOne) SetNillableCreatorID(id *int) *DefinitionUpdateOne {
+	if id != nil {
+		duo = duo.SetCreatorID(*id)
+	}
+	return duo
+}
+
+// SetCreator sets the "creator" edge to the User entity.
+func (duo *DefinitionUpdateOne) SetCreator(u *User) *DefinitionUpdateOne {
+	return duo.SetCreatorID(u.ID)
+}
+
 // Mutation returns the DefinitionMutation object of the builder.
 func (duo *DefinitionUpdateOne) Mutation() *DefinitionMutation {
 	return duo.mutation
@@ -198,6 +272,12 @@ func (duo *DefinitionUpdateOne) Mutation() *DefinitionMutation {
 // ClearWord clears the "word" edge to the Word entity.
 func (duo *DefinitionUpdateOne) ClearWord() *DefinitionUpdateOne {
 	duo.mutation.ClearWord()
+	return duo
+}
+
+// ClearCreator clears the "creator" edge to the User entity.
+func (duo *DefinitionUpdateOne) ClearCreator() *DefinitionUpdateOne {
+	duo.mutation.ClearCreator()
 	return duo
 }
 
@@ -305,6 +385,35 @@ func (duo *DefinitionUpdateOne) sqlSave(ctx context.Context) (_node *Definition,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(word.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if duo.mutation.CreatorCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   definition.CreatorTable,
+			Columns: []string{definition.CreatorColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := duo.mutation.CreatorIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   definition.CreatorTable,
+			Columns: []string{definition.CreatorColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

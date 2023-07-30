@@ -33,6 +33,14 @@ func (wc *WordCreate) SetRoot(b bool) *WordCreate {
 	return wc
 }
 
+// SetNillableRoot sets the "root" field if the given value is not nil.
+func (wc *WordCreate) SetNillableRoot(b *bool) *WordCreate {
+	if b != nil {
+		wc.SetRoot(*b)
+	}
+	return wc
+}
+
 // SetCreatorID sets the "creator" edge to the User entity by ID.
 func (wc *WordCreate) SetCreatorID(id int) *WordCreate {
 	wc.mutation.SetCreatorID(id)
@@ -142,9 +150,6 @@ func (wc *WordCreate) check() error {
 		if err := word.DescriptionValidator(v); err != nil {
 			return &ValidationError{Name: "description", err: fmt.Errorf(`ent: validator failed for field "Word.description": %w`, err)}
 		}
-	}
-	if _, ok := wc.mutation.Root(); !ok {
-		return &ValidationError{Name: "root", err: errors.New(`ent: missing required field "Word.root"`)}
 	}
 	return nil
 }

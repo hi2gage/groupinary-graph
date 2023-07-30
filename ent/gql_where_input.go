@@ -47,6 +47,10 @@ type DefinitionWhereInput struct {
 	// "word" edge predicates.
 	HasWord     *bool             `json:"hasWord,omitempty"`
 	HasWordWith []*WordWhereInput `json:"hasWordWith,omitempty"`
+
+	// "creator" edge predicates.
+	HasCreator     *bool             `json:"hasCreator,omitempty"`
+	HasCreatorWith []*UserWhereInput `json:"hasCreatorWith,omitempty"`
 }
 
 // AddPredicates adds custom predicates to the where input to be used during the filtering phase.
@@ -201,6 +205,24 @@ func (i *DefinitionWhereInput) P() (predicate.Definition, error) {
 			with = append(with, p)
 		}
 		predicates = append(predicates, definition.HasWordWith(with...))
+	}
+	if i.HasCreator != nil {
+		p := definition.HasCreator()
+		if !*i.HasCreator {
+			p = definition.Not(p)
+		}
+		predicates = append(predicates, p)
+	}
+	if len(i.HasCreatorWith) > 0 {
+		with := make([]predicate.User, 0, len(i.HasCreatorWith))
+		for _, w := range i.HasCreatorWith {
+			p, err := w.P()
+			if err != nil {
+				return nil, fmt.Errorf("%w: field 'HasCreatorWith'", err)
+			}
+			with = append(with, p)
+		}
+		predicates = append(predicates, definition.HasCreatorWith(with...))
 	}
 	switch len(predicates) {
 	case 0:
@@ -711,8 +733,10 @@ type WordWhereInput struct {
 	DescriptionContainsFold *string  `json:"descriptionContainsFold,omitempty"`
 
 	// "root" field predicates.
-	Root    *bool `json:"root,omitempty"`
-	RootNEQ *bool `json:"rootNEQ,omitempty"`
+	Root       *bool `json:"root,omitempty"`
+	RootNEQ    *bool `json:"rootNEQ,omitempty"`
+	RootIsNil  bool  `json:"rootIsNil,omitempty"`
+	RootNotNil bool  `json:"rootNotNil,omitempty"`
 
 	// "creator" edge predicates.
 	HasCreator     *bool             `json:"hasCreator,omitempty"`
@@ -870,6 +894,12 @@ func (i *WordWhereInput) P() (predicate.Word, error) {
 	}
 	if i.RootNEQ != nil {
 		predicates = append(predicates, word.RootNEQ(*i.RootNEQ))
+	}
+	if i.RootIsNil {
+		predicates = append(predicates, word.RootIsNil())
+	}
+	if i.RootNotNil {
+		predicates = append(predicates, word.RootNotNil())
 	}
 
 	if i.HasCreator != nil {

@@ -16,6 +16,8 @@ const (
 	FieldDescription = "description"
 	// EdgeWord holds the string denoting the word edge name in mutations.
 	EdgeWord = "word"
+	// EdgeCreator holds the string denoting the creator edge name in mutations.
+	EdgeCreator = "creator"
 	// Table holds the table name of the definition in the database.
 	Table = "definitions"
 	// WordTable is the table that holds the word relation/edge.
@@ -25,6 +27,13 @@ const (
 	WordInverseTable = "words"
 	// WordColumn is the table column denoting the word relation/edge.
 	WordColumn = "word_definitions"
+	// CreatorTable is the table that holds the creator relation/edge.
+	CreatorTable = "definitions"
+	// CreatorInverseTable is the table name for the User entity.
+	// It exists in this package in order to avoid circular dependency with the "user" package.
+	CreatorInverseTable = "users"
+	// CreatorColumn is the table column denoting the creator relation/edge.
+	CreatorColumn = "user_definitions"
 )
 
 // Columns holds all SQL columns for definition fields.
@@ -79,10 +88,24 @@ func ByWordField(field string, opts ...sql.OrderTermOption) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newWordStep(), sql.OrderByField(field, opts...))
 	}
 }
+
+// ByCreatorField orders the results by creator field.
+func ByCreatorField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newCreatorStep(), sql.OrderByField(field, opts...))
+	}
+}
 func newWordStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(WordInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2O, true, WordTable, WordColumn),
+	)
+}
+func newCreatorStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(CreatorInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, CreatorTable, CreatorColumn),
 	)
 }

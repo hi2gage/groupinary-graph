@@ -41,6 +41,20 @@ func (wu *WordUpdate) SetRoot(b bool) *WordUpdate {
 	return wu
 }
 
+// SetNillableRoot sets the "root" field if the given value is not nil.
+func (wu *WordUpdate) SetNillableRoot(b *bool) *WordUpdate {
+	if b != nil {
+		wu.SetRoot(*b)
+	}
+	return wu
+}
+
+// ClearRoot clears the value of the "root" field.
+func (wu *WordUpdate) ClearRoot() *WordUpdate {
+	wu.mutation.ClearRoot()
+	return wu
+}
+
 // SetCreatorID sets the "creator" edge to the User entity by ID.
 func (wu *WordUpdate) SetCreatorID(id int) *WordUpdate {
 	wu.mutation.SetCreatorID(id)
@@ -223,6 +237,9 @@ func (wu *WordUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := wu.mutation.Root(); ok {
 		_spec.SetField(word.FieldRoot, field.TypeBool, value)
 	}
+	if wu.mutation.RootCleared() {
+		_spec.ClearField(word.FieldRoot, field.TypeBool)
+	}
 	if wu.mutation.CreatorCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -400,6 +417,20 @@ func (wuo *WordUpdateOne) SetDescription(s string) *WordUpdateOne {
 // SetRoot sets the "root" field.
 func (wuo *WordUpdateOne) SetRoot(b bool) *WordUpdateOne {
 	wuo.mutation.SetRoot(b)
+	return wuo
+}
+
+// SetNillableRoot sets the "root" field if the given value is not nil.
+func (wuo *WordUpdateOne) SetNillableRoot(b *bool) *WordUpdateOne {
+	if b != nil {
+		wuo.SetRoot(*b)
+	}
+	return wuo
+}
+
+// ClearRoot clears the value of the "root" field.
+func (wuo *WordUpdateOne) ClearRoot() *WordUpdateOne {
+	wuo.mutation.ClearRoot()
 	return wuo
 }
 
@@ -614,6 +645,9 @@ func (wuo *WordUpdateOne) sqlSave(ctx context.Context) (_node *Word, err error) 
 	}
 	if value, ok := wuo.mutation.Root(); ok {
 		_spec.SetField(word.FieldRoot, field.TypeBool, value)
+	}
+	if wuo.mutation.RootCleared() {
+		_spec.ClearField(word.FieldRoot, field.TypeBool)
 	}
 	if wuo.mutation.CreatorCleared() {
 		edge := &sqlgraph.EdgeSpec{
