@@ -110,6 +110,7 @@ func main() {
 	authMiddleware := middleware.EnsureValidToken()
 
 	http.Handle("/", playground.Handler("GraphQL playground", "/query"))
+	http.Handle("/viz", ent.ServeEntviz())
 	http.Handle("/query", loggingMiddleware(corsHandler(authMiddleware(srv))))
 
 	log.Printf("connect to https://localhost:%s/ for GraphQL playground", port)
