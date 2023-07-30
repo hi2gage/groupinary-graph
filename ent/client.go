@@ -330,6 +330,22 @@ func (c *DefinitionClient) QueryWord(d *Definition) *WordQuery {
 	return query
 }
 
+// QueryCreator queries the creator edge of a Definition.
+func (c *DefinitionClient) QueryCreator(d *Definition) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := d.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(definition.Table, definition.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, definition.CreatorTable, definition.CreatorColumn),
+		)
+		fromV = sqlgraph.Neighbors(d.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *DefinitionClient) Hooks() []Hook {
 	return c.hooks.Definition

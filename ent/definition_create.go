@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"shrektionary_api/ent/definition"
+	"shrektionary_api/ent/user"
 	"shrektionary_api/ent/word"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -43,6 +44,25 @@ func (dc *DefinitionCreate) SetNillableWordID(id *int) *DefinitionCreate {
 // SetWord sets the "word" edge to the Word entity.
 func (dc *DefinitionCreate) SetWord(w *Word) *DefinitionCreate {
 	return dc.SetWordID(w.ID)
+}
+
+// SetCreatorID sets the "creator" edge to the User entity by ID.
+func (dc *DefinitionCreate) SetCreatorID(id int) *DefinitionCreate {
+	dc.mutation.SetCreatorID(id)
+	return dc
+}
+
+// SetNillableCreatorID sets the "creator" edge to the User entity by ID if the given value is not nil.
+func (dc *DefinitionCreate) SetNillableCreatorID(id *int) *DefinitionCreate {
+	if id != nil {
+		dc = dc.SetCreatorID(*id)
+	}
+	return dc
+}
+
+// SetCreator sets the "creator" edge to the User entity.
+func (dc *DefinitionCreate) SetCreator(u *User) *DefinitionCreate {
+	return dc.SetCreatorID(u.ID)
 }
 
 // Mutation returns the DefinitionMutation object of the builder.
@@ -132,6 +152,23 @@ func (dc *DefinitionCreate) createSpec() (*Definition, *sqlgraph.CreateSpec) {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.word_definitions = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := dc.mutation.CreatorIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   definition.CreatorTable,
+			Columns: []string{definition.CreatorColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.user_definitions = &nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

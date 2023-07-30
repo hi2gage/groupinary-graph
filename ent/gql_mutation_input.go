@@ -6,6 +6,7 @@ package ent
 type CreateDefinitionInput struct {
 	Description string
 	WordID      *int
+	CreatorID   *int
 }
 
 // Mutate applies the CreateDefinitionInput on the DefinitionMutation builder.
@@ -13,6 +14,9 @@ func (i *CreateDefinitionInput) Mutate(m *DefinitionMutation) {
 	m.SetDescription(i.Description)
 	if v := i.WordID; v != nil {
 		m.SetWordID(*v)
+	}
+	if v := i.CreatorID; v != nil {
+		m.SetCreatorID(*v)
 	}
 }
 
@@ -24,9 +28,11 @@ func (c *DefinitionCreate) SetInput(i CreateDefinitionInput) *DefinitionCreate {
 
 // UpdateDefinitionInput represents a mutation input for updating definitions.
 type UpdateDefinitionInput struct {
-	Description *string
-	ClearWord   bool
-	WordID      *int
+	Description  *string
+	ClearWord    bool
+	WordID       *int
+	ClearCreator bool
+	CreatorID    *int
 }
 
 // Mutate applies the UpdateDefinitionInput on the DefinitionMutation builder.
@@ -39,6 +45,12 @@ func (i *UpdateDefinitionInput) Mutate(m *DefinitionMutation) {
 	}
 	if v := i.WordID; v != nil {
 		m.SetWordID(*v)
+	}
+	if i.ClearCreator {
+		m.ClearCreator()
+	}
+	if v := i.CreatorID; v != nil {
+		m.SetCreatorID(*v)
 	}
 }
 
@@ -109,7 +121,7 @@ func (c *UserCreate) SetInput(i CreateUserInput) *UserCreate {
 // CreateWordInput represents a mutation input for creating words.
 type CreateWordInput struct {
 	Description   string
-	Root          bool
+	Root          *bool
 	CreatorID     *int
 	DefinitionIDs []int
 	DescendantIDs []int
@@ -119,7 +131,9 @@ type CreateWordInput struct {
 // Mutate applies the CreateWordInput on the WordMutation builder.
 func (i *CreateWordInput) Mutate(m *WordMutation) {
 	m.SetDescription(i.Description)
-	m.SetRoot(i.Root)
+	if v := i.Root; v != nil {
+		m.SetRoot(*v)
+	}
 	if v := i.CreatorID; v != nil {
 		m.SetCreatorID(*v)
 	}

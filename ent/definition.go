@@ -5,6 +5,7 @@ package ent
 import (
 	"fmt"
 	"shrektionary_api/ent/definition"
+	"shrektionary_api/ent/user"
 	"shrektionary_api/ent/word"
 	"strings"
 
@@ -31,11 +32,13 @@ type Definition struct {
 type DefinitionEdges struct {
 	// Word holds the value of the word edge.
 	Word *Word `json:"word,omitempty"`
+	// Creator holds the value of the creator edge.
+	Creator *User `json:"creator,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
+	loadedTypes [2]bool
 	// totalCount holds the count of the edges above.
-	totalCount [1]map[string]int
+	totalCount [2]map[string]int
 }
 
 // WordOrErr returns the Word value or an error if the edge
@@ -49,6 +52,19 @@ func (e DefinitionEdges) WordOrErr() (*Word, error) {
 		return e.Word, nil
 	}
 	return nil, &NotLoadedError{edge: "word"}
+}
+
+// CreatorOrErr returns the Creator value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e DefinitionEdges) CreatorOrErr() (*User, error) {
+	if e.loadedTypes[1] {
+		if e.Creator == nil {
+			// Edge was loaded but was not found.
+			return nil, &NotFoundError{label: user.Label}
+		}
+		return e.Creator, nil
+	}
+	return nil, &NotLoadedError{edge: "creator"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -121,6 +137,11 @@ func (d *Definition) Value(name string) (ent.Value, error) {
 // QueryWord queries the "word" edge of the Definition entity.
 func (d *Definition) QueryWord() *WordQuery {
 	return NewDefinitionClient(d.config).QueryWord(d)
+}
+
+// QueryCreator queries the "creator" edge of the Definition entity.
+func (d *Definition) QueryCreator() *UserQuery {
+	return NewDefinitionClient(d.config).QueryCreator(d)
 }
 
 // Update returns a builder for updating this Definition.
