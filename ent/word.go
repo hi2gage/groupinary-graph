@@ -19,6 +19,8 @@ type Word struct {
 	ID int `json:"id,omitempty"`
 	// Description holds the value of the "description" field.
 	Description string `json:"description,omitempty"`
+	// Root holds the value of the "root" field.
+	Root bool `json:"root,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the WordQuery when eager-loading is set.
 	Edges            WordEdges `json:"edges"`
@@ -97,6 +99,8 @@ func (*Word) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
+		case word.FieldRoot:
+			values[i] = new(sql.NullBool)
 		case word.FieldID:
 			values[i] = new(sql.NullInt64)
 		case word.FieldDescription:
@@ -133,6 +137,12 @@ func (w *Word) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field description", values[i])
 			} else if value.Valid {
 				w.Description = value.String
+			}
+		case word.FieldRoot:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field root", values[i])
+			} else if value.Valid {
+				w.Root = value.Bool
 			}
 		case word.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
@@ -213,6 +223,9 @@ func (w *Word) String() string {
 	builder.WriteString(fmt.Sprintf("id=%v, ", w.ID))
 	builder.WriteString("description=")
 	builder.WriteString(w.Description)
+	builder.WriteString(", ")
+	builder.WriteString("root=")
+	builder.WriteString(fmt.Sprintf("%v", w.Root))
 	builder.WriteByte(')')
 	return builder.String()
 }

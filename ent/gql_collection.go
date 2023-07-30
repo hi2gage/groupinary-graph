@@ -739,6 +739,11 @@ func (w *WordQuery) collectField(ctx context.Context, opCtx *graphql.OperationCo
 				selectedFields = append(selectedFields, word.FieldDescription)
 				fieldSeen[word.FieldDescription] = struct{}{}
 			}
+		case "root":
+			if _, ok := fieldSeen[word.FieldRoot]; !ok {
+				selectedFields = append(selectedFields, word.FieldRoot)
+				fieldSeen[word.FieldRoot] = struct{}{}
+			}
 		case "id":
 		case "__typename":
 		default:

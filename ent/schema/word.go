@@ -17,6 +17,7 @@ type Word struct {
 func (Word) Fields() []ent.Field {
 	return []ent.Field{
 		field.String("description").NotEmpty(),
+		field.Bool("root").Optional(),
 	}
 
 }

@@ -14,6 +14,8 @@ const (
 	FieldID = "id"
 	// FieldDescription holds the string denoting the description field in the database.
 	FieldDescription = "description"
+	// FieldRoot holds the string denoting the root field in the database.
+	FieldRoot = "root"
 	// EdgeCreator holds the string denoting the creator edge name in mutations.
 	EdgeCreator = "creator"
 	// EdgeDefinitions holds the string denoting the definitions edge name in mutations.
@@ -52,6 +54,7 @@ const (
 var Columns = []string{
 	FieldID,
 	FieldDescription,
+	FieldRoot,
 }
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the "words"
@@ -93,6 +96,11 @@ func ByID(opts ...sql.OrderTermOption) OrderOption {
 // ByDescription orders the results by the description field.
 func ByDescription(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldDescription, opts...).ToFunc()
+}
+
+// ByRoot orders the results by the root field.
+func ByRoot(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldRoot, opts...).ToFunc()
 }
 
 // ByCreatorField orders the results by creator field.
