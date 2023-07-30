@@ -710,6 +710,10 @@ type WordWhereInput struct {
 	DescriptionEqualFold    *string  `json:"descriptionEqualFold,omitempty"`
 	DescriptionContainsFold *string  `json:"descriptionContainsFold,omitempty"`
 
+	// "root" field predicates.
+	Root    *bool `json:"root,omitempty"`
+	RootNEQ *bool `json:"rootNEQ,omitempty"`
+
 	// "creator" edge predicates.
 	HasCreator     *bool             `json:"hasCreator,omitempty"`
 	HasCreatorWith []*UserWhereInput `json:"hasCreatorWith,omitempty"`
@@ -860,6 +864,12 @@ func (i *WordWhereInput) P() (predicate.Word, error) {
 	}
 	if i.DescriptionContainsFold != nil {
 		predicates = append(predicates, word.DescriptionContainsFold(*i.DescriptionContainsFold))
+	}
+	if i.Root != nil {
+		predicates = append(predicates, word.RootEQ(*i.Root))
+	}
+	if i.RootNEQ != nil {
+		predicates = append(predicates, word.RootNEQ(*i.RootNEQ))
 	}
 
 	if i.HasCreator != nil {

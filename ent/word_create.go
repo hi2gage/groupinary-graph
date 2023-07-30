@@ -27,6 +27,12 @@ func (wc *WordCreate) SetDescription(s string) *WordCreate {
 	return wc
 }
 
+// SetRoot sets the "root" field.
+func (wc *WordCreate) SetRoot(b bool) *WordCreate {
+	wc.mutation.SetRoot(b)
+	return wc
+}
+
 // SetCreatorID sets the "creator" edge to the User entity by ID.
 func (wc *WordCreate) SetCreatorID(id int) *WordCreate {
 	wc.mutation.SetCreatorID(id)
@@ -137,6 +143,9 @@ func (wc *WordCreate) check() error {
 			return &ValidationError{Name: "description", err: fmt.Errorf(`ent: validator failed for field "Word.description": %w`, err)}
 		}
 	}
+	if _, ok := wc.mutation.Root(); !ok {
+		return &ValidationError{Name: "root", err: errors.New(`ent: missing required field "Word.root"`)}
+	}
 	return nil
 }
 
@@ -166,6 +175,10 @@ func (wc *WordCreate) createSpec() (*Word, *sqlgraph.CreateSpec) {
 	if value, ok := wc.mutation.Description(); ok {
 		_spec.SetField(word.FieldDescription, field.TypeString, value)
 		_node.Description = value
+	}
+	if value, ok := wc.mutation.Root(); ok {
+		_spec.SetField(word.FieldRoot, field.TypeBool, value)
+		_node.Root = value
 	}
 	if nodes := wc.mutation.CreatorIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

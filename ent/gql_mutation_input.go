@@ -109,6 +109,7 @@ func (c *UserCreate) SetInput(i CreateUserInput) *UserCreate {
 // CreateWordInput represents a mutation input for creating words.
 type CreateWordInput struct {
 	Description   string
+	Root          bool
 	CreatorID     *int
 	DefinitionIDs []int
 	DescendantIDs []int
@@ -118,6 +119,7 @@ type CreateWordInput struct {
 // Mutate applies the CreateWordInput on the WordMutation builder.
 func (i *CreateWordInput) Mutate(m *WordMutation) {
 	m.SetDescription(i.Description)
+	m.SetRoot(i.Root)
 	if v := i.CreatorID; v != nil {
 		m.SetCreatorID(*v)
 	}
