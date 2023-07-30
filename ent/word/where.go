@@ -139,6 +139,16 @@ func RootNEQ(v bool) predicate.Word {
 	return predicate.Word(sql.FieldNEQ(FieldRoot, v))
 }
 
+// RootIsNil applies the IsNil predicate on the "root" field.
+func RootIsNil() predicate.Word {
+	return predicate.Word(sql.FieldIsNull(FieldRoot))
+}
+
+// RootNotNil applies the NotNil predicate on the "root" field.
+func RootNotNil() predicate.Word {
+	return predicate.Word(sql.FieldNotNull(FieldRoot))
+}
+
 // HasCreator applies the HasEdge predicate on the "creator" edge.
 func HasCreator() predicate.Word {
 	return predicate.Word(func(s *sql.Selector) {
