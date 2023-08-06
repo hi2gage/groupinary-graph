@@ -9,6 +9,11 @@ import (
 	"shrektionary_api/ent"
 )
 
+// CreateGroup is the resolver for the createGroup field.
+func (r *mutationResolver) CreateGroup(ctx context.Context, input ent.CreateGroupInput) (*ent.Group, error) {
+	return r.client.Group.Create().SetInput(input).Save(ctx)
+}
+
 // CreateDefinition is the resolver for the createDefinition field.
 func (r *mutationResolver) CreateDefinition(ctx context.Context, input ent.CreateDefinitionInput) (*ent.Definition, error) {
 	return r.client.Definition.Create().SetInput(input).Save(ctx)
