@@ -20,16 +20,16 @@ import (
 // GroupQuery is the builder for querying Group entities.
 type GroupQuery struct {
 	config
-	ctx            *QueryContext
-	order          []group.OrderOption
-	inters         []Interceptor
-	predicates     []predicate.Group
-	withWords      *WordQuery
-	withUsers      *UserQuery
-	modifiers      []func(*sql.Selector)
-	loadTotal      []func(context.Context, []*Group) error
-	withNamedWords map[string]*WordQuery
-	withNamedUsers map[string]*UserQuery
+	ctx                *QueryContext
+	order              []group.OrderOption
+	inters             []Interceptor
+	predicates         []predicate.Group
+	withRootWords      *WordQuery
+	withUsers          *UserQuery
+	modifiers          []func(*sql.Selector)
+	loadTotal          []func(context.Context, []*Group) error
+	withNamedRootWords map[string]*WordQuery
+	withNamedUsers     map[string]*UserQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -66,8 +66,8 @@ func (gq *GroupQuery) Order(o ...group.OrderOption) *GroupQuery {
 	return gq
 }
 
-// QueryWords chains the current query on the "words" edge.
-func (gq *GroupQuery) QueryWords() *WordQuery {
+// QueryRootWords chains the current query on the "rootWords" edge.
+func (gq *GroupQuery) QueryRootWords() *WordQuery {
 	query := (&WordClient{config: gq.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := gq.prepareQuery(ctx); err != nil {
@@ -80,7 +80,7 @@ func (gq *GroupQuery) QueryWords() *WordQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(group.Table, group.FieldID, selector),
 			sqlgraph.To(word.Table, word.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, group.WordsTable, group.WordsColumn),
+			sqlgraph.Edge(sqlgraph.O2M, false, group.RootWordsTable, group.RootWordsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(gq.driver.Dialect(), step)
 		return fromU, nil
@@ -297,27 +297,27 @@ func (gq *GroupQuery) Clone() *GroupQuery {
 		return nil
 	}
 	return &GroupQuery{
-		config:     gq.config,
-		ctx:        gq.ctx.Clone(),
-		order:      append([]group.OrderOption{}, gq.order...),
-		inters:     append([]Interceptor{}, gq.inters...),
-		predicates: append([]predicate.Group{}, gq.predicates...),
-		withWords:  gq.withWords.Clone(),
-		withUsers:  gq.withUsers.Clone(),
+		config:        gq.config,
+		ctx:           gq.ctx.Clone(),
+		order:         append([]group.OrderOption{}, gq.order...),
+		inters:        append([]Interceptor{}, gq.inters...),
+		predicates:    append([]predicate.Group{}, gq.predicates...),
+		withRootWords: gq.withRootWords.Clone(),
+		withUsers:     gq.withUsers.Clone(),
 		// clone intermediate query.
 		sql:  gq.sql.Clone(),
 		path: gq.path,
 	}
 }
 
-// WithWords tells the query-builder to eager-load the nodes that are connected to
-// the "words" edge. The optional arguments are used to configure the query builder of the edge.
-func (gq *GroupQuery) WithWords(opts ...func(*WordQuery)) *GroupQuery {
+// WithRootWords tells the query-builder to eager-load the nodes that are connected to
+// the "rootWords" edge. The optional arguments are used to configure the query builder of the edge.
+func (gq *GroupQuery) WithRootWords(opts ...func(*WordQuery)) *GroupQuery {
 	query := (&WordClient{config: gq.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
-	gq.withWords = query
+	gq.withRootWords = query
 	return gq
 }
 
@@ -411,7 +411,7 @@ func (gq *GroupQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Group,
 		nodes       = []*Group{}
 		_spec       = gq.querySpec()
 		loadedTypes = [2]bool{
-			gq.withWords != nil,
+			gq.withRootWords != nil,
 			gq.withUsers != nil,
 		}
 	)
@@ -436,10 +436,10 @@ func (gq *GroupQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Group,
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
-	if query := gq.withWords; query != nil {
-		if err := gq.loadWords(ctx, query, nodes,
-			func(n *Group) { n.Edges.Words = []*Word{} },
-			func(n *Group, e *Word) { n.Edges.Words = append(n.Edges.Words, e) }); err != nil {
+	if query := gq.withRootWords; query != nil {
+		if err := gq.loadRootWords(ctx, query, nodes,
+			func(n *Group) { n.Edges.RootWords = []*Word{} },
+			func(n *Group, e *Word) { n.Edges.RootWords = append(n.Edges.RootWords, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -450,10 +450,10 @@ func (gq *GroupQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Group,
 			return nil, err
 		}
 	}
-	for name, query := range gq.withNamedWords {
-		if err := gq.loadWords(ctx, query, nodes,
-			func(n *Group) { n.appendNamedWords(name) },
-			func(n *Group, e *Word) { n.appendNamedWords(name, e) }); err != nil {
+	for name, query := range gq.withNamedRootWords {
+		if err := gq.loadRootWords(ctx, query, nodes,
+			func(n *Group) { n.appendNamedRootWords(name) },
+			func(n *Group, e *Word) { n.appendNamedRootWords(name, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -472,7 +472,7 @@ func (gq *GroupQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Group,
 	return nodes, nil
 }
 
-func (gq *GroupQuery) loadWords(ctx context.Context, query *WordQuery, nodes []*Group, init func(*Group), assign func(*Group, *Word)) error {
+func (gq *GroupQuery) loadRootWords(ctx context.Context, query *WordQuery, nodes []*Group, init func(*Group), assign func(*Group, *Word)) error {
 	fks := make([]driver.Value, 0, len(nodes))
 	nodeids := make(map[int]*Group)
 	for i := range nodes {
@@ -484,20 +484,20 @@ func (gq *GroupQuery) loadWords(ctx context.Context, query *WordQuery, nodes []*
 	}
 	query.withFKs = true
 	query.Where(predicate.Word(func(s *sql.Selector) {
-		s.Where(sql.InValues(s.C(group.WordsColumn), fks...))
+		s.Where(sql.InValues(s.C(group.RootWordsColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {
 		return err
 	}
 	for _, n := range neighbors {
-		fk := n.group_words
+		fk := n.group_root_words
 		if fk == nil {
-			return fmt.Errorf(`foreign-key "group_words" is nil for node %v`, n.ID)
+			return fmt.Errorf(`foreign-key "group_root_words" is nil for node %v`, n.ID)
 		}
 		node, ok := nodeids[*fk]
 		if !ok {
-			return fmt.Errorf(`unexpected referenced foreign-key "group_words" returned %v for node %v`, *fk, n.ID)
+			return fmt.Errorf(`unexpected referenced foreign-key "group_root_words" returned %v for node %v`, *fk, n.ID)
 		}
 		assign(node, n)
 	}
@@ -649,17 +649,17 @@ func (gq *GroupQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	return selector
 }
 
-// WithNamedWords tells the query-builder to eager-load the nodes that are connected to the "words"
+// WithNamedRootWords tells the query-builder to eager-load the nodes that are connected to the "rootWords"
 // edge with the given name. The optional arguments are used to configure the query builder of the edge.
-func (gq *GroupQuery) WithNamedWords(name string, opts ...func(*WordQuery)) *GroupQuery {
+func (gq *GroupQuery) WithNamedRootWords(name string, opts ...func(*WordQuery)) *GroupQuery {
 	query := (&WordClient{config: gq.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
-	if gq.withNamedWords == nil {
-		gq.withNamedWords = make(map[string]*WordQuery)
+	if gq.withNamedRootWords == nil {
+		gq.withNamedRootWords = make(map[string]*WordQuery)
 	}
-	gq.withNamedWords[name] = query
+	gq.withNamedRootWords[name] = query
 	return gq
 }
 

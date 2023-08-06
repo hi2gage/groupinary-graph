@@ -37,16 +37,6 @@ func (d *DefinitionQuery) collectField(ctx context.Context, opCtx *graphql.Opera
 	)
 	for _, field := range graphql.CollectFields(opCtx, collected.Selections, satisfies) {
 		switch field.Name {
-		case "word":
-			var (
-				alias = field.Alias
-				path  = append(path, alias)
-				query = (&WordClient{config: d.config}).Query()
-			)
-			if err := query.collectField(ctx, opCtx, field, path, satisfies...); err != nil {
-				return err
-			}
-			d.withWord = query
 		case "creator":
 			var (
 				alias = field.Alias
@@ -146,7 +136,7 @@ func (gr *GroupQuery) collectField(ctx context.Context, opCtx *graphql.Operation
 	)
 	for _, field := range graphql.CollectFields(opCtx, collected.Selections, satisfies) {
 		switch field.Name {
-		case "words":
+		case "rootwords":
 			var (
 				alias = field.Alias
 				path  = append(path, alias)
@@ -174,13 +164,13 @@ func (gr *GroupQuery) collectField(ctx context.Context, opCtx *graphql.Operation
 							ids[i] = nodes[i].ID
 						}
 						var v []struct {
-							NodeID int `sql:"group_words"`
+							NodeID int `sql:"group_root_words"`
 							Count  int `sql:"count"`
 						}
 						query.Where(func(s *sql.Selector) {
-							s.Where(sql.InValues(s.C(group.WordsColumn), ids...))
+							s.Where(sql.InValues(s.C(group.RootWordsColumn), ids...))
 						})
-						if err := query.GroupBy(group.WordsColumn).Aggregate(Count()).Scan(ctx, &v); err != nil {
+						if err := query.GroupBy(group.RootWordsColumn).Aggregate(Count()).Scan(ctx, &v); err != nil {
 							return err
 						}
 						m := make(map[int]int, len(v))
@@ -199,7 +189,7 @@ func (gr *GroupQuery) collectField(ctx context.Context, opCtx *graphql.Operation
 				} else {
 					gr.loadTotal = append(gr.loadTotal, func(_ context.Context, nodes []*Group) error {
 						for i := range nodes {
-							n := len(nodes[i].Edges.Words)
+							n := len(nodes[i].Edges.RootWords)
 							if nodes[i].Edges.totalCount[0] == nil {
 								nodes[i].Edges.totalCount[0] = make(map[string]int)
 							}
@@ -222,12 +212,12 @@ func (gr *GroupQuery) collectField(ctx context.Context, opCtx *graphql.Operation
 				}
 			}
 			if limit := paginateLimit(args.first, args.last); limit > 0 {
-				modify := limitRows(group.WordsColumn, limit, pager.orderExpr(query))
+				modify := limitRows(group.RootWordsColumn, limit, pager.orderExpr(query))
 				query.modifiers = append(query.modifiers, modify)
 			} else {
 				query = pager.applyOrder(query)
 			}
-			gr.WithNamedWords(alias, func(wq *WordQuery) {
+			gr.WithNamedRootWords(alias, func(wq *WordQuery) {
 				*wq = *query
 			})
 		case "users":
@@ -566,6 +556,16 @@ func (w *WordQuery) collectField(ctx context.Context, opCtx *graphql.OperationCo
 				return err
 			}
 			w.withCreator = query
+		case "group":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = (&GroupClient{config: w.config}).Query()
+			)
+			if err := query.collectField(ctx, opCtx, field, path, satisfies...); err != nil {
+				return err
+			}
+			w.withGroup = query
 		case "definitions":
 			var (
 				alias = field.Alias
@@ -609,10 +609,10 @@ func (w *WordQuery) collectField(ctx context.Context, opCtx *graphql.OperationCo
 						}
 						for i := range nodes {
 							n := m[nodes[i].ID]
-							if nodes[i].Edges.totalCount[1] == nil {
-								nodes[i].Edges.totalCount[1] = make(map[string]int)
+							if nodes[i].Edges.totalCount[2] == nil {
+								nodes[i].Edges.totalCount[2] = make(map[string]int)
 							}
-							nodes[i].Edges.totalCount[1][alias] = n
+							nodes[i].Edges.totalCount[2][alias] = n
 						}
 						return nil
 					})
@@ -620,10 +620,10 @@ func (w *WordQuery) collectField(ctx context.Context, opCtx *graphql.OperationCo
 					w.loadTotal = append(w.loadTotal, func(_ context.Context, nodes []*Word) error {
 						for i := range nodes {
 							n := len(nodes[i].Edges.Definitions)
-							if nodes[i].Edges.totalCount[1] == nil {
-								nodes[i].Edges.totalCount[1] = make(map[string]int)
+							if nodes[i].Edges.totalCount[2] == nil {
+								nodes[i].Edges.totalCount[2] = make(map[string]int)
 							}
-							nodes[i].Edges.totalCount[1][alias] = n
+							nodes[i].Edges.totalCount[2][alias] = n
 						}
 						return nil
 					})
@@ -678,13 +678,17 @@ func (w *WordQuery) collectField(ctx context.Context, opCtx *graphql.OperationCo
 							ids[i] = nodes[i].ID
 						}
 						var v []struct {
-							NodeID int `sql:"word_descendants"`
+							NodeID int `sql:"word_id"`
 							Count  int `sql:"count"`
 						}
 						query.Where(func(s *sql.Selector) {
-							s.Where(sql.InValues(s.C(word.DescendantsColumn), ids...))
+							joinT := sql.Table(word.DescendantsTable)
+							s.Join(joinT).On(s.C(word.FieldID), joinT.C(word.DescendantsPrimaryKey[1]))
+							s.Where(sql.InValues(joinT.C(word.DescendantsPrimaryKey[0]), ids...))
+							s.Select(joinT.C(word.DescendantsPrimaryKey[0]), sql.Count("*"))
+							s.GroupBy(joinT.C(word.DescendantsPrimaryKey[0]))
 						})
-						if err := query.GroupBy(word.DescendantsColumn).Aggregate(Count()).Scan(ctx, &v); err != nil {
+						if err := query.Select().Scan(ctx, &v); err != nil {
 							return err
 						}
 						m := make(map[int]int, len(v))
@@ -693,10 +697,10 @@ func (w *WordQuery) collectField(ctx context.Context, opCtx *graphql.OperationCo
 						}
 						for i := range nodes {
 							n := m[nodes[i].ID]
-							if nodes[i].Edges.totalCount[2] == nil {
-								nodes[i].Edges.totalCount[2] = make(map[string]int)
+							if nodes[i].Edges.totalCount[3] == nil {
+								nodes[i].Edges.totalCount[3] = make(map[string]int)
 							}
-							nodes[i].Edges.totalCount[2][alias] = n
+							nodes[i].Edges.totalCount[3][alias] = n
 						}
 						return nil
 					})
@@ -704,10 +708,10 @@ func (w *WordQuery) collectField(ctx context.Context, opCtx *graphql.OperationCo
 					w.loadTotal = append(w.loadTotal, func(_ context.Context, nodes []*Word) error {
 						for i := range nodes {
 							n := len(nodes[i].Edges.Descendants)
-							if nodes[i].Edges.totalCount[2] == nil {
-								nodes[i].Edges.totalCount[2] = make(map[string]int)
+							if nodes[i].Edges.totalCount[3] == nil {
+								nodes[i].Edges.totalCount[3] = make(map[string]int)
 							}
-							nodes[i].Edges.totalCount[2][alias] = n
+							nodes[i].Edges.totalCount[3][alias] = n
 						}
 						return nil
 					})
@@ -726,7 +730,7 @@ func (w *WordQuery) collectField(ctx context.Context, opCtx *graphql.OperationCo
 				}
 			}
 			if limit := paginateLimit(args.first, args.last); limit > 0 {
-				modify := limitRows(word.DescendantsColumn, limit, pager.orderExpr(query))
+				modify := limitRows(word.DescendantsPrimaryKey[0], limit, pager.orderExpr(query))
 				query.modifiers = append(query.modifiers, modify)
 			} else {
 				query = pager.applyOrder(query)
@@ -734,7 +738,7 @@ func (w *WordQuery) collectField(ctx context.Context, opCtx *graphql.OperationCo
 			w.WithNamedDescendants(alias, func(wq *WordQuery) {
 				*wq = *query
 			})
-		case "parent":
+		case "parents":
 			var (
 				alias = field.Alias
 				path  = append(path, alias)
@@ -743,16 +747,13 @@ func (w *WordQuery) collectField(ctx context.Context, opCtx *graphql.OperationCo
 			if err := query.collectField(ctx, opCtx, field, path, satisfies...); err != nil {
 				return err
 			}
-			w.withParent = query
+			w.WithNamedParents(alias, func(wq *WordQuery) {
+				*wq = *query
+			})
 		case "description":
 			if _, ok := fieldSeen[word.FieldDescription]; !ok {
 				selectedFields = append(selectedFields, word.FieldDescription)
 				fieldSeen[word.FieldDescription] = struct{}{}
-			}
-		case "root":
-			if _, ok := fieldSeen[word.FieldRoot]; !ok {
-				selectedFields = append(selectedFields, word.FieldRoot)
-				fieldSeen[word.FieldRoot] = struct{}{}
 			}
 		case "id":
 		case "__typename":

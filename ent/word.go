@@ -4,6 +4,7 @@ package ent
 
 import (
 	"fmt"
+	"shrektionary_api/ent/group"
 	"shrektionary_api/ent/user"
 	"shrektionary_api/ent/word"
 	"strings"
@@ -19,14 +20,11 @@ type Word struct {
 	ID int `json:"id,omitempty"`
 	// Description holds the value of the "description" field.
 	Description string `json:"description,omitempty"`
-	// Root holds the value of the "root" field.
-	Root bool `json:"root,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the WordQuery when eager-loading is set.
 	Edges            WordEdges `json:"edges"`
-	group_words      *int
+	group_root_words *int
 	user_words       *int
-	word_descendants *int
 	selectValues     sql.SelectValues
 }
 
@@ -34,20 +32,23 @@ type Word struct {
 type WordEdges struct {
 	// Creator holds the value of the creator edge.
 	Creator *User `json:"creator,omitempty"`
+	// Group holds the value of the group edge.
+	Group *Group `json:"group,omitempty"`
 	// Definitions holds the value of the definitions edge.
 	Definitions []*Definition `json:"definitions,omitempty"`
 	// Descendants holds the value of the descendants edge.
 	Descendants []*Word `json:"descendants,omitempty"`
-	// Parent holds the value of the parent edge.
-	Parent *Word `json:"parent,omitempty"`
+	// Parents holds the value of the parents edge.
+	Parents []*Word `json:"parents,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [4]bool
+	loadedTypes [5]bool
 	// totalCount holds the count of the edges above.
-	totalCount [4]map[string]int
+	totalCount [5]map[string]int
 
 	namedDefinitions map[string][]*Definition
 	namedDescendants map[string][]*Word
+	namedParents     map[string][]*Word
 }
 
 // CreatorOrErr returns the Creator value or an error if the edge
@@ -63,10 +64,23 @@ func (e WordEdges) CreatorOrErr() (*User, error) {
 	return nil, &NotLoadedError{edge: "creator"}
 }
 
+// GroupOrErr returns the Group value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e WordEdges) GroupOrErr() (*Group, error) {
+	if e.loadedTypes[1] {
+		if e.Group == nil {
+			// Edge was loaded but was not found.
+			return nil, &NotFoundError{label: group.Label}
+		}
+		return e.Group, nil
+	}
+	return nil, &NotLoadedError{edge: "group"}
+}
+
 // DefinitionsOrErr returns the Definitions value or an error if the edge
 // was not loaded in eager-loading.
 func (e WordEdges) DefinitionsOrErr() ([]*Definition, error) {
-	if e.loadedTypes[1] {
+	if e.loadedTypes[2] {
 		return e.Definitions, nil
 	}
 	return nil, &NotLoadedError{edge: "definitions"}
@@ -75,23 +89,19 @@ func (e WordEdges) DefinitionsOrErr() ([]*Definition, error) {
 // DescendantsOrErr returns the Descendants value or an error if the edge
 // was not loaded in eager-loading.
 func (e WordEdges) DescendantsOrErr() ([]*Word, error) {
-	if e.loadedTypes[2] {
+	if e.loadedTypes[3] {
 		return e.Descendants, nil
 	}
 	return nil, &NotLoadedError{edge: "descendants"}
 }
 
-// ParentOrErr returns the Parent value or an error if the edge
-// was not loaded in eager-loading, or loaded but was not found.
-func (e WordEdges) ParentOrErr() (*Word, error) {
-	if e.loadedTypes[3] {
-		if e.Parent == nil {
-			// Edge was loaded but was not found.
-			return nil, &NotFoundError{label: word.Label}
-		}
-		return e.Parent, nil
+// ParentsOrErr returns the Parents value or an error if the edge
+// was not loaded in eager-loading.
+func (e WordEdges) ParentsOrErr() ([]*Word, error) {
+	if e.loadedTypes[4] {
+		return e.Parents, nil
 	}
-	return nil, &NotLoadedError{edge: "parent"}
+	return nil, &NotLoadedError{edge: "parents"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -99,17 +109,13 @@ func (*Word) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case word.FieldRoot:
-			values[i] = new(sql.NullBool)
 		case word.FieldID:
 			values[i] = new(sql.NullInt64)
 		case word.FieldDescription:
 			values[i] = new(sql.NullString)
-		case word.ForeignKeys[0]: // group_words
+		case word.ForeignKeys[0]: // group_root_words
 			values[i] = new(sql.NullInt64)
 		case word.ForeignKeys[1]: // user_words
-			values[i] = new(sql.NullInt64)
-		case word.ForeignKeys[2]: // word_descendants
 			values[i] = new(sql.NullInt64)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -138,18 +144,12 @@ func (w *Word) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				w.Description = value.String
 			}
-		case word.FieldRoot:
-			if value, ok := values[i].(*sql.NullBool); !ok {
-				return fmt.Errorf("unexpected type %T for field root", values[i])
-			} else if value.Valid {
-				w.Root = value.Bool
-			}
 		case word.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
-				return fmt.Errorf("unexpected type %T for edge-field group_words", value)
+				return fmt.Errorf("unexpected type %T for edge-field group_root_words", value)
 			} else if value.Valid {
-				w.group_words = new(int)
-				*w.group_words = int(value.Int64)
+				w.group_root_words = new(int)
+				*w.group_root_words = int(value.Int64)
 			}
 		case word.ForeignKeys[1]:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
@@ -157,13 +157,6 @@ func (w *Word) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				w.user_words = new(int)
 				*w.user_words = int(value.Int64)
-			}
-		case word.ForeignKeys[2]:
-			if value, ok := values[i].(*sql.NullInt64); !ok {
-				return fmt.Errorf("unexpected type %T for edge-field word_descendants", value)
-			} else if value.Valid {
-				w.word_descendants = new(int)
-				*w.word_descendants = int(value.Int64)
 			}
 		default:
 			w.selectValues.Set(columns[i], values[i])
@@ -183,6 +176,11 @@ func (w *Word) QueryCreator() *UserQuery {
 	return NewWordClient(w.config).QueryCreator(w)
 }
 
+// QueryGroup queries the "group" edge of the Word entity.
+func (w *Word) QueryGroup() *GroupQuery {
+	return NewWordClient(w.config).QueryGroup(w)
+}
+
 // QueryDefinitions queries the "definitions" edge of the Word entity.
 func (w *Word) QueryDefinitions() *DefinitionQuery {
 	return NewWordClient(w.config).QueryDefinitions(w)
@@ -193,9 +191,9 @@ func (w *Word) QueryDescendants() *WordQuery {
 	return NewWordClient(w.config).QueryDescendants(w)
 }
 
-// QueryParent queries the "parent" edge of the Word entity.
-func (w *Word) QueryParent() *WordQuery {
-	return NewWordClient(w.config).QueryParent(w)
+// QueryParents queries the "parents" edge of the Word entity.
+func (w *Word) QueryParents() *WordQuery {
+	return NewWordClient(w.config).QueryParents(w)
 }
 
 // Update returns a builder for updating this Word.
@@ -223,9 +221,6 @@ func (w *Word) String() string {
 	builder.WriteString(fmt.Sprintf("id=%v, ", w.ID))
 	builder.WriteString("description=")
 	builder.WriteString(w.Description)
-	builder.WriteString(", ")
-	builder.WriteString("root=")
-	builder.WriteString(fmt.Sprintf("%v", w.Root))
 	builder.WriteByte(')')
 	return builder.String()
 }
@@ -275,6 +270,30 @@ func (w *Word) appendNamedDescendants(name string, edges ...*Word) {
 		w.Edges.namedDescendants[name] = []*Word{}
 	} else {
 		w.Edges.namedDescendants[name] = append(w.Edges.namedDescendants[name], edges...)
+	}
+}
+
+// NamedParents returns the Parents named value or an error if the edge was not
+// loaded in eager-loading with this name.
+func (w *Word) NamedParents(name string) ([]*Word, error) {
+	if w.Edges.namedParents == nil {
+		return nil, &NotLoadedError{edge: name}
+	}
+	nodes, ok := w.Edges.namedParents[name]
+	if !ok {
+		return nil, &NotLoadedError{edge: name}
+	}
+	return nodes, nil
+}
+
+func (w *Word) appendNamedParents(name string, edges ...*Word) {
+	if w.Edges.namedParents == nil {
+		w.Edges.namedParents = make(map[string][]*Word)
+	}
+	if len(edges) == 0 {
+		w.Edges.namedParents[name] = []*Word{}
+	} else {
+		w.Edges.namedParents[name] = append(w.Edges.namedParents[name], edges...)
 	}
 }
 

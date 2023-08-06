@@ -19,6 +19,11 @@ func (r *mutationResolver) CreateWord(ctx context.Context, input ent.CreateWordI
 	return r.client.Word.Create().SetInput(input).Save(ctx)
 }
 
+// CreateRootWord is the resolver for the createRootWord field.
+func (r *mutationResolver) CreateRootWord(ctx context.Context, input ent.CreateWordInput) (*ent.Word, error) {
+	return r.client.Word.Create().SetInput(input).Save(ctx)
+}
+
 // CreateUser is the resolver for the createUser field.
 func (r *mutationResolver) CreateUser(ctx context.Context, input ent.CreateUserInput) (*ent.User, error) {
 	return r.client.User.Create().SetInput(input).Save(ctx)

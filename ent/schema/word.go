@@ -17,7 +17,6 @@ type Word struct {
 func (Word) Fields() []ent.Field {
 	return []ent.Field{
 		field.String("description").NotEmpty(),
-		field.Bool("root").Optional(),
 	}
 
 }
@@ -28,13 +27,15 @@ func (Word) Edges() []ent.Edge {
 		edge.From("creator", User.Type).
 			Ref("words").
 			Unique(),
+		edge.From("group", Group.Type).
+			Ref("rootWords").
+			Unique(),
 		edge.To("definitions", Definition.Type).
 			Annotations(entgql.RelayConnection()),
 		edge.To("descendants", Word.Type).
 			Annotations(entgql.RelayConnection()),
-		edge.From("parent", Word.Type).
-			Ref("descendants").
-			Unique(),
+		edge.From("parents", Word.Type).
+			Ref("descendants"),
 	}
 }
 

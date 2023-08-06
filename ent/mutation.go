@@ -40,8 +40,6 @@ type DefinitionMutation struct {
 	id             *int
 	description    *string
 	clearedFields  map[string]struct{}
-	word           *int
-	clearedword    bool
 	creator        *int
 	clearedcreator bool
 	done           bool
@@ -181,45 +179,6 @@ func (m *DefinitionMutation) OldDescription(ctx context.Context) (v string, err 
 // ResetDescription resets all changes to the "description" field.
 func (m *DefinitionMutation) ResetDescription() {
 	m.description = nil
-}
-
-// SetWordID sets the "word" edge to the Word entity by id.
-func (m *DefinitionMutation) SetWordID(id int) {
-	m.word = &id
-}
-
-// ClearWord clears the "word" edge to the Word entity.
-func (m *DefinitionMutation) ClearWord() {
-	m.clearedword = true
-}
-
-// WordCleared reports if the "word" edge to the Word entity was cleared.
-func (m *DefinitionMutation) WordCleared() bool {
-	return m.clearedword
-}
-
-// WordID returns the "word" edge ID in the mutation.
-func (m *DefinitionMutation) WordID() (id int, exists bool) {
-	if m.word != nil {
-		return *m.word, true
-	}
-	return
-}
-
-// WordIDs returns the "word" edge IDs in the mutation.
-// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
-// WordID instead. It exists only for internal usage by the builders.
-func (m *DefinitionMutation) WordIDs() (ids []int) {
-	if id := m.word; id != nil {
-		ids = append(ids, *id)
-	}
-	return
-}
-
-// ResetWord resets all changes to the "word" edge.
-func (m *DefinitionMutation) ResetWord() {
-	m.word = nil
-	m.clearedword = false
 }
 
 // SetCreatorID sets the "creator" edge to the User entity by id.
@@ -394,10 +353,7 @@ func (m *DefinitionMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *DefinitionMutation) AddedEdges() []string {
-	edges := make([]string, 0, 2)
-	if m.word != nil {
-		edges = append(edges, definition.EdgeWord)
-	}
+	edges := make([]string, 0, 1)
 	if m.creator != nil {
 		edges = append(edges, definition.EdgeCreator)
 	}
@@ -408,10 +364,6 @@ func (m *DefinitionMutation) AddedEdges() []string {
 // name in this mutation.
 func (m *DefinitionMutation) AddedIDs(name string) []ent.Value {
 	switch name {
-	case definition.EdgeWord:
-		if id := m.word; id != nil {
-			return []ent.Value{*id}
-		}
 	case definition.EdgeCreator:
 		if id := m.creator; id != nil {
 			return []ent.Value{*id}
@@ -422,7 +374,7 @@ func (m *DefinitionMutation) AddedIDs(name string) []ent.Value {
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *DefinitionMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 1)
 	return edges
 }
 
@@ -434,10 +386,7 @@ func (m *DefinitionMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *DefinitionMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 2)
-	if m.clearedword {
-		edges = append(edges, definition.EdgeWord)
-	}
+	edges := make([]string, 0, 1)
 	if m.clearedcreator {
 		edges = append(edges, definition.EdgeCreator)
 	}
@@ -448,8 +397,6 @@ func (m *DefinitionMutation) ClearedEdges() []string {
 // was cleared in this mutation.
 func (m *DefinitionMutation) EdgeCleared(name string) bool {
 	switch name {
-	case definition.EdgeWord:
-		return m.clearedword
 	case definition.EdgeCreator:
 		return m.clearedcreator
 	}
@@ -460,9 +407,6 @@ func (m *DefinitionMutation) EdgeCleared(name string) bool {
 // if that edge is not defined in the schema.
 func (m *DefinitionMutation) ClearEdge(name string) error {
 	switch name {
-	case definition.EdgeWord:
-		m.ClearWord()
-		return nil
 	case definition.EdgeCreator:
 		m.ClearCreator()
 		return nil
@@ -474,9 +418,6 @@ func (m *DefinitionMutation) ClearEdge(name string) error {
 // It returns an error if the edge is not defined in the schema.
 func (m *DefinitionMutation) ResetEdge(name string) error {
 	switch name {
-	case definition.EdgeWord:
-		m.ResetWord()
-		return nil
 	case definition.EdgeCreator:
 		m.ResetCreator()
 		return nil
@@ -487,20 +428,20 @@ func (m *DefinitionMutation) ResetEdge(name string) error {
 // GroupMutation represents an operation that mutates the Group nodes in the graph.
 type GroupMutation struct {
 	config
-	op            Op
-	typ           string
-	id            *int
-	description   *string
-	clearedFields map[string]struct{}
-	words         map[int]struct{}
-	removedwords  map[int]struct{}
-	clearedwords  bool
-	users         map[int]struct{}
-	removedusers  map[int]struct{}
-	clearedusers  bool
-	done          bool
-	oldValue      func(context.Context) (*Group, error)
-	predicates    []predicate.Group
+	op               Op
+	typ              string
+	id               *int
+	description      *string
+	clearedFields    map[string]struct{}
+	rootWords        map[int]struct{}
+	removedrootWords map[int]struct{}
+	clearedrootWords bool
+	users            map[int]struct{}
+	removedusers     map[int]struct{}
+	clearedusers     bool
+	done             bool
+	oldValue         func(context.Context) (*Group, error)
+	predicates       []predicate.Group
 }
 
 var _ ent.Mutation = (*GroupMutation)(nil)
@@ -637,58 +578,58 @@ func (m *GroupMutation) ResetDescription() {
 	m.description = nil
 }
 
-// AddWordIDs adds the "words" edge to the Word entity by ids.
-func (m *GroupMutation) AddWordIDs(ids ...int) {
-	if m.words == nil {
-		m.words = make(map[int]struct{})
+// AddRootWordIDs adds the "rootWords" edge to the Word entity by ids.
+func (m *GroupMutation) AddRootWordIDs(ids ...int) {
+	if m.rootWords == nil {
+		m.rootWords = make(map[int]struct{})
 	}
 	for i := range ids {
-		m.words[ids[i]] = struct{}{}
+		m.rootWords[ids[i]] = struct{}{}
 	}
 }
 
-// ClearWords clears the "words" edge to the Word entity.
-func (m *GroupMutation) ClearWords() {
-	m.clearedwords = true
+// ClearRootWords clears the "rootWords" edge to the Word entity.
+func (m *GroupMutation) ClearRootWords() {
+	m.clearedrootWords = true
 }
 
-// WordsCleared reports if the "words" edge to the Word entity was cleared.
-func (m *GroupMutation) WordsCleared() bool {
-	return m.clearedwords
+// RootWordsCleared reports if the "rootWords" edge to the Word entity was cleared.
+func (m *GroupMutation) RootWordsCleared() bool {
+	return m.clearedrootWords
 }
 
-// RemoveWordIDs removes the "words" edge to the Word entity by IDs.
-func (m *GroupMutation) RemoveWordIDs(ids ...int) {
-	if m.removedwords == nil {
-		m.removedwords = make(map[int]struct{})
+// RemoveRootWordIDs removes the "rootWords" edge to the Word entity by IDs.
+func (m *GroupMutation) RemoveRootWordIDs(ids ...int) {
+	if m.removedrootWords == nil {
+		m.removedrootWords = make(map[int]struct{})
 	}
 	for i := range ids {
-		delete(m.words, ids[i])
-		m.removedwords[ids[i]] = struct{}{}
+		delete(m.rootWords, ids[i])
+		m.removedrootWords[ids[i]] = struct{}{}
 	}
 }
 
-// RemovedWords returns the removed IDs of the "words" edge to the Word entity.
-func (m *GroupMutation) RemovedWordsIDs() (ids []int) {
-	for id := range m.removedwords {
+// RemovedRootWords returns the removed IDs of the "rootWords" edge to the Word entity.
+func (m *GroupMutation) RemovedRootWordsIDs() (ids []int) {
+	for id := range m.removedrootWords {
 		ids = append(ids, id)
 	}
 	return
 }
 
-// WordsIDs returns the "words" edge IDs in the mutation.
-func (m *GroupMutation) WordsIDs() (ids []int) {
-	for id := range m.words {
+// RootWordsIDs returns the "rootWords" edge IDs in the mutation.
+func (m *GroupMutation) RootWordsIDs() (ids []int) {
+	for id := range m.rootWords {
 		ids = append(ids, id)
 	}
 	return
 }
 
-// ResetWords resets all changes to the "words" edge.
-func (m *GroupMutation) ResetWords() {
-	m.words = nil
-	m.clearedwords = false
-	m.removedwords = nil
+// ResetRootWords resets all changes to the "rootWords" edge.
+func (m *GroupMutation) ResetRootWords() {
+	m.rootWords = nil
+	m.clearedrootWords = false
+	m.removedrootWords = nil
 }
 
 // AddUserIDs adds the "users" edge to the User entity by ids.
@@ -879,8 +820,8 @@ func (m *GroupMutation) ResetField(name string) error {
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *GroupMutation) AddedEdges() []string {
 	edges := make([]string, 0, 2)
-	if m.words != nil {
-		edges = append(edges, group.EdgeWords)
+	if m.rootWords != nil {
+		edges = append(edges, group.EdgeRootWords)
 	}
 	if m.users != nil {
 		edges = append(edges, group.EdgeUsers)
@@ -892,9 +833,9 @@ func (m *GroupMutation) AddedEdges() []string {
 // name in this mutation.
 func (m *GroupMutation) AddedIDs(name string) []ent.Value {
 	switch name {
-	case group.EdgeWords:
-		ids := make([]ent.Value, 0, len(m.words))
-		for id := range m.words {
+	case group.EdgeRootWords:
+		ids := make([]ent.Value, 0, len(m.rootWords))
+		for id := range m.rootWords {
 			ids = append(ids, id)
 		}
 		return ids
@@ -911,8 +852,8 @@ func (m *GroupMutation) AddedIDs(name string) []ent.Value {
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *GroupMutation) RemovedEdges() []string {
 	edges := make([]string, 0, 2)
-	if m.removedwords != nil {
-		edges = append(edges, group.EdgeWords)
+	if m.removedrootWords != nil {
+		edges = append(edges, group.EdgeRootWords)
 	}
 	if m.removedusers != nil {
 		edges = append(edges, group.EdgeUsers)
@@ -924,9 +865,9 @@ func (m *GroupMutation) RemovedEdges() []string {
 // the given name in this mutation.
 func (m *GroupMutation) RemovedIDs(name string) []ent.Value {
 	switch name {
-	case group.EdgeWords:
-		ids := make([]ent.Value, 0, len(m.removedwords))
-		for id := range m.removedwords {
+	case group.EdgeRootWords:
+		ids := make([]ent.Value, 0, len(m.removedrootWords))
+		for id := range m.removedrootWords {
 			ids = append(ids, id)
 		}
 		return ids
@@ -943,8 +884,8 @@ func (m *GroupMutation) RemovedIDs(name string) []ent.Value {
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *GroupMutation) ClearedEdges() []string {
 	edges := make([]string, 0, 2)
-	if m.clearedwords {
-		edges = append(edges, group.EdgeWords)
+	if m.clearedrootWords {
+		edges = append(edges, group.EdgeRootWords)
 	}
 	if m.clearedusers {
 		edges = append(edges, group.EdgeUsers)
@@ -956,8 +897,8 @@ func (m *GroupMutation) ClearedEdges() []string {
 // was cleared in this mutation.
 func (m *GroupMutation) EdgeCleared(name string) bool {
 	switch name {
-	case group.EdgeWords:
-		return m.clearedwords
+	case group.EdgeRootWords:
+		return m.clearedrootWords
 	case group.EdgeUsers:
 		return m.clearedusers
 	}
@@ -976,8 +917,8 @@ func (m *GroupMutation) ClearEdge(name string) error {
 // It returns an error if the edge is not defined in the schema.
 func (m *GroupMutation) ResetEdge(name string) error {
 	switch name {
-	case group.EdgeWords:
-		m.ResetWords()
+	case group.EdgeRootWords:
+		m.ResetRootWords()
 		return nil
 	case group.EdgeUsers:
 		m.ResetUsers()
@@ -1578,18 +1519,20 @@ type WordMutation struct {
 	typ                string
 	id                 *int
 	description        *string
-	root               *bool
 	clearedFields      map[string]struct{}
 	creator            *int
 	clearedcreator     bool
+	group              *int
+	clearedgroup       bool
 	definitions        map[int]struct{}
 	removeddefinitions map[int]struct{}
 	cleareddefinitions bool
 	descendants        map[int]struct{}
 	removeddescendants map[int]struct{}
 	cleareddescendants bool
-	parent             *int
-	clearedparent      bool
+	parents            map[int]struct{}
+	removedparents     map[int]struct{}
+	clearedparents     bool
 	done               bool
 	oldValue           func(context.Context) (*Word, error)
 	predicates         []predicate.Word
@@ -1729,55 +1672,6 @@ func (m *WordMutation) ResetDescription() {
 	m.description = nil
 }
 
-// SetRoot sets the "root" field.
-func (m *WordMutation) SetRoot(b bool) {
-	m.root = &b
-}
-
-// Root returns the value of the "root" field in the mutation.
-func (m *WordMutation) Root() (r bool, exists bool) {
-	v := m.root
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldRoot returns the old "root" field's value of the Word entity.
-// If the Word object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *WordMutation) OldRoot(ctx context.Context) (v bool, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldRoot is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldRoot requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldRoot: %w", err)
-	}
-	return oldValue.Root, nil
-}
-
-// ClearRoot clears the value of the "root" field.
-func (m *WordMutation) ClearRoot() {
-	m.root = nil
-	m.clearedFields[word.FieldRoot] = struct{}{}
-}
-
-// RootCleared returns if the "root" field was cleared in this mutation.
-func (m *WordMutation) RootCleared() bool {
-	_, ok := m.clearedFields[word.FieldRoot]
-	return ok
-}
-
-// ResetRoot resets all changes to the "root" field.
-func (m *WordMutation) ResetRoot() {
-	m.root = nil
-	delete(m.clearedFields, word.FieldRoot)
-}
-
 // SetCreatorID sets the "creator" edge to the User entity by id.
 func (m *WordMutation) SetCreatorID(id int) {
 	m.creator = &id
@@ -1815,6 +1709,45 @@ func (m *WordMutation) CreatorIDs() (ids []int) {
 func (m *WordMutation) ResetCreator() {
 	m.creator = nil
 	m.clearedcreator = false
+}
+
+// SetGroupID sets the "group" edge to the Group entity by id.
+func (m *WordMutation) SetGroupID(id int) {
+	m.group = &id
+}
+
+// ClearGroup clears the "group" edge to the Group entity.
+func (m *WordMutation) ClearGroup() {
+	m.clearedgroup = true
+}
+
+// GroupCleared reports if the "group" edge to the Group entity was cleared.
+func (m *WordMutation) GroupCleared() bool {
+	return m.clearedgroup
+}
+
+// GroupID returns the "group" edge ID in the mutation.
+func (m *WordMutation) GroupID() (id int, exists bool) {
+	if m.group != nil {
+		return *m.group, true
+	}
+	return
+}
+
+// GroupIDs returns the "group" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// GroupID instead. It exists only for internal usage by the builders.
+func (m *WordMutation) GroupIDs() (ids []int) {
+	if id := m.group; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetGroup resets all changes to the "group" edge.
+func (m *WordMutation) ResetGroup() {
+	m.group = nil
+	m.clearedgroup = false
 }
 
 // AddDefinitionIDs adds the "definitions" edge to the Definition entity by ids.
@@ -1925,43 +1858,58 @@ func (m *WordMutation) ResetDescendants() {
 	m.removeddescendants = nil
 }
 
-// SetParentID sets the "parent" edge to the Word entity by id.
-func (m *WordMutation) SetParentID(id int) {
-	m.parent = &id
+// AddParentIDs adds the "parents" edge to the Word entity by ids.
+func (m *WordMutation) AddParentIDs(ids ...int) {
+	if m.parents == nil {
+		m.parents = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.parents[ids[i]] = struct{}{}
+	}
 }
 
-// ClearParent clears the "parent" edge to the Word entity.
-func (m *WordMutation) ClearParent() {
-	m.clearedparent = true
+// ClearParents clears the "parents" edge to the Word entity.
+func (m *WordMutation) ClearParents() {
+	m.clearedparents = true
 }
 
-// ParentCleared reports if the "parent" edge to the Word entity was cleared.
-func (m *WordMutation) ParentCleared() bool {
-	return m.clearedparent
+// ParentsCleared reports if the "parents" edge to the Word entity was cleared.
+func (m *WordMutation) ParentsCleared() bool {
+	return m.clearedparents
 }
 
-// ParentID returns the "parent" edge ID in the mutation.
-func (m *WordMutation) ParentID() (id int, exists bool) {
-	if m.parent != nil {
-		return *m.parent, true
+// RemoveParentIDs removes the "parents" edge to the Word entity by IDs.
+func (m *WordMutation) RemoveParentIDs(ids ...int) {
+	if m.removedparents == nil {
+		m.removedparents = make(map[int]struct{})
+	}
+	for i := range ids {
+		delete(m.parents, ids[i])
+		m.removedparents[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedParents returns the removed IDs of the "parents" edge to the Word entity.
+func (m *WordMutation) RemovedParentsIDs() (ids []int) {
+	for id := range m.removedparents {
+		ids = append(ids, id)
 	}
 	return
 }
 
-// ParentIDs returns the "parent" edge IDs in the mutation.
-// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
-// ParentID instead. It exists only for internal usage by the builders.
-func (m *WordMutation) ParentIDs() (ids []int) {
-	if id := m.parent; id != nil {
-		ids = append(ids, *id)
+// ParentsIDs returns the "parents" edge IDs in the mutation.
+func (m *WordMutation) ParentsIDs() (ids []int) {
+	for id := range m.parents {
+		ids = append(ids, id)
 	}
 	return
 }
 
-// ResetParent resets all changes to the "parent" edge.
-func (m *WordMutation) ResetParent() {
-	m.parent = nil
-	m.clearedparent = false
+// ResetParents resets all changes to the "parents" edge.
+func (m *WordMutation) ResetParents() {
+	m.parents = nil
+	m.clearedparents = false
+	m.removedparents = nil
 }
 
 // Where appends a list predicates to the WordMutation builder.
@@ -1998,12 +1946,9 @@ func (m *WordMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *WordMutation) Fields() []string {
-	fields := make([]string, 0, 2)
+	fields := make([]string, 0, 1)
 	if m.description != nil {
 		fields = append(fields, word.FieldDescription)
-	}
-	if m.root != nil {
-		fields = append(fields, word.FieldRoot)
 	}
 	return fields
 }
@@ -2015,8 +1960,6 @@ func (m *WordMutation) Field(name string) (ent.Value, bool) {
 	switch name {
 	case word.FieldDescription:
 		return m.Description()
-	case word.FieldRoot:
-		return m.Root()
 	}
 	return nil, false
 }
@@ -2028,8 +1971,6 @@ func (m *WordMutation) OldField(ctx context.Context, name string) (ent.Value, er
 	switch name {
 	case word.FieldDescription:
 		return m.OldDescription(ctx)
-	case word.FieldRoot:
-		return m.OldRoot(ctx)
 	}
 	return nil, fmt.Errorf("unknown Word field %s", name)
 }
@@ -2045,13 +1986,6 @@ func (m *WordMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetDescription(v)
-		return nil
-	case word.FieldRoot:
-		v, ok := value.(bool)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetRoot(v)
 		return nil
 	}
 	return fmt.Errorf("unknown Word field %s", name)
@@ -2082,11 +2016,7 @@ func (m *WordMutation) AddField(name string, value ent.Value) error {
 // ClearedFields returns all nullable fields that were cleared during this
 // mutation.
 func (m *WordMutation) ClearedFields() []string {
-	var fields []string
-	if m.FieldCleared(word.FieldRoot) {
-		fields = append(fields, word.FieldRoot)
-	}
-	return fields
+	return nil
 }
 
 // FieldCleared returns a boolean indicating if a field with the given name was
@@ -2099,11 +2029,6 @@ func (m *WordMutation) FieldCleared(name string) bool {
 // ClearField clears the value of the field with the given name. It returns an
 // error if the field is not defined in the schema.
 func (m *WordMutation) ClearField(name string) error {
-	switch name {
-	case word.FieldRoot:
-		m.ClearRoot()
-		return nil
-	}
 	return fmt.Errorf("unknown Word nullable field %s", name)
 }
 
@@ -2114,18 +2039,18 @@ func (m *WordMutation) ResetField(name string) error {
 	case word.FieldDescription:
 		m.ResetDescription()
 		return nil
-	case word.FieldRoot:
-		m.ResetRoot()
-		return nil
 	}
 	return fmt.Errorf("unknown Word field %s", name)
 }
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *WordMutation) AddedEdges() []string {
-	edges := make([]string, 0, 4)
+	edges := make([]string, 0, 5)
 	if m.creator != nil {
 		edges = append(edges, word.EdgeCreator)
+	}
+	if m.group != nil {
+		edges = append(edges, word.EdgeGroup)
 	}
 	if m.definitions != nil {
 		edges = append(edges, word.EdgeDefinitions)
@@ -2133,8 +2058,8 @@ func (m *WordMutation) AddedEdges() []string {
 	if m.descendants != nil {
 		edges = append(edges, word.EdgeDescendants)
 	}
-	if m.parent != nil {
-		edges = append(edges, word.EdgeParent)
+	if m.parents != nil {
+		edges = append(edges, word.EdgeParents)
 	}
 	return edges
 }
@@ -2145,6 +2070,10 @@ func (m *WordMutation) AddedIDs(name string) []ent.Value {
 	switch name {
 	case word.EdgeCreator:
 		if id := m.creator; id != nil {
+			return []ent.Value{*id}
+		}
+	case word.EdgeGroup:
+		if id := m.group; id != nil {
 			return []ent.Value{*id}
 		}
 	case word.EdgeDefinitions:
@@ -2159,22 +2088,27 @@ func (m *WordMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
-	case word.EdgeParent:
-		if id := m.parent; id != nil {
-			return []ent.Value{*id}
+	case word.EdgeParents:
+		ids := make([]ent.Value, 0, len(m.parents))
+		for id := range m.parents {
+			ids = append(ids, id)
 		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *WordMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 4)
+	edges := make([]string, 0, 5)
 	if m.removeddefinitions != nil {
 		edges = append(edges, word.EdgeDefinitions)
 	}
 	if m.removeddescendants != nil {
 		edges = append(edges, word.EdgeDescendants)
+	}
+	if m.removedparents != nil {
+		edges = append(edges, word.EdgeParents)
 	}
 	return edges
 }
@@ -2195,15 +2129,24 @@ func (m *WordMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case word.EdgeParents:
+		ids := make([]ent.Value, 0, len(m.removedparents))
+		for id := range m.removedparents {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *WordMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 4)
+	edges := make([]string, 0, 5)
 	if m.clearedcreator {
 		edges = append(edges, word.EdgeCreator)
+	}
+	if m.clearedgroup {
+		edges = append(edges, word.EdgeGroup)
 	}
 	if m.cleareddefinitions {
 		edges = append(edges, word.EdgeDefinitions)
@@ -2211,8 +2154,8 @@ func (m *WordMutation) ClearedEdges() []string {
 	if m.cleareddescendants {
 		edges = append(edges, word.EdgeDescendants)
 	}
-	if m.clearedparent {
-		edges = append(edges, word.EdgeParent)
+	if m.clearedparents {
+		edges = append(edges, word.EdgeParents)
 	}
 	return edges
 }
@@ -2223,12 +2166,14 @@ func (m *WordMutation) EdgeCleared(name string) bool {
 	switch name {
 	case word.EdgeCreator:
 		return m.clearedcreator
+	case word.EdgeGroup:
+		return m.clearedgroup
 	case word.EdgeDefinitions:
 		return m.cleareddefinitions
 	case word.EdgeDescendants:
 		return m.cleareddescendants
-	case word.EdgeParent:
-		return m.clearedparent
+	case word.EdgeParents:
+		return m.clearedparents
 	}
 	return false
 }
@@ -2240,8 +2185,8 @@ func (m *WordMutation) ClearEdge(name string) error {
 	case word.EdgeCreator:
 		m.ClearCreator()
 		return nil
-	case word.EdgeParent:
-		m.ClearParent()
+	case word.EdgeGroup:
+		m.ClearGroup()
 		return nil
 	}
 	return fmt.Errorf("unknown Word unique edge %s", name)
@@ -2254,14 +2199,17 @@ func (m *WordMutation) ResetEdge(name string) error {
 	case word.EdgeCreator:
 		m.ResetCreator()
 		return nil
+	case word.EdgeGroup:
+		m.ResetGroup()
+		return nil
 	case word.EdgeDefinitions:
 		m.ResetDefinitions()
 		return nil
 	case word.EdgeDescendants:
 		m.ResetDescendants()
 		return nil
-	case word.EdgeParent:
-		m.ResetParent()
+	case word.EdgeParents:
+		m.ResetParents()
 		return nil
 	}
 	return fmt.Errorf("unknown Word edge %s", name)

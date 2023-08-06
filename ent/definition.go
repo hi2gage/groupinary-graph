@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"shrektionary_api/ent/definition"
 	"shrektionary_api/ent/user"
-	"shrektionary_api/ent/word"
 	"strings"
 
 	"entgo.io/ent"
@@ -30,34 +29,19 @@ type Definition struct {
 
 // DefinitionEdges holds the relations/edges for other nodes in the graph.
 type DefinitionEdges struct {
-	// Word holds the value of the word edge.
-	Word *Word `json:"word,omitempty"`
 	// Creator holds the value of the creator edge.
 	Creator *User `json:"creator,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [2]bool
+	loadedTypes [1]bool
 	// totalCount holds the count of the edges above.
-	totalCount [2]map[string]int
-}
-
-// WordOrErr returns the Word value or an error if the edge
-// was not loaded in eager-loading, or loaded but was not found.
-func (e DefinitionEdges) WordOrErr() (*Word, error) {
-	if e.loadedTypes[0] {
-		if e.Word == nil {
-			// Edge was loaded but was not found.
-			return nil, &NotFoundError{label: word.Label}
-		}
-		return e.Word, nil
-	}
-	return nil, &NotLoadedError{edge: "word"}
+	totalCount [1]map[string]int
 }
 
 // CreatorOrErr returns the Creator value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
 func (e DefinitionEdges) CreatorOrErr() (*User, error) {
-	if e.loadedTypes[1] {
+	if e.loadedTypes[0] {
 		if e.Creator == nil {
 			// Edge was loaded but was not found.
 			return nil, &NotFoundError{label: user.Label}
@@ -132,11 +116,6 @@ func (d *Definition) assignValues(columns []string, values []any) error {
 // This includes values selected through modifiers, order, etc.
 func (d *Definition) Value(name string) (ent.Value, error) {
 	return d.selectValues.Get(name)
-}
-
-// QueryWord queries the "word" edge of the Definition entity.
-func (d *Definition) QueryWord() *WordQuery {
-	return NewDefinitionClient(d.config).QueryWord(d)
 }
 
 // QueryCreator queries the "creator" edge of the Definition entity.

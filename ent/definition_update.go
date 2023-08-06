@@ -9,7 +9,6 @@ import (
 	"shrektionary_api/ent/definition"
 	"shrektionary_api/ent/predicate"
 	"shrektionary_api/ent/user"
-	"shrektionary_api/ent/word"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -35,25 +34,6 @@ func (du *DefinitionUpdate) SetDescription(s string) *DefinitionUpdate {
 	return du
 }
 
-// SetWordID sets the "word" edge to the Word entity by ID.
-func (du *DefinitionUpdate) SetWordID(id int) *DefinitionUpdate {
-	du.mutation.SetWordID(id)
-	return du
-}
-
-// SetNillableWordID sets the "word" edge to the Word entity by ID if the given value is not nil.
-func (du *DefinitionUpdate) SetNillableWordID(id *int) *DefinitionUpdate {
-	if id != nil {
-		du = du.SetWordID(*id)
-	}
-	return du
-}
-
-// SetWord sets the "word" edge to the Word entity.
-func (du *DefinitionUpdate) SetWord(w *Word) *DefinitionUpdate {
-	return du.SetWordID(w.ID)
-}
-
 // SetCreatorID sets the "creator" edge to the User entity by ID.
 func (du *DefinitionUpdate) SetCreatorID(id int) *DefinitionUpdate {
 	du.mutation.SetCreatorID(id)
@@ -76,12 +56,6 @@ func (du *DefinitionUpdate) SetCreator(u *User) *DefinitionUpdate {
 // Mutation returns the DefinitionMutation object of the builder.
 func (du *DefinitionUpdate) Mutation() *DefinitionMutation {
 	return du.mutation
-}
-
-// ClearWord clears the "word" edge to the Word entity.
-func (du *DefinitionUpdate) ClearWord() *DefinitionUpdate {
-	du.mutation.ClearWord()
-	return du
 }
 
 // ClearCreator clears the "creator" edge to the User entity.
@@ -142,35 +116,6 @@ func (du *DefinitionUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := du.mutation.Description(); ok {
 		_spec.SetField(definition.FieldDescription, field.TypeString, value)
 	}
-	if du.mutation.WordCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: true,
-			Table:   definition.WordTable,
-			Columns: []string{definition.WordColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(word.FieldID, field.TypeInt),
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := du.mutation.WordIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: true,
-			Table:   definition.WordTable,
-			Columns: []string{definition.WordColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(word.FieldID, field.TypeInt),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
-	}
 	if du.mutation.CreatorCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -226,25 +171,6 @@ func (duo *DefinitionUpdateOne) SetDescription(s string) *DefinitionUpdateOne {
 	return duo
 }
 
-// SetWordID sets the "word" edge to the Word entity by ID.
-func (duo *DefinitionUpdateOne) SetWordID(id int) *DefinitionUpdateOne {
-	duo.mutation.SetWordID(id)
-	return duo
-}
-
-// SetNillableWordID sets the "word" edge to the Word entity by ID if the given value is not nil.
-func (duo *DefinitionUpdateOne) SetNillableWordID(id *int) *DefinitionUpdateOne {
-	if id != nil {
-		duo = duo.SetWordID(*id)
-	}
-	return duo
-}
-
-// SetWord sets the "word" edge to the Word entity.
-func (duo *DefinitionUpdateOne) SetWord(w *Word) *DefinitionUpdateOne {
-	return duo.SetWordID(w.ID)
-}
-
 // SetCreatorID sets the "creator" edge to the User entity by ID.
 func (duo *DefinitionUpdateOne) SetCreatorID(id int) *DefinitionUpdateOne {
 	duo.mutation.SetCreatorID(id)
@@ -267,12 +193,6 @@ func (duo *DefinitionUpdateOne) SetCreator(u *User) *DefinitionUpdateOne {
 // Mutation returns the DefinitionMutation object of the builder.
 func (duo *DefinitionUpdateOne) Mutation() *DefinitionMutation {
 	return duo.mutation
-}
-
-// ClearWord clears the "word" edge to the Word entity.
-func (duo *DefinitionUpdateOne) ClearWord() *DefinitionUpdateOne {
-	duo.mutation.ClearWord()
-	return duo
 }
 
 // ClearCreator clears the "creator" edge to the User entity.
@@ -362,35 +282,6 @@ func (duo *DefinitionUpdateOne) sqlSave(ctx context.Context) (_node *Definition,
 	}
 	if value, ok := duo.mutation.Description(); ok {
 		_spec.SetField(definition.FieldDescription, field.TypeString, value)
-	}
-	if duo.mutation.WordCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: true,
-			Table:   definition.WordTable,
-			Columns: []string{definition.WordColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(word.FieldID, field.TypeInt),
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := duo.mutation.WordIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: true,
-			Table:   definition.WordTable,
-			Columns: []string{definition.WordColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(word.FieldID, field.TypeInt),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if duo.mutation.CreatorCleared() {
 		edge := &sqlgraph.EdgeSpec{
