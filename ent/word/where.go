@@ -59,11 +59,6 @@ func Description(v string) predicate.Word {
 	return predicate.Word(sql.FieldEQ(FieldDescription, v))
 }
 
-// Root applies equality check predicate on the "root" field. It's identical to RootEQ.
-func Root(v bool) predicate.Word {
-	return predicate.Word(sql.FieldEQ(FieldRoot, v))
-}
-
 // DescriptionEQ applies the EQ predicate on the "description" field.
 func DescriptionEQ(v string) predicate.Word {
 	return predicate.Word(sql.FieldEQ(FieldDescription, v))
@@ -129,26 +124,6 @@ func DescriptionContainsFold(v string) predicate.Word {
 	return predicate.Word(sql.FieldContainsFold(FieldDescription, v))
 }
 
-// RootEQ applies the EQ predicate on the "root" field.
-func RootEQ(v bool) predicate.Word {
-	return predicate.Word(sql.FieldEQ(FieldRoot, v))
-}
-
-// RootNEQ applies the NEQ predicate on the "root" field.
-func RootNEQ(v bool) predicate.Word {
-	return predicate.Word(sql.FieldNEQ(FieldRoot, v))
-}
-
-// RootIsNil applies the IsNil predicate on the "root" field.
-func RootIsNil() predicate.Word {
-	return predicate.Word(sql.FieldIsNull(FieldRoot))
-}
-
-// RootNotNil applies the NotNil predicate on the "root" field.
-func RootNotNil() predicate.Word {
-	return predicate.Word(sql.FieldNotNull(FieldRoot))
-}
-
 // HasCreator applies the HasEdge predicate on the "creator" edge.
 func HasCreator() predicate.Word {
 	return predicate.Word(func(s *sql.Selector) {
@@ -164,6 +139,29 @@ func HasCreator() predicate.Word {
 func HasCreatorWith(preds ...predicate.User) predicate.Word {
 	return predicate.Word(func(s *sql.Selector) {
 		step := newCreatorStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasGroup applies the HasEdge predicate on the "group" edge.
+func HasGroup() predicate.Word {
+	return predicate.Word(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, GroupTable, GroupColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasGroupWith applies the HasEdge predicate on the "group" edge with a given conditions (other predicates).
+func HasGroupWith(preds ...predicate.Group) predicate.Word {
+	return predicate.Word(func(s *sql.Selector) {
+		step := newGroupStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)
@@ -200,7 +198,7 @@ func HasDescendants() predicate.Word {
 	return predicate.Word(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, DescendantsTable, DescendantsColumn),
+			sqlgraph.Edge(sqlgraph.M2M, false, DescendantsTable, DescendantsPrimaryKey...),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})
@@ -218,21 +216,21 @@ func HasDescendantsWith(preds ...predicate.Word) predicate.Word {
 	})
 }
 
-// HasParent applies the HasEdge predicate on the "parent" edge.
-func HasParent() predicate.Word {
+// HasParents applies the HasEdge predicate on the "parents" edge.
+func HasParents() predicate.Word {
 	return predicate.Word(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, ParentTable, ParentColumn),
+			sqlgraph.Edge(sqlgraph.M2M, true, ParentsTable, ParentsPrimaryKey...),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})
 }
 
-// HasParentWith applies the HasEdge predicate on the "parent" edge with a given conditions (other predicates).
-func HasParentWith(preds ...predicate.Word) predicate.Word {
+// HasParentsWith applies the HasEdge predicate on the "parents" edge with a given conditions (other predicates).
+func HasParentsWith(preds ...predicate.Word) predicate.Word {
 	return predicate.Word(func(s *sql.Selector) {
-		step := newParentStep()
+		step := newParentsStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

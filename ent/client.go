@@ -314,22 +314,6 @@ func (c *DefinitionClient) GetX(ctx context.Context, id int) *Definition {
 	return obj
 }
 
-// QueryWord queries the word edge of a Definition.
-func (c *DefinitionClient) QueryWord(d *Definition) *WordQuery {
-	query := (&WordClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := d.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(definition.Table, definition.FieldID, id),
-			sqlgraph.To(word.Table, word.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, definition.WordTable, definition.WordColumn),
-		)
-		fromV = sqlgraph.Neighbors(d.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
 // QueryCreator queries the creator edge of a Definition.
 func (c *DefinitionClient) QueryCreator(d *Definition) *UserQuery {
 	query := (&UserClient{config: c.config}).Query()
@@ -464,15 +448,15 @@ func (c *GroupClient) GetX(ctx context.Context, id int) *Group {
 	return obj
 }
 
-// QueryWords queries the words edge of a Group.
-func (c *GroupClient) QueryWords(gr *Group) *WordQuery {
+// QueryRootWords queries the rootWords edge of a Group.
+func (c *GroupClient) QueryRootWords(gr *Group) *WordQuery {
 	query := (&WordClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := gr.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(group.Table, group.FieldID, id),
 			sqlgraph.To(word.Table, word.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, group.WordsTable, group.WordsColumn),
+			sqlgraph.Edge(sqlgraph.O2M, false, group.RootWordsTable, group.RootWordsColumn),
 		)
 		fromV = sqlgraph.Neighbors(gr.driver.Dialect(), step)
 		return fromV, nil
@@ -796,6 +780,22 @@ func (c *WordClient) QueryCreator(w *Word) *UserQuery {
 	return query
 }
 
+// QueryGroup queries the group edge of a Word.
+func (c *WordClient) QueryGroup(w *Word) *GroupQuery {
+	query := (&GroupClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := w.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(word.Table, word.FieldID, id),
+			sqlgraph.To(group.Table, group.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, word.GroupTable, word.GroupColumn),
+		)
+		fromV = sqlgraph.Neighbors(w.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // QueryDefinitions queries the definitions edge of a Word.
 func (c *WordClient) QueryDefinitions(w *Word) *DefinitionQuery {
 	query := (&DefinitionClient{config: c.config}).Query()
@@ -820,7 +820,7 @@ func (c *WordClient) QueryDescendants(w *Word) *WordQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(word.Table, word.FieldID, id),
 			sqlgraph.To(word.Table, word.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, word.DescendantsTable, word.DescendantsColumn),
+			sqlgraph.Edge(sqlgraph.M2M, false, word.DescendantsTable, word.DescendantsPrimaryKey...),
 		)
 		fromV = sqlgraph.Neighbors(w.driver.Dialect(), step)
 		return fromV, nil
@@ -828,15 +828,15 @@ func (c *WordClient) QueryDescendants(w *Word) *WordQuery {
 	return query
 }
 
-// QueryParent queries the parent edge of a Word.
-func (c *WordClient) QueryParent(w *Word) *WordQuery {
+// QueryParents queries the parents edge of a Word.
+func (c *WordClient) QueryParents(w *Word) *WordQuery {
 	query := (&WordClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := w.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(word.Table, word.FieldID, id),
 			sqlgraph.To(word.Table, word.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, word.ParentTable, word.ParentColumn),
+			sqlgraph.Edge(sqlgraph.M2M, true, word.ParentsTable, word.ParentsPrimaryKey...),
 		)
 		fromV = sqlgraph.Neighbors(w.driver.Dialect(), step)
 		return fromV, nil

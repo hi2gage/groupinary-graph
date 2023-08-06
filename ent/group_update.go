@@ -35,19 +35,19 @@ func (gu *GroupUpdate) SetDescription(s string) *GroupUpdate {
 	return gu
 }
 
-// AddWordIDs adds the "words" edge to the Word entity by IDs.
-func (gu *GroupUpdate) AddWordIDs(ids ...int) *GroupUpdate {
-	gu.mutation.AddWordIDs(ids...)
+// AddRootWordIDs adds the "rootWords" edge to the Word entity by IDs.
+func (gu *GroupUpdate) AddRootWordIDs(ids ...int) *GroupUpdate {
+	gu.mutation.AddRootWordIDs(ids...)
 	return gu
 }
 
-// AddWords adds the "words" edges to the Word entity.
-func (gu *GroupUpdate) AddWords(w ...*Word) *GroupUpdate {
+// AddRootWords adds the "rootWords" edges to the Word entity.
+func (gu *GroupUpdate) AddRootWords(w ...*Word) *GroupUpdate {
 	ids := make([]int, len(w))
 	for i := range w {
 		ids[i] = w[i].ID
 	}
-	return gu.AddWordIDs(ids...)
+	return gu.AddRootWordIDs(ids...)
 }
 
 // AddUserIDs adds the "users" edge to the User entity by IDs.
@@ -70,25 +70,25 @@ func (gu *GroupUpdate) Mutation() *GroupMutation {
 	return gu.mutation
 }
 
-// ClearWords clears all "words" edges to the Word entity.
-func (gu *GroupUpdate) ClearWords() *GroupUpdate {
-	gu.mutation.ClearWords()
+// ClearRootWords clears all "rootWords" edges to the Word entity.
+func (gu *GroupUpdate) ClearRootWords() *GroupUpdate {
+	gu.mutation.ClearRootWords()
 	return gu
 }
 
-// RemoveWordIDs removes the "words" edge to Word entities by IDs.
-func (gu *GroupUpdate) RemoveWordIDs(ids ...int) *GroupUpdate {
-	gu.mutation.RemoveWordIDs(ids...)
+// RemoveRootWordIDs removes the "rootWords" edge to Word entities by IDs.
+func (gu *GroupUpdate) RemoveRootWordIDs(ids ...int) *GroupUpdate {
+	gu.mutation.RemoveRootWordIDs(ids...)
 	return gu
 }
 
-// RemoveWords removes "words" edges to Word entities.
-func (gu *GroupUpdate) RemoveWords(w ...*Word) *GroupUpdate {
+// RemoveRootWords removes "rootWords" edges to Word entities.
+func (gu *GroupUpdate) RemoveRootWords(w ...*Word) *GroupUpdate {
 	ids := make([]int, len(w))
 	for i := range w {
 		ids[i] = w[i].ID
 	}
-	return gu.RemoveWordIDs(ids...)
+	return gu.RemoveRootWordIDs(ids...)
 }
 
 // ClearUsers clears all "users" edges to the User entity.
@@ -164,12 +164,12 @@ func (gu *GroupUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := gu.mutation.Description(); ok {
 		_spec.SetField(group.FieldDescription, field.TypeString, value)
 	}
-	if gu.mutation.WordsCleared() {
+	if gu.mutation.RootWordsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   group.WordsTable,
-			Columns: []string{group.WordsColumn},
+			Table:   group.RootWordsTable,
+			Columns: []string{group.RootWordsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(word.FieldID, field.TypeInt),
@@ -177,12 +177,12 @@ func (gu *GroupUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := gu.mutation.RemovedWordsIDs(); len(nodes) > 0 && !gu.mutation.WordsCleared() {
+	if nodes := gu.mutation.RemovedRootWordsIDs(); len(nodes) > 0 && !gu.mutation.RootWordsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   group.WordsTable,
-			Columns: []string{group.WordsColumn},
+			Table:   group.RootWordsTable,
+			Columns: []string{group.RootWordsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(word.FieldID, field.TypeInt),
@@ -193,12 +193,12 @@ func (gu *GroupUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := gu.mutation.WordsIDs(); len(nodes) > 0 {
+	if nodes := gu.mutation.RootWordsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   group.WordsTable,
-			Columns: []string{group.WordsColumn},
+			Table:   group.RootWordsTable,
+			Columns: []string{group.RootWordsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(word.FieldID, field.TypeInt),
@@ -280,19 +280,19 @@ func (guo *GroupUpdateOne) SetDescription(s string) *GroupUpdateOne {
 	return guo
 }
 
-// AddWordIDs adds the "words" edge to the Word entity by IDs.
-func (guo *GroupUpdateOne) AddWordIDs(ids ...int) *GroupUpdateOne {
-	guo.mutation.AddWordIDs(ids...)
+// AddRootWordIDs adds the "rootWords" edge to the Word entity by IDs.
+func (guo *GroupUpdateOne) AddRootWordIDs(ids ...int) *GroupUpdateOne {
+	guo.mutation.AddRootWordIDs(ids...)
 	return guo
 }
 
-// AddWords adds the "words" edges to the Word entity.
-func (guo *GroupUpdateOne) AddWords(w ...*Word) *GroupUpdateOne {
+// AddRootWords adds the "rootWords" edges to the Word entity.
+func (guo *GroupUpdateOne) AddRootWords(w ...*Word) *GroupUpdateOne {
 	ids := make([]int, len(w))
 	for i := range w {
 		ids[i] = w[i].ID
 	}
-	return guo.AddWordIDs(ids...)
+	return guo.AddRootWordIDs(ids...)
 }
 
 // AddUserIDs adds the "users" edge to the User entity by IDs.
@@ -315,25 +315,25 @@ func (guo *GroupUpdateOne) Mutation() *GroupMutation {
 	return guo.mutation
 }
 
-// ClearWords clears all "words" edges to the Word entity.
-func (guo *GroupUpdateOne) ClearWords() *GroupUpdateOne {
-	guo.mutation.ClearWords()
+// ClearRootWords clears all "rootWords" edges to the Word entity.
+func (guo *GroupUpdateOne) ClearRootWords() *GroupUpdateOne {
+	guo.mutation.ClearRootWords()
 	return guo
 }
 
-// RemoveWordIDs removes the "words" edge to Word entities by IDs.
-func (guo *GroupUpdateOne) RemoveWordIDs(ids ...int) *GroupUpdateOne {
-	guo.mutation.RemoveWordIDs(ids...)
+// RemoveRootWordIDs removes the "rootWords" edge to Word entities by IDs.
+func (guo *GroupUpdateOne) RemoveRootWordIDs(ids ...int) *GroupUpdateOne {
+	guo.mutation.RemoveRootWordIDs(ids...)
 	return guo
 }
 
-// RemoveWords removes "words" edges to Word entities.
-func (guo *GroupUpdateOne) RemoveWords(w ...*Word) *GroupUpdateOne {
+// RemoveRootWords removes "rootWords" edges to Word entities.
+func (guo *GroupUpdateOne) RemoveRootWords(w ...*Word) *GroupUpdateOne {
 	ids := make([]int, len(w))
 	for i := range w {
 		ids[i] = w[i].ID
 	}
-	return guo.RemoveWordIDs(ids...)
+	return guo.RemoveRootWordIDs(ids...)
 }
 
 // ClearUsers clears all "users" edges to the User entity.
@@ -439,12 +439,12 @@ func (guo *GroupUpdateOne) sqlSave(ctx context.Context) (_node *Group, err error
 	if value, ok := guo.mutation.Description(); ok {
 		_spec.SetField(group.FieldDescription, field.TypeString, value)
 	}
-	if guo.mutation.WordsCleared() {
+	if guo.mutation.RootWordsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   group.WordsTable,
-			Columns: []string{group.WordsColumn},
+			Table:   group.RootWordsTable,
+			Columns: []string{group.RootWordsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(word.FieldID, field.TypeInt),
@@ -452,12 +452,12 @@ func (guo *GroupUpdateOne) sqlSave(ctx context.Context) (_node *Group, err error
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := guo.mutation.RemovedWordsIDs(); len(nodes) > 0 && !guo.mutation.WordsCleared() {
+	if nodes := guo.mutation.RemovedRootWordsIDs(); len(nodes) > 0 && !guo.mutation.RootWordsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   group.WordsTable,
-			Columns: []string{group.WordsColumn},
+			Table:   group.RootWordsTable,
+			Columns: []string{group.RootWordsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(word.FieldID, field.TypeInt),
@@ -468,12 +468,12 @@ func (guo *GroupUpdateOne) sqlSave(ctx context.Context) (_node *Group, err error
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := guo.mutation.WordsIDs(); len(nodes) > 0 {
+	if nodes := guo.mutation.RootWordsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   group.WordsTable,
-			Columns: []string{group.WordsColumn},
+			Table:   group.RootWordsTable,
+			Columns: []string{group.RootWordsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(word.FieldID, field.TypeInt),

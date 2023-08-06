@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"shrektionary_api/ent/definition"
+	"shrektionary_api/ent/group"
 	"shrektionary_api/ent/user"
 	"shrektionary_api/ent/word"
 
@@ -27,20 +28,6 @@ func (wc *WordCreate) SetDescription(s string) *WordCreate {
 	return wc
 }
 
-// SetRoot sets the "root" field.
-func (wc *WordCreate) SetRoot(b bool) *WordCreate {
-	wc.mutation.SetRoot(b)
-	return wc
-}
-
-// SetNillableRoot sets the "root" field if the given value is not nil.
-func (wc *WordCreate) SetNillableRoot(b *bool) *WordCreate {
-	if b != nil {
-		wc.SetRoot(*b)
-	}
-	return wc
-}
-
 // SetCreatorID sets the "creator" edge to the User entity by ID.
 func (wc *WordCreate) SetCreatorID(id int) *WordCreate {
 	wc.mutation.SetCreatorID(id)
@@ -58,6 +45,25 @@ func (wc *WordCreate) SetNillableCreatorID(id *int) *WordCreate {
 // SetCreator sets the "creator" edge to the User entity.
 func (wc *WordCreate) SetCreator(u *User) *WordCreate {
 	return wc.SetCreatorID(u.ID)
+}
+
+// SetGroupID sets the "group" edge to the Group entity by ID.
+func (wc *WordCreate) SetGroupID(id int) *WordCreate {
+	wc.mutation.SetGroupID(id)
+	return wc
+}
+
+// SetNillableGroupID sets the "group" edge to the Group entity by ID if the given value is not nil.
+func (wc *WordCreate) SetNillableGroupID(id *int) *WordCreate {
+	if id != nil {
+		wc = wc.SetGroupID(*id)
+	}
+	return wc
+}
+
+// SetGroup sets the "group" edge to the Group entity.
+func (wc *WordCreate) SetGroup(g *Group) *WordCreate {
+	return wc.SetGroupID(g.ID)
 }
 
 // AddDefinitionIDs adds the "definitions" edge to the Definition entity by IDs.
@@ -90,23 +96,19 @@ func (wc *WordCreate) AddDescendants(w ...*Word) *WordCreate {
 	return wc.AddDescendantIDs(ids...)
 }
 
-// SetParentID sets the "parent" edge to the Word entity by ID.
-func (wc *WordCreate) SetParentID(id int) *WordCreate {
-	wc.mutation.SetParentID(id)
+// AddParentIDs adds the "parents" edge to the Word entity by IDs.
+func (wc *WordCreate) AddParentIDs(ids ...int) *WordCreate {
+	wc.mutation.AddParentIDs(ids...)
 	return wc
 }
 
-// SetNillableParentID sets the "parent" edge to the Word entity by ID if the given value is not nil.
-func (wc *WordCreate) SetNillableParentID(id *int) *WordCreate {
-	if id != nil {
-		wc = wc.SetParentID(*id)
+// AddParents adds the "parents" edges to the Word entity.
+func (wc *WordCreate) AddParents(w ...*Word) *WordCreate {
+	ids := make([]int, len(w))
+	for i := range w {
+		ids[i] = w[i].ID
 	}
-	return wc
-}
-
-// SetParent sets the "parent" edge to the Word entity.
-func (wc *WordCreate) SetParent(w *Word) *WordCreate {
-	return wc.SetParentID(w.ID)
+	return wc.AddParentIDs(ids...)
 }
 
 // Mutation returns the WordMutation object of the builder.
@@ -181,10 +183,6 @@ func (wc *WordCreate) createSpec() (*Word, *sqlgraph.CreateSpec) {
 		_spec.SetField(word.FieldDescription, field.TypeString, value)
 		_node.Description = value
 	}
-	if value, ok := wc.mutation.Root(); ok {
-		_spec.SetField(word.FieldRoot, field.TypeBool, value)
-		_node.Root = value
-	}
 	if nodes := wc.mutation.CreatorIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -200,6 +198,23 @@ func (wc *WordCreate) createSpec() (*Word, *sqlgraph.CreateSpec) {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.user_words = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := wc.mutation.GroupIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   word.GroupTable,
+			Columns: []string{word.GroupColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(group.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.group_root_words = &nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := wc.mutation.DefinitionsIDs(); len(nodes) > 0 {
@@ -220,10 +235,10 @@ func (wc *WordCreate) createSpec() (*Word, *sqlgraph.CreateSpec) {
 	}
 	if nodes := wc.mutation.DescendantsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
+			Rel:     sqlgraph.M2M,
 			Inverse: false,
 			Table:   word.DescendantsTable,
-			Columns: []string{word.DescendantsColumn},
+			Columns: word.DescendantsPrimaryKey,
 			Bidi:    true,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(word.FieldID, field.TypeInt),
@@ -234,12 +249,12 @@ func (wc *WordCreate) createSpec() (*Word, *sqlgraph.CreateSpec) {
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := wc.mutation.ParentIDs(); len(nodes) > 0 {
+	if nodes := wc.mutation.ParentsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
+			Rel:     sqlgraph.M2M,
 			Inverse: true,
-			Table:   word.ParentTable,
-			Columns: []string{word.ParentColumn},
+			Table:   word.ParentsTable,
+			Columns: word.ParentsPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(word.FieldID, field.TypeInt),
@@ -248,7 +263,6 @@ func (wc *WordCreate) createSpec() (*Word, *sqlgraph.CreateSpec) {
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		_node.word_descendants = &nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

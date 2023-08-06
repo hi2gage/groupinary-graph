@@ -44,10 +44,6 @@ type DefinitionWhereInput struct {
 	DescriptionEqualFold    *string  `json:"descriptionEqualFold,omitempty"`
 	DescriptionContainsFold *string  `json:"descriptionContainsFold,omitempty"`
 
-	// "word" edge predicates.
-	HasWord     *bool             `json:"hasWord,omitempty"`
-	HasWordWith []*WordWhereInput `json:"hasWordWith,omitempty"`
-
 	// "creator" edge predicates.
 	HasCreator     *bool             `json:"hasCreator,omitempty"`
 	HasCreatorWith []*UserWhereInput `json:"hasCreatorWith,omitempty"`
@@ -188,24 +184,6 @@ func (i *DefinitionWhereInput) P() (predicate.Definition, error) {
 		predicates = append(predicates, definition.DescriptionContainsFold(*i.DescriptionContainsFold))
 	}
 
-	if i.HasWord != nil {
-		p := definition.HasWord()
-		if !*i.HasWord {
-			p = definition.Not(p)
-		}
-		predicates = append(predicates, p)
-	}
-	if len(i.HasWordWith) > 0 {
-		with := make([]predicate.Word, 0, len(i.HasWordWith))
-		for _, w := range i.HasWordWith {
-			p, err := w.P()
-			if err != nil {
-				return nil, fmt.Errorf("%w: field 'HasWordWith'", err)
-			}
-			with = append(with, p)
-		}
-		predicates = append(predicates, definition.HasWordWith(with...))
-	}
 	if i.HasCreator != nil {
 		p := definition.HasCreator()
 		if !*i.HasCreator {
@@ -266,9 +244,9 @@ type GroupWhereInput struct {
 	DescriptionEqualFold    *string  `json:"descriptionEqualFold,omitempty"`
 	DescriptionContainsFold *string  `json:"descriptionContainsFold,omitempty"`
 
-	// "words" edge predicates.
-	HasWords     *bool             `json:"hasWords,omitempty"`
-	HasWordsWith []*WordWhereInput `json:"hasWordsWith,omitempty"`
+	// "rootWords" edge predicates.
+	HasRootWords     *bool             `json:"hasRootWords,omitempty"`
+	HasRootWordsWith []*WordWhereInput `json:"hasRootWordsWith,omitempty"`
 
 	// "users" edge predicates.
 	HasUsers     *bool             `json:"hasUsers,omitempty"`
@@ -410,23 +388,23 @@ func (i *GroupWhereInput) P() (predicate.Group, error) {
 		predicates = append(predicates, group.DescriptionContainsFold(*i.DescriptionContainsFold))
 	}
 
-	if i.HasWords != nil {
-		p := group.HasWords()
-		if !*i.HasWords {
+	if i.HasRootWords != nil {
+		p := group.HasRootWords()
+		if !*i.HasRootWords {
 			p = group.Not(p)
 		}
 		predicates = append(predicates, p)
 	}
-	if len(i.HasWordsWith) > 0 {
-		with := make([]predicate.Word, 0, len(i.HasWordsWith))
-		for _, w := range i.HasWordsWith {
+	if len(i.HasRootWordsWith) > 0 {
+		with := make([]predicate.Word, 0, len(i.HasRootWordsWith))
+		for _, w := range i.HasRootWordsWith {
 			p, err := w.P()
 			if err != nil {
-				return nil, fmt.Errorf("%w: field 'HasWordsWith'", err)
+				return nil, fmt.Errorf("%w: field 'HasRootWordsWith'", err)
 			}
 			with = append(with, p)
 		}
-		predicates = append(predicates, group.HasWordsWith(with...))
+		predicates = append(predicates, group.HasRootWordsWith(with...))
 	}
 	if i.HasUsers != nil {
 		p := group.HasUsers()
@@ -732,15 +710,13 @@ type WordWhereInput struct {
 	DescriptionEqualFold    *string  `json:"descriptionEqualFold,omitempty"`
 	DescriptionContainsFold *string  `json:"descriptionContainsFold,omitempty"`
 
-	// "root" field predicates.
-	Root       *bool `json:"root,omitempty"`
-	RootNEQ    *bool `json:"rootNEQ,omitempty"`
-	RootIsNil  bool  `json:"rootIsNil,omitempty"`
-	RootNotNil bool  `json:"rootNotNil,omitempty"`
-
 	// "creator" edge predicates.
 	HasCreator     *bool             `json:"hasCreator,omitempty"`
 	HasCreatorWith []*UserWhereInput `json:"hasCreatorWith,omitempty"`
+
+	// "group" edge predicates.
+	HasGroup     *bool              `json:"hasGroup,omitempty"`
+	HasGroupWith []*GroupWhereInput `json:"hasGroupWith,omitempty"`
 
 	// "definitions" edge predicates.
 	HasDefinitions     *bool                   `json:"hasDefinitions,omitempty"`
@@ -750,9 +726,9 @@ type WordWhereInput struct {
 	HasDescendants     *bool             `json:"hasDescendants,omitempty"`
 	HasDescendantsWith []*WordWhereInput `json:"hasDescendantsWith,omitempty"`
 
-	// "parent" edge predicates.
-	HasParent     *bool             `json:"hasParent,omitempty"`
-	HasParentWith []*WordWhereInput `json:"hasParentWith,omitempty"`
+	// "parents" edge predicates.
+	HasParents     *bool             `json:"hasParents,omitempty"`
+	HasParentsWith []*WordWhereInput `json:"hasParentsWith,omitempty"`
 }
 
 // AddPredicates adds custom predicates to the where input to be used during the filtering phase.
@@ -889,18 +865,6 @@ func (i *WordWhereInput) P() (predicate.Word, error) {
 	if i.DescriptionContainsFold != nil {
 		predicates = append(predicates, word.DescriptionContainsFold(*i.DescriptionContainsFold))
 	}
-	if i.Root != nil {
-		predicates = append(predicates, word.RootEQ(*i.Root))
-	}
-	if i.RootNEQ != nil {
-		predicates = append(predicates, word.RootNEQ(*i.RootNEQ))
-	}
-	if i.RootIsNil {
-		predicates = append(predicates, word.RootIsNil())
-	}
-	if i.RootNotNil {
-		predicates = append(predicates, word.RootNotNil())
-	}
 
 	if i.HasCreator != nil {
 		p := word.HasCreator()
@@ -919,6 +883,24 @@ func (i *WordWhereInput) P() (predicate.Word, error) {
 			with = append(with, p)
 		}
 		predicates = append(predicates, word.HasCreatorWith(with...))
+	}
+	if i.HasGroup != nil {
+		p := word.HasGroup()
+		if !*i.HasGroup {
+			p = word.Not(p)
+		}
+		predicates = append(predicates, p)
+	}
+	if len(i.HasGroupWith) > 0 {
+		with := make([]predicate.Group, 0, len(i.HasGroupWith))
+		for _, w := range i.HasGroupWith {
+			p, err := w.P()
+			if err != nil {
+				return nil, fmt.Errorf("%w: field 'HasGroupWith'", err)
+			}
+			with = append(with, p)
+		}
+		predicates = append(predicates, word.HasGroupWith(with...))
 	}
 	if i.HasDefinitions != nil {
 		p := word.HasDefinitions()
@@ -956,23 +938,23 @@ func (i *WordWhereInput) P() (predicate.Word, error) {
 		}
 		predicates = append(predicates, word.HasDescendantsWith(with...))
 	}
-	if i.HasParent != nil {
-		p := word.HasParent()
-		if !*i.HasParent {
+	if i.HasParents != nil {
+		p := word.HasParents()
+		if !*i.HasParents {
 			p = word.Not(p)
 		}
 		predicates = append(predicates, p)
 	}
-	if len(i.HasParentWith) > 0 {
-		with := make([]predicate.Word, 0, len(i.HasParentWith))
-		for _, w := range i.HasParentWith {
+	if len(i.HasParentsWith) > 0 {
+		with := make([]predicate.Word, 0, len(i.HasParentsWith))
+		for _, w := range i.HasParentsWith {
 			p, err := w.P()
 			if err != nil {
-				return nil, fmt.Errorf("%w: field 'HasParentWith'", err)
+				return nil, fmt.Errorf("%w: field 'HasParentsWith'", err)
 			}
 			with = append(with, p)
 		}
-		predicates = append(predicates, word.HasParentWith(with...))
+		predicates = append(predicates, word.HasParentsWith(with...))
 	}
 	switch len(predicates) {
 	case 0:

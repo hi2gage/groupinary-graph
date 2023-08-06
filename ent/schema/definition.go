@@ -25,9 +25,6 @@ func (Definition) Fields() []ent.Field {
 // Edges of the Definition.
 func (Definition) Edges() []ent.Edge {
 	return []ent.Edge{
-		edge.From("word", Word.Type).
-			Ref("definitions").
-			Unique(),
 		edge.From("creator", User.Type).
 			Ref("definitions").
 			Unique(),

@@ -5,16 +5,12 @@ package ent
 // CreateDefinitionInput represents a mutation input for creating definitions.
 type CreateDefinitionInput struct {
 	Description string
-	WordID      *int
 	CreatorID   *int
 }
 
 // Mutate applies the CreateDefinitionInput on the DefinitionMutation builder.
 func (i *CreateDefinitionInput) Mutate(m *DefinitionMutation) {
 	m.SetDescription(i.Description)
-	if v := i.WordID; v != nil {
-		m.SetWordID(*v)
-	}
 	if v := i.CreatorID; v != nil {
 		m.SetCreatorID(*v)
 	}
@@ -29,8 +25,6 @@ func (c *DefinitionCreate) SetInput(i CreateDefinitionInput) *DefinitionCreate {
 // UpdateDefinitionInput represents a mutation input for updating definitions.
 type UpdateDefinitionInput struct {
 	Description  *string
-	ClearWord    bool
-	WordID       *int
 	ClearCreator bool
 	CreatorID    *int
 }
@@ -39,12 +33,6 @@ type UpdateDefinitionInput struct {
 func (i *UpdateDefinitionInput) Mutate(m *DefinitionMutation) {
 	if v := i.Description; v != nil {
 		m.SetDescription(*v)
-	}
-	if i.ClearWord {
-		m.ClearWord()
-	}
-	if v := i.WordID; v != nil {
-		m.SetWordID(*v)
 	}
 	if i.ClearCreator {
 		m.ClearCreator()
@@ -69,15 +57,15 @@ func (c *DefinitionUpdateOne) SetInput(i UpdateDefinitionInput) *DefinitionUpdat
 // CreateGroupInput represents a mutation input for creating groups.
 type CreateGroupInput struct {
 	Description string
-	WordIDs     []int
+	RootWordIDs []int
 	UserIDs     []int
 }
 
 // Mutate applies the CreateGroupInput on the GroupMutation builder.
 func (i *CreateGroupInput) Mutate(m *GroupMutation) {
 	m.SetDescription(i.Description)
-	if v := i.WordIDs; len(v) > 0 {
-		m.AddWordIDs(v...)
+	if v := i.RootWordIDs; len(v) > 0 {
+		m.AddRootWordIDs(v...)
 	}
 	if v := i.UserIDs; len(v) > 0 {
 		m.AddUserIDs(v...)
@@ -121,21 +109,21 @@ func (c *UserCreate) SetInput(i CreateUserInput) *UserCreate {
 // CreateWordInput represents a mutation input for creating words.
 type CreateWordInput struct {
 	Description   string
-	Root          *bool
 	CreatorID     *int
+	GroupID       *int
 	DefinitionIDs []int
 	DescendantIDs []int
-	ParentID      *int
+	ParentIDs     []int
 }
 
 // Mutate applies the CreateWordInput on the WordMutation builder.
 func (i *CreateWordInput) Mutate(m *WordMutation) {
 	m.SetDescription(i.Description)
-	if v := i.Root; v != nil {
-		m.SetRoot(*v)
-	}
 	if v := i.CreatorID; v != nil {
 		m.SetCreatorID(*v)
+	}
+	if v := i.GroupID; v != nil {
+		m.SetGroupID(*v)
 	}
 	if v := i.DefinitionIDs; len(v) > 0 {
 		m.AddDefinitionIDs(v...)
@@ -143,8 +131,8 @@ func (i *CreateWordInput) Mutate(m *WordMutation) {
 	if v := i.DescendantIDs; len(v) > 0 {
 		m.AddDescendantIDs(v...)
 	}
-	if v := i.ParentID; v != nil {
-		m.SetParentID(*v)
+	if v := i.ParentIDs; len(v) > 0 {
+		m.AddParentIDs(v...)
 	}
 }
 

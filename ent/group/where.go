@@ -124,21 +124,21 @@ func DescriptionContainsFold(v string) predicate.Group {
 	return predicate.Group(sql.FieldContainsFold(FieldDescription, v))
 }
 
-// HasWords applies the HasEdge predicate on the "words" edge.
-func HasWords() predicate.Group {
+// HasRootWords applies the HasEdge predicate on the "rootWords" edge.
+func HasRootWords() predicate.Group {
 	return predicate.Group(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, WordsTable, WordsColumn),
+			sqlgraph.Edge(sqlgraph.O2M, false, RootWordsTable, RootWordsColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})
 }
 
-// HasWordsWith applies the HasEdge predicate on the "words" edge with a given conditions (other predicates).
-func HasWordsWith(preds ...predicate.Word) predicate.Group {
+// HasRootWordsWith applies the HasEdge predicate on the "rootWords" edge with a given conditions (other predicates).
+func HasRootWordsWith(preds ...predicate.Word) predicate.Group {
 	return predicate.Group(func(s *sql.Selector) {
-		step := newWordsStep()
+		step := newRootWordsStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

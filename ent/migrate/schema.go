@@ -61,10 +61,8 @@ var (
 	WordsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "description", Type: field.TypeString},
-		{Name: "root", Type: field.TypeBool, Nullable: true},
-		{Name: "group_words", Type: field.TypeInt, Nullable: true},
+		{Name: "group_root_words", Type: field.TypeInt, Nullable: true},
 		{Name: "user_words", Type: field.TypeInt, Nullable: true},
-		{Name: "word_descendants", Type: field.TypeInt, Nullable: true},
 	}
 	// WordsTable holds the schema information for the "words" table.
 	WordsTable = &schema.Table{
@@ -73,21 +71,15 @@ var (
 		PrimaryKey: []*schema.Column{WordsColumns[0]},
 		ForeignKeys: []*schema.ForeignKey{
 			{
-				Symbol:     "words_groups_words",
-				Columns:    []*schema.Column{WordsColumns[3]},
+				Symbol:     "words_groups_rootWords",
+				Columns:    []*schema.Column{WordsColumns[2]},
 				RefColumns: []*schema.Column{GroupsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "words_users_words",
-				Columns:    []*schema.Column{WordsColumns[4]},
+				Columns:    []*schema.Column{WordsColumns[3]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
-				OnDelete:   schema.SetNull,
-			},
-			{
-				Symbol:     "words_words_descendants",
-				Columns:    []*schema.Column{WordsColumns[5]},
-				RefColumns: []*schema.Column{WordsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 		},
@@ -117,6 +109,31 @@ var (
 			},
 		},
 	}
+	// WordDescendantsColumns holds the columns for the "word_descendants" table.
+	WordDescendantsColumns = []*schema.Column{
+		{Name: "word_id", Type: field.TypeInt},
+		{Name: "parent_id", Type: field.TypeInt},
+	}
+	// WordDescendantsTable holds the schema information for the "word_descendants" table.
+	WordDescendantsTable = &schema.Table{
+		Name:       "word_descendants",
+		Columns:    WordDescendantsColumns,
+		PrimaryKey: []*schema.Column{WordDescendantsColumns[0], WordDescendantsColumns[1]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "word_descendants_word_id",
+				Columns:    []*schema.Column{WordDescendantsColumns[0]},
+				RefColumns: []*schema.Column{WordsColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "word_descendants_parent_id",
+				Columns:    []*schema.Column{WordDescendantsColumns[1]},
+				RefColumns: []*schema.Column{WordsColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
 		DefinitionsTable,
@@ -124,6 +141,7 @@ var (
 		UsersTable,
 		WordsTable,
 		UserGroupsTable,
+		WordDescendantsTable,
 	}
 )
 
@@ -132,7 +150,8 @@ func init() {
 	DefinitionsTable.ForeignKeys[1].RefTable = WordsTable
 	WordsTable.ForeignKeys[0].RefTable = GroupsTable
 	WordsTable.ForeignKeys[1].RefTable = UsersTable
-	WordsTable.ForeignKeys[2].RefTable = WordsTable
 	UserGroupsTable.ForeignKeys[0].RefTable = UsersTable
 	UserGroupsTable.ForeignKeys[1].RefTable = GroupsTable
+	WordDescendantsTable.ForeignKeys[0].RefTable = WordsTable
+	WordDescendantsTable.ForeignKeys[1].RefTable = WordsTable
 }
