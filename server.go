@@ -11,7 +11,6 @@ import (
 	"shrektionary_api/ent/migrate"
 	"shrektionary_api/graph"
 	"shrektionary_api/middleware"
-	"shrektionary_api/seeddata"
 
 	"entgo.io/ent/dialect"
 	"github.com/joho/godotenv"
@@ -61,9 +60,9 @@ func main() {
 		log.Fatal("opening ent client", err)
 	}
 
-	if err := seeddata.Test(ctx, client); err != nil {
-		log.Fatal("seeding data", err)
-	}
+	// if err := seeddata.Test(ctx, client); err != nil {
+	// 	log.Fatal("seeding data", err)
+	// }
 
 	srv := handler.NewDefaultServer(graph.NewSchema(client))
 

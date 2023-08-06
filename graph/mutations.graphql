@@ -1,4 +1,5 @@
 type Mutation {
+    createGroup(input: CreateGroupInput!): Group!
     createDefinition(input: CreateDefinitionInput!): Definition!
     createWord(input: CreateWordInput!): Word!
     createRootWord(input: CreateWordInput!): Word!
