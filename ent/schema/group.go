@@ -23,7 +23,7 @@ func (Group) Fields() []ent.Field {
 // Edges of the Group.
 func (Group) Edges() []ent.Edge {
 	return []ent.Edge{
-		edge.To("words", Word.Type).
+		edge.To("rootWords", Word.Type).
 			Annotations(entgql.RelayConnection()),
 		edge.From("users", User.Type).
 			Ref("groups"),

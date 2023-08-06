@@ -9,7 +9,6 @@ import (
 	"shrektionary_api/ent/definition"
 	"shrektionary_api/ent/predicate"
 	"shrektionary_api/ent/user"
-	"shrektionary_api/ent/word"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -23,7 +22,6 @@ type DefinitionQuery struct {
 	order       []definition.OrderOption
 	inters      []Interceptor
 	predicates  []predicate.Definition
-	withWord    *WordQuery
 	withCreator *UserQuery
 	withFKs     bool
 	modifiers   []func(*sql.Selector)
@@ -62,28 +60,6 @@ func (dq *DefinitionQuery) Unique(unique bool) *DefinitionQuery {
 func (dq *DefinitionQuery) Order(o ...definition.OrderOption) *DefinitionQuery {
 	dq.order = append(dq.order, o...)
 	return dq
-}
-
-// QueryWord chains the current query on the "word" edge.
-func (dq *DefinitionQuery) QueryWord() *WordQuery {
-	query := (&WordClient{config: dq.config}).Query()
-	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
-		if err := dq.prepareQuery(ctx); err != nil {
-			return nil, err
-		}
-		selector := dq.sqlQuery(ctx)
-		if err := selector.Err(); err != nil {
-			return nil, err
-		}
-		step := sqlgraph.NewStep(
-			sqlgraph.From(definition.Table, definition.FieldID, selector),
-			sqlgraph.To(word.Table, word.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, definition.WordTable, definition.WordColumn),
-		)
-		fromU = sqlgraph.SetNeighbors(dq.driver.Dialect(), step)
-		return fromU, nil
-	}
-	return query
 }
 
 // QueryCreator chains the current query on the "creator" edge.
@@ -300,23 +276,11 @@ func (dq *DefinitionQuery) Clone() *DefinitionQuery {
 		order:       append([]definition.OrderOption{}, dq.order...),
 		inters:      append([]Interceptor{}, dq.inters...),
 		predicates:  append([]predicate.Definition{}, dq.predicates...),
-		withWord:    dq.withWord.Clone(),
 		withCreator: dq.withCreator.Clone(),
 		// clone intermediate query.
 		sql:  dq.sql.Clone(),
 		path: dq.path,
 	}
-}
-
-// WithWord tells the query-builder to eager-load the nodes that are connected to
-// the "word" edge. The optional arguments are used to configure the query builder of the edge.
-func (dq *DefinitionQuery) WithWord(opts ...func(*WordQuery)) *DefinitionQuery {
-	query := (&WordClient{config: dq.config}).Query()
-	for _, opt := range opts {
-		opt(query)
-	}
-	dq.withWord = query
-	return dq
 }
 
 // WithCreator tells the query-builder to eager-load the nodes that are connected to
@@ -409,12 +373,11 @@ func (dq *DefinitionQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*D
 		nodes       = []*Definition{}
 		withFKs     = dq.withFKs
 		_spec       = dq.querySpec()
-		loadedTypes = [2]bool{
-			dq.withWord != nil,
+		loadedTypes = [1]bool{
 			dq.withCreator != nil,
 		}
 	)
-	if dq.withWord != nil || dq.withCreator != nil {
+	if dq.withCreator != nil {
 		withFKs = true
 	}
 	if withFKs {
@@ -441,12 +404,6 @@ func (dq *DefinitionQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*D
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
-	if query := dq.withWord; query != nil {
-		if err := dq.loadWord(ctx, query, nodes, nil,
-			func(n *Definition, e *Word) { n.Edges.Word = e }); err != nil {
-			return nil, err
-		}
-	}
 	if query := dq.withCreator; query != nil {
 		if err := dq.loadCreator(ctx, query, nodes, nil,
 			func(n *Definition, e *User) { n.Edges.Creator = e }); err != nil {
@@ -461,38 +418,6 @@ func (dq *DefinitionQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*D
 	return nodes, nil
 }
 
-func (dq *DefinitionQuery) loadWord(ctx context.Context, query *WordQuery, nodes []*Definition, init func(*Definition), assign func(*Definition, *Word)) error {
-	ids := make([]int, 0, len(nodes))
-	nodeids := make(map[int][]*Definition)
-	for i := range nodes {
-		if nodes[i].word_definitions == nil {
-			continue
-		}
-		fk := *nodes[i].word_definitions
-		if _, ok := nodeids[fk]; !ok {
-			ids = append(ids, fk)
-		}
-		nodeids[fk] = append(nodeids[fk], nodes[i])
-	}
-	if len(ids) == 0 {
-		return nil
-	}
-	query.Where(word.IDIn(ids...))
-	neighbors, err := query.All(ctx)
-	if err != nil {
-		return err
-	}
-	for _, n := range neighbors {
-		nodes, ok := nodeids[n.ID]
-		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "word_definitions" returned %v`, n.ID)
-		}
-		for i := range nodes {
-			assign(nodes[i], n)
-		}
-	}
-	return nil
-}
 func (dq *DefinitionQuery) loadCreator(ctx context.Context, query *UserQuery, nodes []*Definition, init func(*Definition), assign func(*Definition, *User)) error {
 	ids := make([]int, 0, len(nodes))
 	nodeids := make(map[int][]*Definition)

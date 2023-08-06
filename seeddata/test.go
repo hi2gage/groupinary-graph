@@ -61,17 +61,14 @@ func Test(ctx context.Context, client *ent.Client) error {
 		client.Word.
 			Create().
 			SetDescription("shrektard").
-			SetRoot(false).
 			SaveX(ctx),
 		client.Word.
 			Create().
 			SetDescription("shrektdroid").
-			SetRoot(false).
 			SaveX(ctx),
 		client.Word.
 			Create().
 			SetDescription("shrekt lord").
-			SetRoot(false).
 			SaveX(ctx),
 	}
 
@@ -114,11 +111,10 @@ func Test(ctx context.Context, client *ent.Client) error {
 	group := []*ent.GroupCreate{
 		client.Group.Create().
 			SetDescription("the Boys").
-			AddWords(
+			AddRootWords(
 				client.Word.
 					Create().
 					SetDescription("Shrek").
-					SetRoot(true).
 					AddDefinitions(
 						definitions_shrekt[0],
 						definitions_shrekt[1],
@@ -132,7 +128,6 @@ func Test(ctx context.Context, client *ent.Client) error {
 					SaveX(ctx),
 				client.Word.Create().
 					SetDescription("Bot").
-					SetRoot(true).
 					AddDefinitions(
 						definitions_bot[0],
 						definitions_bot[1],
