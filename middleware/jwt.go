@@ -5,8 +5,12 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"os"
+	"shrektionary_api/ent"
+	"shrektionary_api/ent/user"
 	"time"
 
+	"entgo.io/ent/dialect"
 	jwtmiddleware "github.com/auth0/go-jwt-middleware/v2"
 	"github.com/auth0/go-jwt-middleware/v2/jwks"
 	"github.com/auth0/go-jwt-middleware/v2/validator"
@@ -73,24 +77,38 @@ func EnsureValidToken() func(next http.Handler) http.Handler {
 				userID := claims.RegisteredClaims.Subject
 				exists := checkUserExists(userID)
 				if !exists {
-					// Add the user to the graph
 					addUserToGraph(userID)
 				}
 				next.ServeHTTP(w, r)
-
 			}))
 	}
 }
 
 func checkUserExists(userID string) bool {
-	// Implement your logic to check if the user exists in the graph
-	// Return true if the user exists, false otherwise
-	log.Printf("from checkUserExists: %s", userID)
+	client, err := ent.Open(dialect.Postgres, os.Getenv("DATABASE_URL"))
+	if err != nil {
+		log.Fatal("opening ent client", err)
+	}
+	defer client.Close()
 
-	return false
+	exists, err := client.User.Query().Where(user.AuthID(userID)).Exist(context.Background())
+	if err != nil {
+		log.Fatal("querying user", err)
+	}
+	return exists
 }
 
 func addUserToGraph(userID string) {
-	log.Printf("from addUserToGraph: %s", userID)
-	// Implement your logic to add the user to the graph
+	client, err := ent.Open(dialect.Postgres, os.Getenv("DATABASE_URL"))
+	if err != nil {
+		log.Fatal("opening ent client", err)
+	}
+	defer client.Close()
+
+	_, err = client.User.Create().SetAuthID(userID).Save(context.Background())
+
+	if err != nil {
+		log.Fatal("querying user", err)
+	}
+	log.Printf("finished addUserToGraph")
 }
