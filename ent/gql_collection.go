@@ -755,6 +755,11 @@ func (w *WordQuery) collectField(ctx context.Context, opCtx *graphql.OperationCo
 				selectedFields = append(selectedFields, word.FieldDescription)
 				fieldSeen[word.FieldDescription] = struct{}{}
 			}
+		case "descendantcount":
+			if _, ok := fieldSeen[word.FieldDescendantCount]; !ok {
+				selectedFields = append(selectedFields, word.FieldDescendantCount)
+				fieldSeen[word.FieldDescendantCount] = struct{}{}
+			}
 		case "id":
 		case "__typename":
 		default:

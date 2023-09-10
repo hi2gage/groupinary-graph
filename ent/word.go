@@ -20,6 +20,8 @@ type Word struct {
 	ID int `json:"id,omitempty"`
 	// Description holds the value of the "description" field.
 	Description string `json:"description,omitempty"`
+	// DescendantCount holds the value of the "descendantCount" field.
+	DescendantCount int `json:"descendantCount,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the WordQuery when eager-loading is set.
 	Edges            WordEdges `json:"edges"`
@@ -109,7 +111,7 @@ func (*Word) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case word.FieldID:
+		case word.FieldID, word.FieldDescendantCount:
 			values[i] = new(sql.NullInt64)
 		case word.FieldDescription:
 			values[i] = new(sql.NullString)
@@ -143,6 +145,12 @@ func (w *Word) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field description", values[i])
 			} else if value.Valid {
 				w.Description = value.String
+			}
+		case word.FieldDescendantCount:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field descendantCount", values[i])
+			} else if value.Valid {
+				w.DescendantCount = int(value.Int64)
 			}
 		case word.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
@@ -221,6 +229,9 @@ func (w *Word) String() string {
 	builder.WriteString(fmt.Sprintf("id=%v, ", w.ID))
 	builder.WriteString("description=")
 	builder.WriteString(w.Description)
+	builder.WriteString(", ")
+	builder.WriteString("descendantCount=")
+	builder.WriteString(fmt.Sprintf("%v", w.DescendantCount))
 	builder.WriteByte(')')
 	return builder.String()
 }
