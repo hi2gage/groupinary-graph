@@ -28,6 +28,20 @@ func (wc *WordCreate) SetDescription(s string) *WordCreate {
 	return wc
 }
 
+// SetDescendantCount sets the "descendantCount" field.
+func (wc *WordCreate) SetDescendantCount(i int) *WordCreate {
+	wc.mutation.SetDescendantCount(i)
+	return wc
+}
+
+// SetNillableDescendantCount sets the "descendantCount" field if the given value is not nil.
+func (wc *WordCreate) SetNillableDescendantCount(i *int) *WordCreate {
+	if i != nil {
+		wc.SetDescendantCount(*i)
+	}
+	return wc
+}
+
 // SetCreatorID sets the "creator" edge to the User entity by ID.
 func (wc *WordCreate) SetCreatorID(id int) *WordCreate {
 	wc.mutation.SetCreatorID(id)
@@ -118,6 +132,7 @@ func (wc *WordCreate) Mutation() *WordMutation {
 
 // Save creates the Word in the database.
 func (wc *WordCreate) Save(ctx context.Context) (*Word, error) {
+	wc.defaults()
 	return withHooks(ctx, wc.sqlSave, wc.mutation, wc.hooks)
 }
 
@@ -143,6 +158,14 @@ func (wc *WordCreate) ExecX(ctx context.Context) {
 	}
 }
 
+// defaults sets the default values of the builder before save.
+func (wc *WordCreate) defaults() {
+	if _, ok := wc.mutation.DescendantCount(); !ok {
+		v := word.DefaultDescendantCount
+		wc.mutation.SetDescendantCount(v)
+	}
+}
+
 // check runs all checks and user-defined validators on the builder.
 func (wc *WordCreate) check() error {
 	if _, ok := wc.mutation.Description(); !ok {
@@ -152,6 +175,9 @@ func (wc *WordCreate) check() error {
 		if err := word.DescriptionValidator(v); err != nil {
 			return &ValidationError{Name: "description", err: fmt.Errorf(`ent: validator failed for field "Word.description": %w`, err)}
 		}
+	}
+	if _, ok := wc.mutation.DescendantCount(); !ok {
+		return &ValidationError{Name: "descendantCount", err: errors.New(`ent: missing required field "Word.descendantCount"`)}
 	}
 	return nil
 }
@@ -182,6 +208,10 @@ func (wc *WordCreate) createSpec() (*Word, *sqlgraph.CreateSpec) {
 	if value, ok := wc.mutation.Description(); ok {
 		_spec.SetField(word.FieldDescription, field.TypeString, value)
 		_node.Description = value
+	}
+	if value, ok := wc.mutation.DescendantCount(); ok {
+		_spec.SetField(word.FieldDescendantCount, field.TypeInt, value)
+		_node.DescendantCount = value
 	}
 	if nodes := wc.mutation.CreatorIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -282,6 +312,7 @@ func (wcb *WordCreateBulk) Save(ctx context.Context) ([]*Word, error) {
 	for i := range wcb.builders {
 		func(i int, root context.Context) {
 			builder := wcb.builders[i]
+			builder.defaults()
 			var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 				mutation, ok := m.(*WordMutation)
 				if !ok {

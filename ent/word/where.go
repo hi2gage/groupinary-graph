@@ -59,6 +59,11 @@ func Description(v string) predicate.Word {
 	return predicate.Word(sql.FieldEQ(FieldDescription, v))
 }
 
+// DescendantCount applies equality check predicate on the "descendantCount" field. It's identical to DescendantCountEQ.
+func DescendantCount(v int) predicate.Word {
+	return predicate.Word(sql.FieldEQ(FieldDescendantCount, v))
+}
+
 // DescriptionEQ applies the EQ predicate on the "description" field.
 func DescriptionEQ(v string) predicate.Word {
 	return predicate.Word(sql.FieldEQ(FieldDescription, v))
@@ -122,6 +127,46 @@ func DescriptionEqualFold(v string) predicate.Word {
 // DescriptionContainsFold applies the ContainsFold predicate on the "description" field.
 func DescriptionContainsFold(v string) predicate.Word {
 	return predicate.Word(sql.FieldContainsFold(FieldDescription, v))
+}
+
+// DescendantCountEQ applies the EQ predicate on the "descendantCount" field.
+func DescendantCountEQ(v int) predicate.Word {
+	return predicate.Word(sql.FieldEQ(FieldDescendantCount, v))
+}
+
+// DescendantCountNEQ applies the NEQ predicate on the "descendantCount" field.
+func DescendantCountNEQ(v int) predicate.Word {
+	return predicate.Word(sql.FieldNEQ(FieldDescendantCount, v))
+}
+
+// DescendantCountIn applies the In predicate on the "descendantCount" field.
+func DescendantCountIn(vs ...int) predicate.Word {
+	return predicate.Word(sql.FieldIn(FieldDescendantCount, vs...))
+}
+
+// DescendantCountNotIn applies the NotIn predicate on the "descendantCount" field.
+func DescendantCountNotIn(vs ...int) predicate.Word {
+	return predicate.Word(sql.FieldNotIn(FieldDescendantCount, vs...))
+}
+
+// DescendantCountGT applies the GT predicate on the "descendantCount" field.
+func DescendantCountGT(v int) predicate.Word {
+	return predicate.Word(sql.FieldGT(FieldDescendantCount, v))
+}
+
+// DescendantCountGTE applies the GTE predicate on the "descendantCount" field.
+func DescendantCountGTE(v int) predicate.Word {
+	return predicate.Word(sql.FieldGTE(FieldDescendantCount, v))
+}
+
+// DescendantCountLT applies the LT predicate on the "descendantCount" field.
+func DescendantCountLT(v int) predicate.Word {
+	return predicate.Word(sql.FieldLT(FieldDescendantCount, v))
+}
+
+// DescendantCountLTE applies the LTE predicate on the "descendantCount" field.
+func DescendantCountLTE(v int) predicate.Word {
+	return predicate.Word(sql.FieldLTE(FieldDescendantCount, v))
 }
 
 // HasCreator applies the HasEdge predicate on the "creator" edge.

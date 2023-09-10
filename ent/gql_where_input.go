@@ -710,6 +710,16 @@ type WordWhereInput struct {
 	DescriptionEqualFold    *string  `json:"descriptionEqualFold,omitempty"`
 	DescriptionContainsFold *string  `json:"descriptionContainsFold,omitempty"`
 
+	// "descendantCount" field predicates.
+	DescendantCount      *int  `json:"descendantcount,omitempty"`
+	DescendantCountNEQ   *int  `json:"descendantcountNEQ,omitempty"`
+	DescendantCountIn    []int `json:"descendantcountIn,omitempty"`
+	DescendantCountNotIn []int `json:"descendantcountNotIn,omitempty"`
+	DescendantCountGT    *int  `json:"descendantcountGT,omitempty"`
+	DescendantCountGTE   *int  `json:"descendantcountGTE,omitempty"`
+	DescendantCountLT    *int  `json:"descendantcountLT,omitempty"`
+	DescendantCountLTE   *int  `json:"descendantcountLTE,omitempty"`
+
 	// "creator" edge predicates.
 	HasCreator     *bool             `json:"hasCreator,omitempty"`
 	HasCreatorWith []*UserWhereInput `json:"hasCreatorWith,omitempty"`
@@ -864,6 +874,30 @@ func (i *WordWhereInput) P() (predicate.Word, error) {
 	}
 	if i.DescriptionContainsFold != nil {
 		predicates = append(predicates, word.DescriptionContainsFold(*i.DescriptionContainsFold))
+	}
+	if i.DescendantCount != nil {
+		predicates = append(predicates, word.DescendantCountEQ(*i.DescendantCount))
+	}
+	if i.DescendantCountNEQ != nil {
+		predicates = append(predicates, word.DescendantCountNEQ(*i.DescendantCountNEQ))
+	}
+	if len(i.DescendantCountIn) > 0 {
+		predicates = append(predicates, word.DescendantCountIn(i.DescendantCountIn...))
+	}
+	if len(i.DescendantCountNotIn) > 0 {
+		predicates = append(predicates, word.DescendantCountNotIn(i.DescendantCountNotIn...))
+	}
+	if i.DescendantCountGT != nil {
+		predicates = append(predicates, word.DescendantCountGT(*i.DescendantCountGT))
+	}
+	if i.DescendantCountGTE != nil {
+		predicates = append(predicates, word.DescendantCountGTE(*i.DescendantCountGTE))
+	}
+	if i.DescendantCountLT != nil {
+		predicates = append(predicates, word.DescendantCountLT(*i.DescendantCountLT))
+	}
+	if i.DescendantCountLTE != nil {
+		predicates = append(predicates, word.DescendantCountLTE(*i.DescendantCountLTE))
 	}
 
 	if i.HasCreator != nil {

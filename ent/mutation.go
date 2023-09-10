@@ -1519,6 +1519,8 @@ type WordMutation struct {
 	typ                string
 	id                 *int
 	description        *string
+	descendantCount    *int
+	adddescendantCount *int
 	clearedFields      map[string]struct{}
 	creator            *int
 	clearedcreator     bool
@@ -1670,6 +1672,62 @@ func (m *WordMutation) OldDescription(ctx context.Context) (v string, err error)
 // ResetDescription resets all changes to the "description" field.
 func (m *WordMutation) ResetDescription() {
 	m.description = nil
+}
+
+// SetDescendantCount sets the "descendantCount" field.
+func (m *WordMutation) SetDescendantCount(i int) {
+	m.descendantCount = &i
+	m.adddescendantCount = nil
+}
+
+// DescendantCount returns the value of the "descendantCount" field in the mutation.
+func (m *WordMutation) DescendantCount() (r int, exists bool) {
+	v := m.descendantCount
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDescendantCount returns the old "descendantCount" field's value of the Word entity.
+// If the Word object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *WordMutation) OldDescendantCount(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDescendantCount is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDescendantCount requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDescendantCount: %w", err)
+	}
+	return oldValue.DescendantCount, nil
+}
+
+// AddDescendantCount adds i to the "descendantCount" field.
+func (m *WordMutation) AddDescendantCount(i int) {
+	if m.adddescendantCount != nil {
+		*m.adddescendantCount += i
+	} else {
+		m.adddescendantCount = &i
+	}
+}
+
+// AddedDescendantCount returns the value that was added to the "descendantCount" field in this mutation.
+func (m *WordMutation) AddedDescendantCount() (r int, exists bool) {
+	v := m.adddescendantCount
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetDescendantCount resets all changes to the "descendantCount" field.
+func (m *WordMutation) ResetDescendantCount() {
+	m.descendantCount = nil
+	m.adddescendantCount = nil
 }
 
 // SetCreatorID sets the "creator" edge to the User entity by id.
@@ -1946,9 +2004,12 @@ func (m *WordMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *WordMutation) Fields() []string {
-	fields := make([]string, 0, 1)
+	fields := make([]string, 0, 2)
 	if m.description != nil {
 		fields = append(fields, word.FieldDescription)
+	}
+	if m.descendantCount != nil {
+		fields = append(fields, word.FieldDescendantCount)
 	}
 	return fields
 }
@@ -1960,6 +2021,8 @@ func (m *WordMutation) Field(name string) (ent.Value, bool) {
 	switch name {
 	case word.FieldDescription:
 		return m.Description()
+	case word.FieldDescendantCount:
+		return m.DescendantCount()
 	}
 	return nil, false
 }
@@ -1971,6 +2034,8 @@ func (m *WordMutation) OldField(ctx context.Context, name string) (ent.Value, er
 	switch name {
 	case word.FieldDescription:
 		return m.OldDescription(ctx)
+	case word.FieldDescendantCount:
+		return m.OldDescendantCount(ctx)
 	}
 	return nil, fmt.Errorf("unknown Word field %s", name)
 }
@@ -1987,6 +2052,13 @@ func (m *WordMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetDescription(v)
 		return nil
+	case word.FieldDescendantCount:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDescendantCount(v)
+		return nil
 	}
 	return fmt.Errorf("unknown Word field %s", name)
 }
@@ -1994,13 +2066,21 @@ func (m *WordMutation) SetField(name string, value ent.Value) error {
 // AddedFields returns all numeric fields that were incremented/decremented during
 // this mutation.
 func (m *WordMutation) AddedFields() []string {
-	return nil
+	var fields []string
+	if m.adddescendantCount != nil {
+		fields = append(fields, word.FieldDescendantCount)
+	}
+	return fields
 }
 
 // AddedField returns the numeric value that was incremented/decremented on a field
 // with the given name. The second boolean return value indicates that this field
 // was not set, or was not defined in the schema.
 func (m *WordMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case word.FieldDescendantCount:
+		return m.AddedDescendantCount()
+	}
 	return nil, false
 }
 
@@ -2009,6 +2089,13 @@ func (m *WordMutation) AddedField(name string) (ent.Value, bool) {
 // type.
 func (m *WordMutation) AddField(name string, value ent.Value) error {
 	switch name {
+	case word.FieldDescendantCount:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddDescendantCount(v)
+		return nil
 	}
 	return fmt.Errorf("unknown Word numeric field %s", name)
 }
@@ -2038,6 +2125,9 @@ func (m *WordMutation) ResetField(name string) error {
 	switch name {
 	case word.FieldDescription:
 		m.ResetDescription()
+		return nil
+	case word.FieldDescendantCount:
+		m.ResetDescendantCount()
 		return nil
 	}
 	return fmt.Errorf("unknown Word field %s", name)

@@ -14,6 +14,8 @@ const (
 	FieldID = "id"
 	// FieldDescription holds the string denoting the description field in the database.
 	FieldDescription = "description"
+	// FieldDescendantCount holds the string denoting the descendantcount field in the database.
+	FieldDescendantCount = "descendant_count"
 	// EdgeCreator holds the string denoting the creator edge name in mutations.
 	EdgeCreator = "creator"
 	// EdgeGroup holds the string denoting the group edge name in mutations.
@@ -57,6 +59,7 @@ const (
 var Columns = []string{
 	FieldID,
 	FieldDescription,
+	FieldDescendantCount,
 }
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the "words"
@@ -93,6 +96,8 @@ func ValidColumn(column string) bool {
 var (
 	// DescriptionValidator is a validator for the "description" field. It is called by the builders before save.
 	DescriptionValidator func(string) error
+	// DefaultDescendantCount holds the default value on creation for the "descendantCount" field.
+	DefaultDescendantCount int
 )
 
 // OrderOption defines the ordering options for the Word queries.
@@ -106,6 +111,11 @@ func ByID(opts ...sql.OrderTermOption) OrderOption {
 // ByDescription orders the results by the description field.
 func ByDescription(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldDescription, opts...).ToFunc()
+}
+
+// ByDescendantCount orders the results by the descendantCount field.
+func ByDescendantCount(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldDescendantCount, opts...).ToFunc()
 }
 
 // ByCreatorField orders the results by creator field.

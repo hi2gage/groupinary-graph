@@ -5,7 +5,6 @@ import (
 	"log"
 	"net/http"
 	"net/url"
-	"strings"
 	"time"
 
 	jwtmiddleware "github.com/auth0/go-jwt-middleware/v2"
@@ -28,7 +27,7 @@ func (c CustomClaims) Validate(ctx context.Context) error {
 func EnsureValidToken() func(next http.Handler) http.Handler {
 	issuerURL, err := url.Parse("https://dev-afmzazq3cr35ktpl.us.auth0.com/")
 	if err != nil {
-		log.Fatalf("Failed to parse the issuer url: %v", err)
+		log.Fatalf("Failed to parse the issuer URL: %v", err)
 	}
 	log.Printf("issuerURL: %s", issuerURL)
 
@@ -47,7 +46,7 @@ func EnsureValidToken() func(next http.Handler) http.Handler {
 		validator.WithAllowedClockSkew(time.Minute),
 	)
 	if err != nil {
-		log.Fatalf("Failed to set up the jwt validator")
+		log.Fatalf("Failed to set up the JWT validator")
 	}
 
 	errorHandler := func(w http.ResponseWriter, r *http.Request, err error) {
@@ -64,18 +63,34 @@ func EnsureValidToken() func(next http.Handler) http.Handler {
 	)
 
 	return func(next http.Handler) http.Handler {
-		return middleware.CheckJWT(next)
+		return middleware.CheckJWT(
+			http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				claims, ok := r.Context().Value(jwtmiddleware.ContextKey{}).(*validator.ValidatedClaims)
+				if !ok {
+					http.Error(w, "failed to get validated claims", http.StatusInternalServerError)
+					return
+				}
+				userID := claims.RegisteredClaims.Subject
+				exists := checkUserExists(userID)
+				if !exists {
+					// Add the user to the graph
+					addUserToGraph(userID)
+				}
+				next.ServeHTTP(w, r)
+
+			}))
 	}
 }
 
-// HasScope checks whether our claims have a specific scope.
-func (c CustomClaims) HasScope(expectedScope string) bool {
-	result := strings.Split(c.Scope, " ")
-	for i := range result {
-		if result[i] == expectedScope {
-			return true
-		}
-	}
+func checkUserExists(userID string) bool {
+	// Implement your logic to check if the user exists in the graph
+	// Return true if the user exists, false otherwise
+	log.Printf("from checkUserExists: %s", userID)
 
 	return false
+}
+
+func addUserToGraph(userID string) {
+	log.Printf("from addUserToGraph: %s", userID)
+	// Implement your logic to add the user to the graph
 }
