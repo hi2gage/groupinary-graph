@@ -60,6 +60,11 @@ func (r *mutationResolver) UpdateUser(ctx context.Context, input ent.UpdateUserI
 	return r.client.User.UpdateOneID(creatorID).SetInput(input).Save(ctx)
 }
 
+// UpdateDefinition is the resolver for the updateDefinition field.
+func (r *mutationResolver) UpdateDefinition(ctx context.Context, id int, input ent.UpdateDefinitionInput) (*ent.Definition, error) {
+	return r.client.Definition.UpdateOneID(id).SetInput(input).Save(ctx)
+}
+
 // Mutation returns MutationResolver implementation.
 func (r *Resolver) Mutation() MutationResolver { return &mutationResolver{r} }
 

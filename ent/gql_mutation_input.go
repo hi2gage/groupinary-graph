@@ -24,21 +24,13 @@ func (c *DefinitionCreate) SetInput(i CreateDefinitionInput) *DefinitionCreate {
 
 // UpdateDefinitionInput represents a mutation input for updating definitions.
 type UpdateDefinitionInput struct {
-	Description  *string
-	ClearCreator bool
-	CreatorID    *int
+	Description *string
 }
 
 // Mutate applies the UpdateDefinitionInput on the DefinitionMutation builder.
 func (i *UpdateDefinitionInput) Mutate(m *DefinitionMutation) {
 	if v := i.Description; v != nil {
 		m.SetDescription(*v)
-	}
-	if i.ClearCreator {
-		m.ClearCreator()
-	}
-	if v := i.CreatorID; v != nil {
-		m.SetCreatorID(*v)
 	}
 }
 

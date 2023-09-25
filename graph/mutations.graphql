@@ -5,4 +5,5 @@ type Mutation {
     createRootWord(input: CreateWordInput!): Word!
 
     updateUser(input: UpdateUserInput!): User!
+    updateDefinition(id: ID!, input: UpdateDefinitionInput!): Definition!
 }
