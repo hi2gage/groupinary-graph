@@ -3,5 +3,6 @@ type Mutation {
     createDefinition(input: CreateDefinitionInput!): Definition!
     createWord(input: CreateWordInput!): Word!
     createRootWord(input: CreateWordInput!): Word!
-    createUser(input: CreateUserInput!): User!
+
+    updateUser(input: UpdateUserInput!): User!
 }

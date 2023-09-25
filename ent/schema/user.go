@@ -16,7 +16,9 @@ type User struct {
 // Fields of the User.
 func (User) Fields() []ent.Field {
 	return []ent.Field{
-		field.String("authID").NotEmpty(),
+		field.String("authID").
+			Immutable().
+			NotEmpty(),
 		field.String("firstName").Optional(),
 		field.String("lastName").Optional(),
 	}
@@ -27,8 +29,10 @@ func (User) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.To("groups", Group.Type),
 		edge.To("definitions", Definition.Type).
+			Immutable().
 			Annotations(entgql.RelayConnection()),
 		edge.To("words", Word.Type).
+			Immutable().
 			Annotations(entgql.RelayConnection()),
 	}
 }
@@ -37,7 +41,7 @@ func (User) Annotations() []schema.Annotation {
 	return []schema.Annotation{
 		entgql.QueryField(),
 		entgql.Mutations(
-			entgql.MutationCreate(),
+			entgql.MutationUpdate(),
 		),
 	}
 }
