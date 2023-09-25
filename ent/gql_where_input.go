@@ -466,6 +466,40 @@ type UserWhereInput struct {
 	AuthIDEqualFold    *string  `json:"authidEqualFold,omitempty"`
 	AuthIDContainsFold *string  `json:"authidContainsFold,omitempty"`
 
+	// "firstName" field predicates.
+	FirstName             *string  `json:"firstname,omitempty"`
+	FirstNameNEQ          *string  `json:"firstnameNEQ,omitempty"`
+	FirstNameIn           []string `json:"firstnameIn,omitempty"`
+	FirstNameNotIn        []string `json:"firstnameNotIn,omitempty"`
+	FirstNameGT           *string  `json:"firstnameGT,omitempty"`
+	FirstNameGTE          *string  `json:"firstnameGTE,omitempty"`
+	FirstNameLT           *string  `json:"firstnameLT,omitempty"`
+	FirstNameLTE          *string  `json:"firstnameLTE,omitempty"`
+	FirstNameContains     *string  `json:"firstnameContains,omitempty"`
+	FirstNameHasPrefix    *string  `json:"firstnameHasPrefix,omitempty"`
+	FirstNameHasSuffix    *string  `json:"firstnameHasSuffix,omitempty"`
+	FirstNameIsNil        bool     `json:"firstnameIsNil,omitempty"`
+	FirstNameNotNil       bool     `json:"firstnameNotNil,omitempty"`
+	FirstNameEqualFold    *string  `json:"firstnameEqualFold,omitempty"`
+	FirstNameContainsFold *string  `json:"firstnameContainsFold,omitempty"`
+
+	// "lastName" field predicates.
+	LastName             *string  `json:"lastname,omitempty"`
+	LastNameNEQ          *string  `json:"lastnameNEQ,omitempty"`
+	LastNameIn           []string `json:"lastnameIn,omitempty"`
+	LastNameNotIn        []string `json:"lastnameNotIn,omitempty"`
+	LastNameGT           *string  `json:"lastnameGT,omitempty"`
+	LastNameGTE          *string  `json:"lastnameGTE,omitempty"`
+	LastNameLT           *string  `json:"lastnameLT,omitempty"`
+	LastNameLTE          *string  `json:"lastnameLTE,omitempty"`
+	LastNameContains     *string  `json:"lastnameContains,omitempty"`
+	LastNameHasPrefix    *string  `json:"lastnameHasPrefix,omitempty"`
+	LastNameHasSuffix    *string  `json:"lastnameHasSuffix,omitempty"`
+	LastNameIsNil        bool     `json:"lastnameIsNil,omitempty"`
+	LastNameNotNil       bool     `json:"lastnameNotNil,omitempty"`
+	LastNameEqualFold    *string  `json:"lastnameEqualFold,omitempty"`
+	LastNameContainsFold *string  `json:"lastnameContainsFold,omitempty"`
+
 	// "groups" edge predicates.
 	HasGroups     *bool              `json:"hasGroups,omitempty"`
 	HasGroupsWith []*GroupWhereInput `json:"hasGroupsWith,omitempty"`
@@ -612,6 +646,96 @@ func (i *UserWhereInput) P() (predicate.User, error) {
 	}
 	if i.AuthIDContainsFold != nil {
 		predicates = append(predicates, user.AuthIDContainsFold(*i.AuthIDContainsFold))
+	}
+	if i.FirstName != nil {
+		predicates = append(predicates, user.FirstNameEQ(*i.FirstName))
+	}
+	if i.FirstNameNEQ != nil {
+		predicates = append(predicates, user.FirstNameNEQ(*i.FirstNameNEQ))
+	}
+	if len(i.FirstNameIn) > 0 {
+		predicates = append(predicates, user.FirstNameIn(i.FirstNameIn...))
+	}
+	if len(i.FirstNameNotIn) > 0 {
+		predicates = append(predicates, user.FirstNameNotIn(i.FirstNameNotIn...))
+	}
+	if i.FirstNameGT != nil {
+		predicates = append(predicates, user.FirstNameGT(*i.FirstNameGT))
+	}
+	if i.FirstNameGTE != nil {
+		predicates = append(predicates, user.FirstNameGTE(*i.FirstNameGTE))
+	}
+	if i.FirstNameLT != nil {
+		predicates = append(predicates, user.FirstNameLT(*i.FirstNameLT))
+	}
+	if i.FirstNameLTE != nil {
+		predicates = append(predicates, user.FirstNameLTE(*i.FirstNameLTE))
+	}
+	if i.FirstNameContains != nil {
+		predicates = append(predicates, user.FirstNameContains(*i.FirstNameContains))
+	}
+	if i.FirstNameHasPrefix != nil {
+		predicates = append(predicates, user.FirstNameHasPrefix(*i.FirstNameHasPrefix))
+	}
+	if i.FirstNameHasSuffix != nil {
+		predicates = append(predicates, user.FirstNameHasSuffix(*i.FirstNameHasSuffix))
+	}
+	if i.FirstNameIsNil {
+		predicates = append(predicates, user.FirstNameIsNil())
+	}
+	if i.FirstNameNotNil {
+		predicates = append(predicates, user.FirstNameNotNil())
+	}
+	if i.FirstNameEqualFold != nil {
+		predicates = append(predicates, user.FirstNameEqualFold(*i.FirstNameEqualFold))
+	}
+	if i.FirstNameContainsFold != nil {
+		predicates = append(predicates, user.FirstNameContainsFold(*i.FirstNameContainsFold))
+	}
+	if i.LastName != nil {
+		predicates = append(predicates, user.LastNameEQ(*i.LastName))
+	}
+	if i.LastNameNEQ != nil {
+		predicates = append(predicates, user.LastNameNEQ(*i.LastNameNEQ))
+	}
+	if len(i.LastNameIn) > 0 {
+		predicates = append(predicates, user.LastNameIn(i.LastNameIn...))
+	}
+	if len(i.LastNameNotIn) > 0 {
+		predicates = append(predicates, user.LastNameNotIn(i.LastNameNotIn...))
+	}
+	if i.LastNameGT != nil {
+		predicates = append(predicates, user.LastNameGT(*i.LastNameGT))
+	}
+	if i.LastNameGTE != nil {
+		predicates = append(predicates, user.LastNameGTE(*i.LastNameGTE))
+	}
+	if i.LastNameLT != nil {
+		predicates = append(predicates, user.LastNameLT(*i.LastNameLT))
+	}
+	if i.LastNameLTE != nil {
+		predicates = append(predicates, user.LastNameLTE(*i.LastNameLTE))
+	}
+	if i.LastNameContains != nil {
+		predicates = append(predicates, user.LastNameContains(*i.LastNameContains))
+	}
+	if i.LastNameHasPrefix != nil {
+		predicates = append(predicates, user.LastNameHasPrefix(*i.LastNameHasPrefix))
+	}
+	if i.LastNameHasSuffix != nil {
+		predicates = append(predicates, user.LastNameHasSuffix(*i.LastNameHasSuffix))
+	}
+	if i.LastNameIsNil {
+		predicates = append(predicates, user.LastNameIsNil())
+	}
+	if i.LastNameNotNil {
+		predicates = append(predicates, user.LastNameNotNil())
+	}
+	if i.LastNameEqualFold != nil {
+		predicates = append(predicates, user.LastNameEqualFold(*i.LastNameEqualFold))
+	}
+	if i.LastNameContainsFold != nil {
+		predicates = append(predicates, user.LastNameContainsFold(*i.LastNameContainsFold))
 	}
 
 	if i.HasGroups != nil {
