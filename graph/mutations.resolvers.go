@@ -16,16 +16,37 @@ func (r *mutationResolver) CreateGroup(ctx context.Context, input ent.CreateGrou
 
 // CreateDefinition is the resolver for the createDefinition field.
 func (r *mutationResolver) CreateDefinition(ctx context.Context, input ent.CreateDefinitionInput) (*ent.Definition, error) {
+	err := input.ValidateCreateInput()
+	if err != nil {
+		return nil, err
+	}
+
+	input.SetCreatorID(ctx)
+
 	return r.client.Definition.Create().SetInput(input).Save(ctx)
 }
 
 // CreateWord is the resolver for the createWord field.
 func (r *mutationResolver) CreateWord(ctx context.Context, input ent.CreateWordInput) (*ent.Word, error) {
+	err := input.ValidateCreateInput()
+	if err != nil {
+		return nil, err
+	}
+
+	input.SetCreatorID(ctx)
+
 	return r.client.Word.Create().SetInput(input).Save(ctx)
 }
 
 // CreateRootWord is the resolver for the createRootWord field.
 func (r *mutationResolver) CreateRootWord(ctx context.Context, input ent.CreateWordInput) (*ent.Word, error) {
+	err := input.ValidateCreateInput()
+	if err != nil {
+		return nil, err
+	}
+
+	input.SetCreatorID(ctx)
+
 	return r.client.Word.Create().SetInput(input).Save(ctx)
 }
 

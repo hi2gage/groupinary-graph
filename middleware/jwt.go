@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net/http"
 	"net/url"
@@ -74,41 +75,60 @@ func EnsureValidToken() func(next http.Handler) http.Handler {
 					http.Error(w, "failed to get validated claims", http.StatusInternalServerError)
 					return
 				}
-				userID := claims.RegisteredClaims.Subject
-				exists := checkUserExists(userID)
-				if !exists {
-					addUserToGraph(userID)
+				authID := claims.RegisteredClaims.Subject
+				userId, err := checkUserExists(authID)
+
+				if err != nil {
+					log.Printf("Error checking if user exists: %v", err)
+					http.Error(w, "Internal server error", http.StatusInternalServerError)
+					return
 				}
+
+				if userId == 0 {
+					userId, err = addUserToGraph(authID)
+					if err != nil {
+						log.Printf("Error adding user to graph: %v", err)
+						http.Error(w, "Internal server error", http.StatusInternalServerError)
+						return
+					}
+				}
+
+				ctx := context.WithValue(r.Context(), "userID", userId)
+				r = r.WithContext(ctx)
+
 				next.ServeHTTP(w, r)
 			}))
 	}
 }
 
-func checkUserExists(userID string) bool {
+func checkUserExists(authID string) (int, error) {
 	client, err := ent.Open(dialect.Postgres, os.Getenv("DATABASE_URL"))
 	if err != nil {
-		log.Fatal("opening ent client", err)
+		return 0, fmt.Errorf("opening ent client: %w", err)
 	}
 	defer client.Close()
 
-	exists, err := client.User.Query().Where(user.AuthID(userID)).Exist(context.Background())
+	user, err := client.User.Query().Where(user.AuthID(authID)).Only(context.Background())
 	if err != nil {
-		log.Fatal("querying user", err)
+		if ent.IsNotFound(err) {
+			return 0, fmt.Errorf("user does not exist: %w", err)
+		}
+		return 0, fmt.Errorf("querying user: %w", err)
 	}
-	return exists
+	return user.ID, nil
 }
 
-func addUserToGraph(userID string) {
+func addUserToGraph(userID string) (int, error) {
 	client, err := ent.Open(dialect.Postgres, os.Getenv("DATABASE_URL"))
 	if err != nil {
-		log.Fatal("opening ent client", err)
+		return 0, fmt.Errorf("opening ent client: %w", err)
 	}
 	defer client.Close()
 
-	_, err = client.User.Create().SetAuthID(userID).Save(context.Background())
-
+	user, err := client.User.Create().SetAuthID(userID).Save(context.Background())
 	if err != nil {
-		log.Fatal("querying user", err)
+		return 0, fmt.Errorf("creating user: %w", err)
 	}
 	log.Printf("finished addUserToGraph")
+	return user.ID, nil
 }
