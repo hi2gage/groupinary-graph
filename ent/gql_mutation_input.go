@@ -78,38 +78,50 @@ func (c *GroupCreate) SetInput(i CreateGroupInput) *GroupCreate {
 	return c
 }
 
-// CreateUserInput represents a mutation input for creating users.
-type CreateUserInput struct {
-	AuthID        string
-	FirstName     *string
-	LastName      *string
-	GroupIDs      []int
-	DefinitionIDs []int
-	WordIDs       []int
+// UpdateUserInput represents a mutation input for updating users.
+type UpdateUserInput struct {
+	ClearFirstName bool
+	FirstName      *string
+	ClearLastName  bool
+	LastName       *string
+	ClearGroups    bool
+	AddGroupIDs    []int
+	RemoveGroupIDs []int
 }
 
-// Mutate applies the CreateUserInput on the UserMutation builder.
-func (i *CreateUserInput) Mutate(m *UserMutation) {
-	m.SetAuthID(i.AuthID)
+// Mutate applies the UpdateUserInput on the UserMutation builder.
+func (i *UpdateUserInput) Mutate(m *UserMutation) {
+	if i.ClearFirstName {
+		m.ClearFirstName()
+	}
 	if v := i.FirstName; v != nil {
 		m.SetFirstName(*v)
+	}
+	if i.ClearLastName {
+		m.ClearLastName()
 	}
 	if v := i.LastName; v != nil {
 		m.SetLastName(*v)
 	}
-	if v := i.GroupIDs; len(v) > 0 {
+	if i.ClearGroups {
+		m.ClearGroups()
+	}
+	if v := i.AddGroupIDs; len(v) > 0 {
 		m.AddGroupIDs(v...)
 	}
-	if v := i.DefinitionIDs; len(v) > 0 {
-		m.AddDefinitionIDs(v...)
-	}
-	if v := i.WordIDs; len(v) > 0 {
-		m.AddWordIDs(v...)
+	if v := i.RemoveGroupIDs; len(v) > 0 {
+		m.RemoveGroupIDs(v...)
 	}
 }
 
-// SetInput applies the change-set in the CreateUserInput on the UserCreate builder.
-func (c *UserCreate) SetInput(i CreateUserInput) *UserCreate {
+// SetInput applies the change-set in the UpdateUserInput on the UserUpdate builder.
+func (c *UserUpdate) SetInput(i UpdateUserInput) *UserUpdate {
+	i.Mutate(c.Mutation())
+	return c
+}
+
+// SetInput applies the change-set in the UpdateUserInput on the UserUpdateOne builder.
+func (c *UserUpdateOne) SetInput(i UpdateUserInput) *UserUpdateOne {
 	i.Mutate(c.Mutation())
 	return c
 }
