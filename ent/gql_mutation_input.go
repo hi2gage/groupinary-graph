@@ -157,3 +157,47 @@ func (c *WordCreate) SetInput(i CreateWordInput) *WordCreate {
 	i.Mutate(c.Mutation())
 	return c
 }
+
+// UpdateWordInput represents a mutation input for updating words.
+type UpdateWordInput struct {
+	Description     *string
+	ClearGroup      bool
+	GroupID         *int
+	ClearParents    bool
+	AddParentIDs    []int
+	RemoveParentIDs []int
+}
+
+// Mutate applies the UpdateWordInput on the WordMutation builder.
+func (i *UpdateWordInput) Mutate(m *WordMutation) {
+	if v := i.Description; v != nil {
+		m.SetDescription(*v)
+	}
+	if i.ClearGroup {
+		m.ClearGroup()
+	}
+	if v := i.GroupID; v != nil {
+		m.SetGroupID(*v)
+	}
+	if i.ClearParents {
+		m.ClearParents()
+	}
+	if v := i.AddParentIDs; len(v) > 0 {
+		m.AddParentIDs(v...)
+	}
+	if v := i.RemoveParentIDs; len(v) > 0 {
+		m.RemoveParentIDs(v...)
+	}
+}
+
+// SetInput applies the change-set in the UpdateWordInput on the WordUpdate builder.
+func (c *WordUpdate) SetInput(i UpdateWordInput) *WordUpdate {
+	i.Mutate(c.Mutation())
+	return c
+}
+
+// SetInput applies the change-set in the UpdateWordInput on the WordUpdateOne builder.
+func (c *WordUpdateOne) SetInput(i UpdateWordInput) *WordUpdateOne {
+	i.Mutate(c.Mutation())
+	return c
+}
