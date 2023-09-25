@@ -60,43 +60,37 @@ func main() {
 		log.Fatal("opening ent client", err)
 	}
 
-	// if err := seeddata.Test(ctx, client); err != nil {
-	// 	log.Fatal("seeding data", err)
-	// }
-
 	srv := handler.NewDefaultServer(graph.NewSchema(client))
 
 	// Middleware for logging requests
 	loggingMiddleware := func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			// Log the incoming request
-			log.Printf("Received request: %s %s", r.Method, r.URL.Path)
+			showLogs := false
 
-			// Log the headers for preflight request or actual request
-			if r.Method == http.MethodOptions {
-				log.Println("Preflight Request Headers:")
-			} else {
-				log.Println("Actual Request Headers:")
+			if showLogs {
+				// Log the incoming request
+				log.Printf("Received request: %s %s", r.Method, r.URL.Path)
+
+				// Log the headers for preflight request or actual request
+				if r.Method == http.MethodOptions {
+					log.Println("Preflight Request Headers:")
+				} else {
+					log.Println("Actual Request Headers:")
+				}
+
+				// Print each header key-value pair
+				for name, values := range r.Header {
+					// Join multiple values for the same header with commas
+					value := strings.Join(values, ", ")
+					log.Printf("%s: %s", name, value)
+				}
+				log.Printf("==========================================================================================")
 			}
-
-			// Print each header key-value pair
-			for name, values := range r.Header {
-				// Join multiple values for the same header with commas
-				value := strings.Join(values, ", ")
-				log.Printf("%s: %s", name, value)
-			}
-			log.Printf("==========================================================================================")
-
 			// Call the next handler
 			next.ServeHTTP(w, r)
 		})
 	}
 
-	// corsOptions := cors.Options{
-	// 	AllowedOrigins:   []string{"studio.apollographql.com"}, // or "*" for wildcard
-	// 	AllowCredentials: true,
-	// }
-	// corsHandler := cors.New(corsOptions)
 	corsHandler := func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			// Set the Access-Control-Allow-Origin header
