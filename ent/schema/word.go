@@ -30,13 +30,16 @@ func (Word) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.From("creator", User.Type).
 			Ref("words").
+			Immutable().
 			Unique(),
 		edge.From("group", Group.Type).
 			Ref("rootWords").
 			Unique(),
 		edge.To("definitions", Definition.Type).
+			Immutable().
 			Annotations(entgql.RelayConnection()),
 		edge.To("descendants", Word.Type).
+			Immutable().
 			Annotations(entgql.RelayConnection()),
 		edge.From("parents", Word.Type).
 			Ref("descendants"),
@@ -48,7 +51,10 @@ func (Word) Annotations() []schema.Annotation {
 	return []schema.Annotation{
 		entgql.RelayConnection(),
 		entgql.QueryField(),
-		entgql.Mutations(entgql.MutationCreate()),
+		entgql.Mutations(
+			entgql.MutationCreate(),
+			entgql.MutationUpdate(),
+		),
 	}
 }
 
