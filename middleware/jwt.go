@@ -101,6 +101,7 @@ func EnsureValidToken() func(next http.Handler) http.Handler {
 	}
 }
 
+// Based on the auth string passed in, checks to see if that authID exists in the Graph
 func checkUserExists(authID string) (int, error) {
 	client, err := ent.Open(dialect.Postgres, os.Getenv("DATABASE_URL"))
 	if err != nil {
@@ -118,14 +119,15 @@ func checkUserExists(authID string) (int, error) {
 	return user.ID, nil
 }
 
-func addUserToGraph(userID string) (int, error) {
+// Adds the user to Graph with the AuthID if does not exist
+func addUserToGraph(authID string) (int, error) {
 	client, err := ent.Open(dialect.Postgres, os.Getenv("DATABASE_URL"))
 	if err != nil {
 		return 0, fmt.Errorf("opening ent client: %w", err)
 	}
 	defer client.Close()
 
-	user, err := client.User.Create().SetAuthID(userID).Save(context.Background())
+	user, err := client.User.Create().SetAuthID(authID).Save(context.Background())
 	if err != nil {
 		return 0, fmt.Errorf("creating user: %w", err)
 	}
