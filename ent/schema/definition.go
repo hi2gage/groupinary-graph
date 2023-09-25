@@ -26,8 +26,9 @@ func (Definition) Fields() []ent.Field {
 func (Definition) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.From("creator", User.Type).
-			Ref("definitions").
-			Unique(),
+			Immutable().
+			Unique().
+			Ref("definitions"),
 	}
 }
 
