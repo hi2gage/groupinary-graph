@@ -6,10 +6,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"shrektionary_api/ent/definition"
 	"shrektionary_api/ent/group"
 	"shrektionary_api/ent/predicate"
-	"shrektionary_api/ent/user"
 	"shrektionary_api/ent/word"
 
 	"entgo.io/ent/dialect/sql"
@@ -36,25 +34,6 @@ func (wu *WordUpdate) SetDescription(s string) *WordUpdate {
 	return wu
 }
 
-// SetCreatorID sets the "creator" edge to the User entity by ID.
-func (wu *WordUpdate) SetCreatorID(id int) *WordUpdate {
-	wu.mutation.SetCreatorID(id)
-	return wu
-}
-
-// SetNillableCreatorID sets the "creator" edge to the User entity by ID if the given value is not nil.
-func (wu *WordUpdate) SetNillableCreatorID(id *int) *WordUpdate {
-	if id != nil {
-		wu = wu.SetCreatorID(*id)
-	}
-	return wu
-}
-
-// SetCreator sets the "creator" edge to the User entity.
-func (wu *WordUpdate) SetCreator(u *User) *WordUpdate {
-	return wu.SetCreatorID(u.ID)
-}
-
 // SetGroupID sets the "group" edge to the Group entity by ID.
 func (wu *WordUpdate) SetGroupID(id int) *WordUpdate {
 	wu.mutation.SetGroupID(id)
@@ -72,36 +51,6 @@ func (wu *WordUpdate) SetNillableGroupID(id *int) *WordUpdate {
 // SetGroup sets the "group" edge to the Group entity.
 func (wu *WordUpdate) SetGroup(g *Group) *WordUpdate {
 	return wu.SetGroupID(g.ID)
-}
-
-// AddDefinitionIDs adds the "definitions" edge to the Definition entity by IDs.
-func (wu *WordUpdate) AddDefinitionIDs(ids ...int) *WordUpdate {
-	wu.mutation.AddDefinitionIDs(ids...)
-	return wu
-}
-
-// AddDefinitions adds the "definitions" edges to the Definition entity.
-func (wu *WordUpdate) AddDefinitions(d ...*Definition) *WordUpdate {
-	ids := make([]int, len(d))
-	for i := range d {
-		ids[i] = d[i].ID
-	}
-	return wu.AddDefinitionIDs(ids...)
-}
-
-// AddDescendantIDs adds the "descendants" edge to the Word entity by IDs.
-func (wu *WordUpdate) AddDescendantIDs(ids ...int) *WordUpdate {
-	wu.mutation.AddDescendantIDs(ids...)
-	return wu
-}
-
-// AddDescendants adds the "descendants" edges to the Word entity.
-func (wu *WordUpdate) AddDescendants(w ...*Word) *WordUpdate {
-	ids := make([]int, len(w))
-	for i := range w {
-		ids[i] = w[i].ID
-	}
-	return wu.AddDescendantIDs(ids...)
 }
 
 // AddParentIDs adds the "parents" edge to the Word entity by IDs.
@@ -124,58 +73,10 @@ func (wu *WordUpdate) Mutation() *WordMutation {
 	return wu.mutation
 }
 
-// ClearCreator clears the "creator" edge to the User entity.
-func (wu *WordUpdate) ClearCreator() *WordUpdate {
-	wu.mutation.ClearCreator()
-	return wu
-}
-
 // ClearGroup clears the "group" edge to the Group entity.
 func (wu *WordUpdate) ClearGroup() *WordUpdate {
 	wu.mutation.ClearGroup()
 	return wu
-}
-
-// ClearDefinitions clears all "definitions" edges to the Definition entity.
-func (wu *WordUpdate) ClearDefinitions() *WordUpdate {
-	wu.mutation.ClearDefinitions()
-	return wu
-}
-
-// RemoveDefinitionIDs removes the "definitions" edge to Definition entities by IDs.
-func (wu *WordUpdate) RemoveDefinitionIDs(ids ...int) *WordUpdate {
-	wu.mutation.RemoveDefinitionIDs(ids...)
-	return wu
-}
-
-// RemoveDefinitions removes "definitions" edges to Definition entities.
-func (wu *WordUpdate) RemoveDefinitions(d ...*Definition) *WordUpdate {
-	ids := make([]int, len(d))
-	for i := range d {
-		ids[i] = d[i].ID
-	}
-	return wu.RemoveDefinitionIDs(ids...)
-}
-
-// ClearDescendants clears all "descendants" edges to the Word entity.
-func (wu *WordUpdate) ClearDescendants() *WordUpdate {
-	wu.mutation.ClearDescendants()
-	return wu
-}
-
-// RemoveDescendantIDs removes the "descendants" edge to Word entities by IDs.
-func (wu *WordUpdate) RemoveDescendantIDs(ids ...int) *WordUpdate {
-	wu.mutation.RemoveDescendantIDs(ids...)
-	return wu
-}
-
-// RemoveDescendants removes "descendants" edges to Word entities.
-func (wu *WordUpdate) RemoveDescendants(w ...*Word) *WordUpdate {
-	ids := make([]int, len(w))
-	for i := range w {
-		ids[i] = w[i].ID
-	}
-	return wu.RemoveDescendantIDs(ids...)
 }
 
 // ClearParents clears all "parents" edges to the Word entity.
@@ -251,35 +152,6 @@ func (wu *WordUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := wu.mutation.Description(); ok {
 		_spec.SetField(word.FieldDescription, field.TypeString, value)
 	}
-	if wu.mutation.CreatorCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: true,
-			Table:   word.CreatorTable,
-			Columns: []string{word.CreatorColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := wu.mutation.CreatorIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: true,
-			Table:   word.CreatorTable,
-			Columns: []string{word.CreatorColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
-	}
 	if wu.mutation.GroupCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -302,96 +174,6 @@ func (wu *WordUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(group.FieldID, field.TypeInt),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
-	}
-	if wu.mutation.DefinitionsCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   word.DefinitionsTable,
-			Columns: []string{word.DefinitionsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(definition.FieldID, field.TypeInt),
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := wu.mutation.RemovedDefinitionsIDs(); len(nodes) > 0 && !wu.mutation.DefinitionsCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   word.DefinitionsTable,
-			Columns: []string{word.DefinitionsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(definition.FieldID, field.TypeInt),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := wu.mutation.DefinitionsIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   word.DefinitionsTable,
-			Columns: []string{word.DefinitionsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(definition.FieldID, field.TypeInt),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
-	}
-	if wu.mutation.DescendantsCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
-			Inverse: false,
-			Table:   word.DescendantsTable,
-			Columns: word.DescendantsPrimaryKey,
-			Bidi:    true,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(word.FieldID, field.TypeInt),
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := wu.mutation.RemovedDescendantsIDs(); len(nodes) > 0 && !wu.mutation.DescendantsCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
-			Inverse: false,
-			Table:   word.DescendantsTable,
-			Columns: word.DescendantsPrimaryKey,
-			Bidi:    true,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(word.FieldID, field.TypeInt),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := wu.mutation.DescendantsIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
-			Inverse: false,
-			Table:   word.DescendantsTable,
-			Columns: word.DescendantsPrimaryKey,
-			Bidi:    true,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(word.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -470,25 +252,6 @@ func (wuo *WordUpdateOne) SetDescription(s string) *WordUpdateOne {
 	return wuo
 }
 
-// SetCreatorID sets the "creator" edge to the User entity by ID.
-func (wuo *WordUpdateOne) SetCreatorID(id int) *WordUpdateOne {
-	wuo.mutation.SetCreatorID(id)
-	return wuo
-}
-
-// SetNillableCreatorID sets the "creator" edge to the User entity by ID if the given value is not nil.
-func (wuo *WordUpdateOne) SetNillableCreatorID(id *int) *WordUpdateOne {
-	if id != nil {
-		wuo = wuo.SetCreatorID(*id)
-	}
-	return wuo
-}
-
-// SetCreator sets the "creator" edge to the User entity.
-func (wuo *WordUpdateOne) SetCreator(u *User) *WordUpdateOne {
-	return wuo.SetCreatorID(u.ID)
-}
-
 // SetGroupID sets the "group" edge to the Group entity by ID.
 func (wuo *WordUpdateOne) SetGroupID(id int) *WordUpdateOne {
 	wuo.mutation.SetGroupID(id)
@@ -506,36 +269,6 @@ func (wuo *WordUpdateOne) SetNillableGroupID(id *int) *WordUpdateOne {
 // SetGroup sets the "group" edge to the Group entity.
 func (wuo *WordUpdateOne) SetGroup(g *Group) *WordUpdateOne {
 	return wuo.SetGroupID(g.ID)
-}
-
-// AddDefinitionIDs adds the "definitions" edge to the Definition entity by IDs.
-func (wuo *WordUpdateOne) AddDefinitionIDs(ids ...int) *WordUpdateOne {
-	wuo.mutation.AddDefinitionIDs(ids...)
-	return wuo
-}
-
-// AddDefinitions adds the "definitions" edges to the Definition entity.
-func (wuo *WordUpdateOne) AddDefinitions(d ...*Definition) *WordUpdateOne {
-	ids := make([]int, len(d))
-	for i := range d {
-		ids[i] = d[i].ID
-	}
-	return wuo.AddDefinitionIDs(ids...)
-}
-
-// AddDescendantIDs adds the "descendants" edge to the Word entity by IDs.
-func (wuo *WordUpdateOne) AddDescendantIDs(ids ...int) *WordUpdateOne {
-	wuo.mutation.AddDescendantIDs(ids...)
-	return wuo
-}
-
-// AddDescendants adds the "descendants" edges to the Word entity.
-func (wuo *WordUpdateOne) AddDescendants(w ...*Word) *WordUpdateOne {
-	ids := make([]int, len(w))
-	for i := range w {
-		ids[i] = w[i].ID
-	}
-	return wuo.AddDescendantIDs(ids...)
 }
 
 // AddParentIDs adds the "parents" edge to the Word entity by IDs.
@@ -558,58 +291,10 @@ func (wuo *WordUpdateOne) Mutation() *WordMutation {
 	return wuo.mutation
 }
 
-// ClearCreator clears the "creator" edge to the User entity.
-func (wuo *WordUpdateOne) ClearCreator() *WordUpdateOne {
-	wuo.mutation.ClearCreator()
-	return wuo
-}
-
 // ClearGroup clears the "group" edge to the Group entity.
 func (wuo *WordUpdateOne) ClearGroup() *WordUpdateOne {
 	wuo.mutation.ClearGroup()
 	return wuo
-}
-
-// ClearDefinitions clears all "definitions" edges to the Definition entity.
-func (wuo *WordUpdateOne) ClearDefinitions() *WordUpdateOne {
-	wuo.mutation.ClearDefinitions()
-	return wuo
-}
-
-// RemoveDefinitionIDs removes the "definitions" edge to Definition entities by IDs.
-func (wuo *WordUpdateOne) RemoveDefinitionIDs(ids ...int) *WordUpdateOne {
-	wuo.mutation.RemoveDefinitionIDs(ids...)
-	return wuo
-}
-
-// RemoveDefinitions removes "definitions" edges to Definition entities.
-func (wuo *WordUpdateOne) RemoveDefinitions(d ...*Definition) *WordUpdateOne {
-	ids := make([]int, len(d))
-	for i := range d {
-		ids[i] = d[i].ID
-	}
-	return wuo.RemoveDefinitionIDs(ids...)
-}
-
-// ClearDescendants clears all "descendants" edges to the Word entity.
-func (wuo *WordUpdateOne) ClearDescendants() *WordUpdateOne {
-	wuo.mutation.ClearDescendants()
-	return wuo
-}
-
-// RemoveDescendantIDs removes the "descendants" edge to Word entities by IDs.
-func (wuo *WordUpdateOne) RemoveDescendantIDs(ids ...int) *WordUpdateOne {
-	wuo.mutation.RemoveDescendantIDs(ids...)
-	return wuo
-}
-
-// RemoveDescendants removes "descendants" edges to Word entities.
-func (wuo *WordUpdateOne) RemoveDescendants(w ...*Word) *WordUpdateOne {
-	ids := make([]int, len(w))
-	for i := range w {
-		ids[i] = w[i].ID
-	}
-	return wuo.RemoveDescendantIDs(ids...)
 }
 
 // ClearParents clears all "parents" edges to the Word entity.
@@ -715,35 +400,6 @@ func (wuo *WordUpdateOne) sqlSave(ctx context.Context) (_node *Word, err error) 
 	if value, ok := wuo.mutation.Description(); ok {
 		_spec.SetField(word.FieldDescription, field.TypeString, value)
 	}
-	if wuo.mutation.CreatorCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: true,
-			Table:   word.CreatorTable,
-			Columns: []string{word.CreatorColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := wuo.mutation.CreatorIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: true,
-			Table:   word.CreatorTable,
-			Columns: []string{word.CreatorColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
-	}
 	if wuo.mutation.GroupCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -766,96 +422,6 @@ func (wuo *WordUpdateOne) sqlSave(ctx context.Context) (_node *Word, err error) 
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(group.FieldID, field.TypeInt),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
-	}
-	if wuo.mutation.DefinitionsCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   word.DefinitionsTable,
-			Columns: []string{word.DefinitionsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(definition.FieldID, field.TypeInt),
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := wuo.mutation.RemovedDefinitionsIDs(); len(nodes) > 0 && !wuo.mutation.DefinitionsCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   word.DefinitionsTable,
-			Columns: []string{word.DefinitionsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(definition.FieldID, field.TypeInt),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := wuo.mutation.DefinitionsIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   word.DefinitionsTable,
-			Columns: []string{word.DefinitionsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(definition.FieldID, field.TypeInt),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
-	}
-	if wuo.mutation.DescendantsCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
-			Inverse: false,
-			Table:   word.DescendantsTable,
-			Columns: word.DescendantsPrimaryKey,
-			Bidi:    true,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(word.FieldID, field.TypeInt),
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := wuo.mutation.RemovedDescendantsIDs(); len(nodes) > 0 && !wuo.mutation.DescendantsCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
-			Inverse: false,
-			Table:   word.DescendantsTable,
-			Columns: word.DescendantsPrimaryKey,
-			Bidi:    true,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(word.FieldID, field.TypeInt),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := wuo.mutation.DescendantsIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
-			Inverse: false,
-			Table:   word.DescendantsTable,
-			Columns: word.DescendantsPrimaryKey,
-			Bidi:    true,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(word.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
