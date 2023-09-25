@@ -81,6 +81,8 @@ func (c *GroupCreate) SetInput(i CreateGroupInput) *GroupCreate {
 // CreateUserInput represents a mutation input for creating users.
 type CreateUserInput struct {
 	AuthID        string
+	FirstName     *string
+	LastName      *string
 	GroupIDs      []int
 	DefinitionIDs []int
 	WordIDs       []int
@@ -89,6 +91,12 @@ type CreateUserInput struct {
 // Mutate applies the CreateUserInput on the UserMutation builder.
 func (i *CreateUserInput) Mutate(m *UserMutation) {
 	m.SetAuthID(i.AuthID)
+	if v := i.FirstName; v != nil {
+		m.SetFirstName(*v)
+	}
+	if v := i.LastName; v != nil {
+		m.SetLastName(*v)
+	}
 	if v := i.GroupIDs; len(v) > 0 {
 		m.AddGroupIDs(v...)
 	}
