@@ -51,6 +51,11 @@ func (r *mutationResolver) CreateRootWord(ctx context.Context, input ent.CreateW
 	return r.client.Word.Create().SetInput(input).Save(ctx)
 }
 
+// UpdateGroup is the resolver for the updateGroup field.
+func (r *mutationResolver) UpdateGroup(ctx context.Context, id int, input ent.UpdateGroupInput) (*ent.Group, error) {
+	return r.client.Group.UpdateOneID(id).SetInput(input).Save(ctx)
+}
+
 // UpdateUser is the resolver for the updateUser field.
 func (r *mutationResolver) UpdateUser(ctx context.Context, input ent.UpdateUserInput) (*ent.User, error) {
 	creatorID, err := utils.GetCreatorIDFromContext(ctx)

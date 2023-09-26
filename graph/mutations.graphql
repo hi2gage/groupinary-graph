@@ -6,6 +6,7 @@ type Mutation {
     createRootWord(input: CreateWordInput!): Word!
 
     # Updates
+    updateGroup(id: ID!, input: UpdateGroupInput!): Group!
     updateUser(input: UpdateUserInput!): User!
     updateWord(id: ID!, input: UpdateWordInput!): Word!
     updateDefinition(id: ID!, input: UpdateDefinitionInput!): Definition!
