@@ -35,6 +35,7 @@ func (Group) Annotations() []schema.Annotation {
 		entgql.QueryField(),
 		entgql.Mutations(
 			entgql.MutationCreate(),
+			entgql.MutationUpdate(),
 		),
 	}
 }
