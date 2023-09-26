@@ -78,11 +78,11 @@ func EnsureValidToken() func(next http.Handler) http.Handler {
 				authID := claims.RegisteredClaims.Subject
 				userId, err := checkUserExists(authID)
 
-				if err != nil {
-					log.Printf("Error checking if user exists: %v", err)
-					http.Error(w, "Internal server error", http.StatusInternalServerError)
-					return
-				}
+				// if err != nil {
+				// 	log.Printf("Error checking if user exists: %v", err)
+				// 	http.Error(w, "Internal server error", http.StatusInternalServerError)
+				// 	return
+				// }
 
 				if userId == 0 {
 					userId, err = addUserToGraph(authID)
