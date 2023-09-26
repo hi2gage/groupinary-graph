@@ -8,6 +8,7 @@ import (
 	"shrektionary_api/ent/user"
 	"shrektionary_api/ent/word"
 	"strings"
+	"time"
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
@@ -18,6 +19,10 @@ type Word struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID int `json:"id,omitempty"`
+	// CreateTime holds the value of the "create_time" field.
+	CreateTime time.Time `json:"create_time,omitempty"`
+	// UpdateTime holds the value of the "update_time" field.
+	UpdateTime time.Time `json:"update_time,omitempty"`
 	// Description holds the value of the "description" field.
 	Description string `json:"description,omitempty"`
 	// DescendantCount holds the value of the "descendantCount" field.
@@ -115,6 +120,8 @@ func (*Word) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullInt64)
 		case word.FieldDescription:
 			values[i] = new(sql.NullString)
+		case word.FieldCreateTime, word.FieldUpdateTime:
+			values[i] = new(sql.NullTime)
 		case word.ForeignKeys[0]: // group_root_words
 			values[i] = new(sql.NullInt64)
 		case word.ForeignKeys[1]: // user_words
@@ -140,6 +147,18 @@ func (w *Word) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field id", value)
 			}
 			w.ID = int(value.Int64)
+		case word.FieldCreateTime:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field create_time", values[i])
+			} else if value.Valid {
+				w.CreateTime = value.Time
+			}
+		case word.FieldUpdateTime:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field update_time", values[i])
+			} else if value.Valid {
+				w.UpdateTime = value.Time
+			}
 		case word.FieldDescription:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field description", values[i])
@@ -227,6 +246,12 @@ func (w *Word) String() string {
 	var builder strings.Builder
 	builder.WriteString("Word(")
 	builder.WriteString(fmt.Sprintf("id=%v, ", w.ID))
+	builder.WriteString("create_time=")
+	builder.WriteString(w.CreateTime.Format(time.ANSIC))
+	builder.WriteString(", ")
+	builder.WriteString("update_time=")
+	builder.WriteString(w.UpdateTime.Format(time.ANSIC))
+	builder.WriteString(", ")
 	builder.WriteString("description=")
 	builder.WriteString(w.Description)
 	builder.WriteString(", ")
