@@ -6,8 +6,8 @@ package graph
 
 import (
 	"context"
-	"errors"
 	"shrektionary_api/ent"
+	utils "shrektionary_api/utils"
 )
 
 // CreateGroup is the resolver for the createGroup field.
@@ -53,7 +53,7 @@ func (r *mutationResolver) CreateRootWord(ctx context.Context, input ent.CreateW
 
 // UpdateUser is the resolver for the updateUser field.
 func (r *mutationResolver) UpdateUser(ctx context.Context, input ent.UpdateUserInput) (*ent.User, error) {
-	creatorID, err := getCreatorIDFromContext(ctx)
+	creatorID, err := utils.GetCreatorIDFromContext(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -65,21 +65,15 @@ func (r *mutationResolver) UpdateDefinition(ctx context.Context, id int, input e
 	return r.client.Definition.UpdateOneID(id).SetInput(input).Save(ctx)
 }
 
+// DeleteWord is the resolver for the deleteWord field.
+func (r *mutationResolver) DeleteWord(ctx context.Context, id int) (bool, error) {
+	if err := r.client.Word.DeleteOneID(id).Exec(ctx); err != nil {
+		return false, err
+	}
+	return true, nil
+}
+
 // Mutation returns MutationResolver implementation.
 func (r *Resolver) Mutation() MutationResolver { return &mutationResolver{r} }
 
 type mutationResolver struct{ *Resolver }
-
-// !!! WARNING !!!
-// The code below was going to be deleted when updating resolvers. It has been copied here so you have
-// one last chance to move it out of harms way if you want. There are two reasons this happens:
-//   - When renaming or deleting a resolver the old code will be put in here. You can safely delete
-//     it when you're done.
-//   - You have helper methods in this file. Move them out to keep these resolver files clean.
-func getCreatorIDFromContext(ctx context.Context) (int, error) {
-	creatorID, ok := ctx.Value("userID").(int)
-	if !ok {
-		return 0, errors.New("could not retrieve user_id from context")
-	}
-	return creatorID, nil
-}
