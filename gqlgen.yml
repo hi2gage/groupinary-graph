@@ -2,6 +2,7 @@
 schema:
   - ent.graphql
   - graph/mutations.graphql
+  - graph/queries.graphql
 
 # Where should the generated server code go?
 exec:
