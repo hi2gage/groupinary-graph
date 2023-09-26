@@ -7,7 +7,7 @@ package graph
 import (
 	"context"
 	"shrektionary_api/ent"
-	utils "shrektionary_api/utils"
+	"shrektionary_api/utils"
 )
 
 // CreateGroup is the resolver for the createGroup field.
@@ -60,6 +60,11 @@ func (r *mutationResolver) UpdateUser(ctx context.Context, input ent.UpdateUserI
 	return r.client.User.UpdateOneID(creatorID).SetInput(input).Save(ctx)
 }
 
+// UpdateWord is the resolver for the updateWord field.
+func (r *mutationResolver) UpdateWord(ctx context.Context, id int, input ent.UpdateWordInput) (*ent.Word, error) {
+	return r.client.Word.UpdateOneID(id).SetInput(input).Save(ctx)
+}
+
 // UpdateDefinition is the resolver for the updateDefinition field.
 func (r *mutationResolver) UpdateDefinition(ctx context.Context, id int, input ent.UpdateDefinitionInput) (*ent.Definition, error) {
 	return r.client.Definition.UpdateOneID(id).SetInput(input).Save(ctx)
@@ -68,6 +73,14 @@ func (r *mutationResolver) UpdateDefinition(ctx context.Context, id int, input e
 // DeleteWord is the resolver for the deleteWord field.
 func (r *mutationResolver) DeleteWord(ctx context.Context, id int) (bool, error) {
 	if err := r.client.Word.DeleteOneID(id).Exec(ctx); err != nil {
+		return false, err
+	}
+	return true, nil
+}
+
+// DeleteDefinition is the resolver for the deleteDefinition field.
+func (r *mutationResolver) DeleteDefinition(ctx context.Context, id int) (bool, error) {
+	if err := r.client.Definition.DeleteOneID(id).Exec(ctx); err != nil {
 		return false, err
 	}
 	return true, nil

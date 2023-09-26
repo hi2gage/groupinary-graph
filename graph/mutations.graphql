@@ -1,12 +1,16 @@
 type Mutation {
+    # Creates
     createGroup(input: CreateGroupInput!): Group!
     createDefinition(input: CreateDefinitionInput!): Definition!
     createWord(input: CreateWordInput!): Word!
     createRootWord(input: CreateWordInput!): Word!
 
+    # Updates
     updateUser(input: UpdateUserInput!): User!
+    updateWord(id: ID!, input: UpdateWordInput!): Word!
     updateDefinition(id: ID!, input: UpdateDefinitionInput!): Definition!
 
-
+    # Deletes
     deleteWord(id: ID!): Boolean!
+    deleteDefinition(id: ID!): Boolean!
 }
