@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"shrektionary_api/ent/definition"
 	"shrektionary_api/ent/user"
+	"time"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
@@ -18,6 +19,34 @@ type DefinitionCreate struct {
 	config
 	mutation *DefinitionMutation
 	hooks    []Hook
+}
+
+// SetCreateTime sets the "create_time" field.
+func (dc *DefinitionCreate) SetCreateTime(t time.Time) *DefinitionCreate {
+	dc.mutation.SetCreateTime(t)
+	return dc
+}
+
+// SetNillableCreateTime sets the "create_time" field if the given value is not nil.
+func (dc *DefinitionCreate) SetNillableCreateTime(t *time.Time) *DefinitionCreate {
+	if t != nil {
+		dc.SetCreateTime(*t)
+	}
+	return dc
+}
+
+// SetUpdateTime sets the "update_time" field.
+func (dc *DefinitionCreate) SetUpdateTime(t time.Time) *DefinitionCreate {
+	dc.mutation.SetUpdateTime(t)
+	return dc
+}
+
+// SetNillableUpdateTime sets the "update_time" field if the given value is not nil.
+func (dc *DefinitionCreate) SetNillableUpdateTime(t *time.Time) *DefinitionCreate {
+	if t != nil {
+		dc.SetUpdateTime(*t)
+	}
+	return dc
 }
 
 // SetDescription sets the "description" field.
@@ -52,6 +81,7 @@ func (dc *DefinitionCreate) Mutation() *DefinitionMutation {
 
 // Save creates the Definition in the database.
 func (dc *DefinitionCreate) Save(ctx context.Context) (*Definition, error) {
+	dc.defaults()
 	return withHooks(ctx, dc.sqlSave, dc.mutation, dc.hooks)
 }
 
@@ -77,8 +107,26 @@ func (dc *DefinitionCreate) ExecX(ctx context.Context) {
 	}
 }
 
+// defaults sets the default values of the builder before save.
+func (dc *DefinitionCreate) defaults() {
+	if _, ok := dc.mutation.CreateTime(); !ok {
+		v := definition.DefaultCreateTime()
+		dc.mutation.SetCreateTime(v)
+	}
+	if _, ok := dc.mutation.UpdateTime(); !ok {
+		v := definition.DefaultUpdateTime()
+		dc.mutation.SetUpdateTime(v)
+	}
+}
+
 // check runs all checks and user-defined validators on the builder.
 func (dc *DefinitionCreate) check() error {
+	if _, ok := dc.mutation.CreateTime(); !ok {
+		return &ValidationError{Name: "create_time", err: errors.New(`ent: missing required field "Definition.create_time"`)}
+	}
+	if _, ok := dc.mutation.UpdateTime(); !ok {
+		return &ValidationError{Name: "update_time", err: errors.New(`ent: missing required field "Definition.update_time"`)}
+	}
 	if _, ok := dc.mutation.Description(); !ok {
 		return &ValidationError{Name: "description", err: errors.New(`ent: missing required field "Definition.description"`)}
 	}
@@ -113,6 +161,14 @@ func (dc *DefinitionCreate) createSpec() (*Definition, *sqlgraph.CreateSpec) {
 		_node = &Definition{config: dc.config}
 		_spec = sqlgraph.NewCreateSpec(definition.Table, sqlgraph.NewFieldSpec(definition.FieldID, field.TypeInt))
 	)
+	if value, ok := dc.mutation.CreateTime(); ok {
+		_spec.SetField(definition.FieldCreateTime, field.TypeTime, value)
+		_node.CreateTime = value
+	}
+	if value, ok := dc.mutation.UpdateTime(); ok {
+		_spec.SetField(definition.FieldUpdateTime, field.TypeTime, value)
+		_node.UpdateTime = value
+	}
 	if value, ok := dc.mutation.Description(); ok {
 		_spec.SetField(definition.FieldDescription, field.TypeString, value)
 		_node.Description = value
@@ -151,6 +207,7 @@ func (dcb *DefinitionCreateBulk) Save(ctx context.Context) ([]*Definition, error
 	for i := range dcb.builders {
 		func(i int, root context.Context) {
 			builder := dcb.builders[i]
+			builder.defaults()
 			var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 				mutation, ok := m.(*DefinitionMutation)
 				if !ok {

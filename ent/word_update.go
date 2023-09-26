@@ -9,6 +9,7 @@ import (
 	"shrektionary_api/ent/group"
 	"shrektionary_api/ent/predicate"
 	"shrektionary_api/ent/word"
+	"time"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -25,6 +26,12 @@ type WordUpdate struct {
 // Where appends a list predicates to the WordUpdate builder.
 func (wu *WordUpdate) Where(ps ...predicate.Word) *WordUpdate {
 	wu.mutation.Where(ps...)
+	return wu
+}
+
+// SetUpdateTime sets the "update_time" field.
+func (wu *WordUpdate) SetUpdateTime(t time.Time) *WordUpdate {
+	wu.mutation.SetUpdateTime(t)
 	return wu
 }
 
@@ -102,6 +109,7 @@ func (wu *WordUpdate) RemoveParents(w ...*Word) *WordUpdate {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (wu *WordUpdate) Save(ctx context.Context) (int, error) {
+	wu.defaults()
 	return withHooks(ctx, wu.sqlSave, wu.mutation, wu.hooks)
 }
 
@@ -127,6 +135,14 @@ func (wu *WordUpdate) ExecX(ctx context.Context) {
 	}
 }
 
+// defaults sets the default values of the builder before save.
+func (wu *WordUpdate) defaults() {
+	if _, ok := wu.mutation.UpdateTime(); !ok {
+		v := word.UpdateDefaultUpdateTime()
+		wu.mutation.SetUpdateTime(v)
+	}
+}
+
 // check runs all checks and user-defined validators on the builder.
 func (wu *WordUpdate) check() error {
 	if v, ok := wu.mutation.Description(); ok {
@@ -148,6 +164,9 @@ func (wu *WordUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				ps[i](selector)
 			}
 		}
+	}
+	if value, ok := wu.mutation.UpdateTime(); ok {
+		_spec.SetField(word.FieldUpdateTime, field.TypeTime, value)
 	}
 	if value, ok := wu.mutation.Description(); ok {
 		_spec.SetField(word.FieldDescription, field.TypeString, value)
@@ -246,6 +265,12 @@ type WordUpdateOne struct {
 	mutation *WordMutation
 }
 
+// SetUpdateTime sets the "update_time" field.
+func (wuo *WordUpdateOne) SetUpdateTime(t time.Time) *WordUpdateOne {
+	wuo.mutation.SetUpdateTime(t)
+	return wuo
+}
+
 // SetDescription sets the "description" field.
 func (wuo *WordUpdateOne) SetDescription(s string) *WordUpdateOne {
 	wuo.mutation.SetDescription(s)
@@ -333,6 +358,7 @@ func (wuo *WordUpdateOne) Select(field string, fields ...string) *WordUpdateOne 
 
 // Save executes the query and returns the updated Word entity.
 func (wuo *WordUpdateOne) Save(ctx context.Context) (*Word, error) {
+	wuo.defaults()
 	return withHooks(ctx, wuo.sqlSave, wuo.mutation, wuo.hooks)
 }
 
@@ -355,6 +381,14 @@ func (wuo *WordUpdateOne) Exec(ctx context.Context) error {
 func (wuo *WordUpdateOne) ExecX(ctx context.Context) {
 	if err := wuo.Exec(ctx); err != nil {
 		panic(err)
+	}
+}
+
+// defaults sets the default values of the builder before save.
+func (wuo *WordUpdateOne) defaults() {
+	if _, ok := wuo.mutation.UpdateTime(); !ok {
+		v := word.UpdateDefaultUpdateTime()
+		wuo.mutation.SetUpdateTime(v)
 	}
 }
 
@@ -396,6 +430,9 @@ func (wuo *WordUpdateOne) sqlSave(ctx context.Context) (_node *Word, err error) 
 				ps[i](selector)
 			}
 		}
+	}
+	if value, ok := wuo.mutation.UpdateTime(); ok {
+		_spec.SetField(word.FieldUpdateTime, field.TypeTime, value)
 	}
 	if value, ok := wuo.mutation.Description(); ok {
 		_spec.SetField(word.FieldDescription, field.TypeString, value)

@@ -300,12 +300,12 @@ func (dq *DefinitionQuery) WithCreator(opts ...func(*UserQuery)) *DefinitionQuer
 // Example:
 //
 //	var v []struct {
-//		Description string `json:"description,omitempty"`
+//		CreateTime time.Time `json:"create_time,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
 //	client.Definition.Query().
-//		GroupBy(definition.FieldDescription).
+//		GroupBy(definition.FieldCreateTime).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
 func (dq *DefinitionQuery) GroupBy(field string, fields ...string) *DefinitionGroupBy {
@@ -323,11 +323,11 @@ func (dq *DefinitionQuery) GroupBy(field string, fields ...string) *DefinitionGr
 // Example:
 //
 //	var v []struct {
-//		Description string `json:"description,omitempty"`
+//		CreateTime time.Time `json:"create_time,omitempty"`
 //	}
 //
 //	client.Definition.Query().
-//		Select(definition.FieldDescription).
+//		Select(definition.FieldCreateTime).
 //		Scan(ctx, &v)
 func (dq *DefinitionQuery) Select(fields ...string) *DefinitionSelect {
 	dq.ctx.Fields = append(dq.ctx.Fields, fields...)

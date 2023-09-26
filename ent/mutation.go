@@ -39,6 +39,8 @@ type DefinitionMutation struct {
 	op             Op
 	typ            string
 	id             *int
+	create_time    *time.Time
+	update_time    *time.Time
 	description    *string
 	clearedFields  map[string]struct{}
 	creator        *int
@@ -144,6 +146,78 @@ func (m *DefinitionMutation) IDs(ctx context.Context) ([]int, error) {
 	default:
 		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
 	}
+}
+
+// SetCreateTime sets the "create_time" field.
+func (m *DefinitionMutation) SetCreateTime(t time.Time) {
+	m.create_time = &t
+}
+
+// CreateTime returns the value of the "create_time" field in the mutation.
+func (m *DefinitionMutation) CreateTime() (r time.Time, exists bool) {
+	v := m.create_time
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreateTime returns the old "create_time" field's value of the Definition entity.
+// If the Definition object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DefinitionMutation) OldCreateTime(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreateTime is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreateTime requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreateTime: %w", err)
+	}
+	return oldValue.CreateTime, nil
+}
+
+// ResetCreateTime resets all changes to the "create_time" field.
+func (m *DefinitionMutation) ResetCreateTime() {
+	m.create_time = nil
+}
+
+// SetUpdateTime sets the "update_time" field.
+func (m *DefinitionMutation) SetUpdateTime(t time.Time) {
+	m.update_time = &t
+}
+
+// UpdateTime returns the value of the "update_time" field in the mutation.
+func (m *DefinitionMutation) UpdateTime() (r time.Time, exists bool) {
+	v := m.update_time
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdateTime returns the old "update_time" field's value of the Definition entity.
+// If the Definition object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DefinitionMutation) OldUpdateTime(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdateTime is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdateTime requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdateTime: %w", err)
+	}
+	return oldValue.UpdateTime, nil
+}
+
+// ResetUpdateTime resets all changes to the "update_time" field.
+func (m *DefinitionMutation) ResetUpdateTime() {
+	m.update_time = nil
 }
 
 // SetDescription sets the "description" field.
@@ -255,7 +329,13 @@ func (m *DefinitionMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *DefinitionMutation) Fields() []string {
-	fields := make([]string, 0, 1)
+	fields := make([]string, 0, 3)
+	if m.create_time != nil {
+		fields = append(fields, definition.FieldCreateTime)
+	}
+	if m.update_time != nil {
+		fields = append(fields, definition.FieldUpdateTime)
+	}
 	if m.description != nil {
 		fields = append(fields, definition.FieldDescription)
 	}
@@ -267,6 +347,10 @@ func (m *DefinitionMutation) Fields() []string {
 // schema.
 func (m *DefinitionMutation) Field(name string) (ent.Value, bool) {
 	switch name {
+	case definition.FieldCreateTime:
+		return m.CreateTime()
+	case definition.FieldUpdateTime:
+		return m.UpdateTime()
 	case definition.FieldDescription:
 		return m.Description()
 	}
@@ -278,6 +362,10 @@ func (m *DefinitionMutation) Field(name string) (ent.Value, bool) {
 // database failed.
 func (m *DefinitionMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
 	switch name {
+	case definition.FieldCreateTime:
+		return m.OldCreateTime(ctx)
+	case definition.FieldUpdateTime:
+		return m.OldUpdateTime(ctx)
 	case definition.FieldDescription:
 		return m.OldDescription(ctx)
 	}
@@ -289,6 +377,20 @@ func (m *DefinitionMutation) OldField(ctx context.Context, name string) (ent.Val
 // type.
 func (m *DefinitionMutation) SetField(name string, value ent.Value) error {
 	switch name {
+	case definition.FieldCreateTime:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreateTime(v)
+		return nil
+	case definition.FieldUpdateTime:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdateTime(v)
+		return nil
 	case definition.FieldDescription:
 		v, ok := value.(string)
 		if !ok {
@@ -345,6 +447,12 @@ func (m *DefinitionMutation) ClearField(name string) error {
 // It returns an error if the field is not defined in the schema.
 func (m *DefinitionMutation) ResetField(name string) error {
 	switch name {
+	case definition.FieldCreateTime:
+		m.ResetCreateTime()
+		return nil
+	case definition.FieldUpdateTime:
+		m.ResetUpdateTime()
+		return nil
 	case definition.FieldDescription:
 		m.ResetDescription()
 		return nil
@@ -432,6 +540,8 @@ type GroupMutation struct {
 	op               Op
 	typ              string
 	id               *int
+	create_time      *time.Time
+	update_time      *time.Time
 	description      *string
 	clearedFields    map[string]struct{}
 	rootWords        map[int]struct{}
@@ -541,6 +651,78 @@ func (m *GroupMutation) IDs(ctx context.Context) ([]int, error) {
 	default:
 		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
 	}
+}
+
+// SetCreateTime sets the "create_time" field.
+func (m *GroupMutation) SetCreateTime(t time.Time) {
+	m.create_time = &t
+}
+
+// CreateTime returns the value of the "create_time" field in the mutation.
+func (m *GroupMutation) CreateTime() (r time.Time, exists bool) {
+	v := m.create_time
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreateTime returns the old "create_time" field's value of the Group entity.
+// If the Group object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *GroupMutation) OldCreateTime(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreateTime is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreateTime requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreateTime: %w", err)
+	}
+	return oldValue.CreateTime, nil
+}
+
+// ResetCreateTime resets all changes to the "create_time" field.
+func (m *GroupMutation) ResetCreateTime() {
+	m.create_time = nil
+}
+
+// SetUpdateTime sets the "update_time" field.
+func (m *GroupMutation) SetUpdateTime(t time.Time) {
+	m.update_time = &t
+}
+
+// UpdateTime returns the value of the "update_time" field in the mutation.
+func (m *GroupMutation) UpdateTime() (r time.Time, exists bool) {
+	v := m.update_time
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdateTime returns the old "update_time" field's value of the Group entity.
+// If the Group object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *GroupMutation) OldUpdateTime(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdateTime is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdateTime requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdateTime: %w", err)
+	}
+	return oldValue.UpdateTime, nil
+}
+
+// ResetUpdateTime resets all changes to the "update_time" field.
+func (m *GroupMutation) ResetUpdateTime() {
+	m.update_time = nil
 }
 
 // SetDescription sets the "description" field.
@@ -721,7 +903,13 @@ func (m *GroupMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *GroupMutation) Fields() []string {
-	fields := make([]string, 0, 1)
+	fields := make([]string, 0, 3)
+	if m.create_time != nil {
+		fields = append(fields, group.FieldCreateTime)
+	}
+	if m.update_time != nil {
+		fields = append(fields, group.FieldUpdateTime)
+	}
 	if m.description != nil {
 		fields = append(fields, group.FieldDescription)
 	}
@@ -733,6 +921,10 @@ func (m *GroupMutation) Fields() []string {
 // schema.
 func (m *GroupMutation) Field(name string) (ent.Value, bool) {
 	switch name {
+	case group.FieldCreateTime:
+		return m.CreateTime()
+	case group.FieldUpdateTime:
+		return m.UpdateTime()
 	case group.FieldDescription:
 		return m.Description()
 	}
@@ -744,6 +936,10 @@ func (m *GroupMutation) Field(name string) (ent.Value, bool) {
 // database failed.
 func (m *GroupMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
 	switch name {
+	case group.FieldCreateTime:
+		return m.OldCreateTime(ctx)
+	case group.FieldUpdateTime:
+		return m.OldUpdateTime(ctx)
 	case group.FieldDescription:
 		return m.OldDescription(ctx)
 	}
@@ -755,6 +951,20 @@ func (m *GroupMutation) OldField(ctx context.Context, name string) (ent.Value, e
 // type.
 func (m *GroupMutation) SetField(name string, value ent.Value) error {
 	switch name {
+	case group.FieldCreateTime:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreateTime(v)
+		return nil
+	case group.FieldUpdateTime:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdateTime(v)
+		return nil
 	case group.FieldDescription:
 		v, ok := value.(string)
 		if !ok {
@@ -811,6 +1021,12 @@ func (m *GroupMutation) ClearField(name string) error {
 // It returns an error if the field is not defined in the schema.
 func (m *GroupMutation) ResetField(name string) error {
 	switch name {
+	case group.FieldCreateTime:
+		m.ResetCreateTime()
+		return nil
+	case group.FieldUpdateTime:
+		m.ResetUpdateTime()
+		return nil
 	case group.FieldDescription:
 		m.ResetDescription()
 		return nil
@@ -1776,6 +1992,8 @@ type WordMutation struct {
 	op                 Op
 	typ                string
 	id                 *int
+	create_time        *time.Time
+	update_time        *time.Time
 	description        *string
 	descendantCount    *int
 	adddescendantCount *int
@@ -1894,6 +2112,78 @@ func (m *WordMutation) IDs(ctx context.Context) ([]int, error) {
 	default:
 		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
 	}
+}
+
+// SetCreateTime sets the "create_time" field.
+func (m *WordMutation) SetCreateTime(t time.Time) {
+	m.create_time = &t
+}
+
+// CreateTime returns the value of the "create_time" field in the mutation.
+func (m *WordMutation) CreateTime() (r time.Time, exists bool) {
+	v := m.create_time
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreateTime returns the old "create_time" field's value of the Word entity.
+// If the Word object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *WordMutation) OldCreateTime(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreateTime is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreateTime requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreateTime: %w", err)
+	}
+	return oldValue.CreateTime, nil
+}
+
+// ResetCreateTime resets all changes to the "create_time" field.
+func (m *WordMutation) ResetCreateTime() {
+	m.create_time = nil
+}
+
+// SetUpdateTime sets the "update_time" field.
+func (m *WordMutation) SetUpdateTime(t time.Time) {
+	m.update_time = &t
+}
+
+// UpdateTime returns the value of the "update_time" field in the mutation.
+func (m *WordMutation) UpdateTime() (r time.Time, exists bool) {
+	v := m.update_time
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdateTime returns the old "update_time" field's value of the Word entity.
+// If the Word object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *WordMutation) OldUpdateTime(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdateTime is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdateTime requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdateTime: %w", err)
+	}
+	return oldValue.UpdateTime, nil
+}
+
+// ResetUpdateTime resets all changes to the "update_time" field.
+func (m *WordMutation) ResetUpdateTime() {
+	m.update_time = nil
 }
 
 // SetDescription sets the "description" field.
@@ -2262,7 +2552,13 @@ func (m *WordMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *WordMutation) Fields() []string {
-	fields := make([]string, 0, 2)
+	fields := make([]string, 0, 4)
+	if m.create_time != nil {
+		fields = append(fields, word.FieldCreateTime)
+	}
+	if m.update_time != nil {
+		fields = append(fields, word.FieldUpdateTime)
+	}
 	if m.description != nil {
 		fields = append(fields, word.FieldDescription)
 	}
@@ -2277,6 +2573,10 @@ func (m *WordMutation) Fields() []string {
 // schema.
 func (m *WordMutation) Field(name string) (ent.Value, bool) {
 	switch name {
+	case word.FieldCreateTime:
+		return m.CreateTime()
+	case word.FieldUpdateTime:
+		return m.UpdateTime()
 	case word.FieldDescription:
 		return m.Description()
 	case word.FieldDescendantCount:
@@ -2290,6 +2590,10 @@ func (m *WordMutation) Field(name string) (ent.Value, bool) {
 // database failed.
 func (m *WordMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
 	switch name {
+	case word.FieldCreateTime:
+		return m.OldCreateTime(ctx)
+	case word.FieldUpdateTime:
+		return m.OldUpdateTime(ctx)
 	case word.FieldDescription:
 		return m.OldDescription(ctx)
 	case word.FieldDescendantCount:
@@ -2303,6 +2607,20 @@ func (m *WordMutation) OldField(ctx context.Context, name string) (ent.Value, er
 // type.
 func (m *WordMutation) SetField(name string, value ent.Value) error {
 	switch name {
+	case word.FieldCreateTime:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreateTime(v)
+		return nil
+	case word.FieldUpdateTime:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdateTime(v)
+		return nil
 	case word.FieldDescription:
 		v, ok := value.(string)
 		if !ok {
@@ -2381,6 +2699,12 @@ func (m *WordMutation) ClearField(name string) error {
 // It returns an error if the field is not defined in the schema.
 func (m *WordMutation) ResetField(name string) error {
 	switch name {
+	case word.FieldCreateTime:
+		m.ResetCreateTime()
+		return nil
+	case word.FieldUpdateTime:
+		m.ResetUpdateTime()
+		return nil
 	case word.FieldDescription:
 		m.ResetDescription()
 		return nil

@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"shrektionary_api/ent/definition"
 	"shrektionary_api/ent/predicate"
+	"time"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -27,6 +28,12 @@ func (du *DefinitionUpdate) Where(ps ...predicate.Definition) *DefinitionUpdate 
 	return du
 }
 
+// SetUpdateTime sets the "update_time" field.
+func (du *DefinitionUpdate) SetUpdateTime(t time.Time) *DefinitionUpdate {
+	du.mutation.SetUpdateTime(t)
+	return du
+}
+
 // SetDescription sets the "description" field.
 func (du *DefinitionUpdate) SetDescription(s string) *DefinitionUpdate {
 	du.mutation.SetDescription(s)
@@ -40,6 +47,7 @@ func (du *DefinitionUpdate) Mutation() *DefinitionMutation {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (du *DefinitionUpdate) Save(ctx context.Context) (int, error) {
+	du.defaults()
 	return withHooks(ctx, du.sqlSave, du.mutation, du.hooks)
 }
 
@@ -65,6 +73,14 @@ func (du *DefinitionUpdate) ExecX(ctx context.Context) {
 	}
 }
 
+// defaults sets the default values of the builder before save.
+func (du *DefinitionUpdate) defaults() {
+	if _, ok := du.mutation.UpdateTime(); !ok {
+		v := definition.UpdateDefaultUpdateTime()
+		du.mutation.SetUpdateTime(v)
+	}
+}
+
 // check runs all checks and user-defined validators on the builder.
 func (du *DefinitionUpdate) check() error {
 	if v, ok := du.mutation.Description(); ok {
@@ -87,6 +103,9 @@ func (du *DefinitionUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 		}
 	}
+	if value, ok := du.mutation.UpdateTime(); ok {
+		_spec.SetField(definition.FieldUpdateTime, field.TypeTime, value)
+	}
 	if value, ok := du.mutation.Description(); ok {
 		_spec.SetField(definition.FieldDescription, field.TypeString, value)
 	}
@@ -108,6 +127,12 @@ type DefinitionUpdateOne struct {
 	fields   []string
 	hooks    []Hook
 	mutation *DefinitionMutation
+}
+
+// SetUpdateTime sets the "update_time" field.
+func (duo *DefinitionUpdateOne) SetUpdateTime(t time.Time) *DefinitionUpdateOne {
+	duo.mutation.SetUpdateTime(t)
+	return duo
 }
 
 // SetDescription sets the "description" field.
@@ -136,6 +161,7 @@ func (duo *DefinitionUpdateOne) Select(field string, fields ...string) *Definiti
 
 // Save executes the query and returns the updated Definition entity.
 func (duo *DefinitionUpdateOne) Save(ctx context.Context) (*Definition, error) {
+	duo.defaults()
 	return withHooks(ctx, duo.sqlSave, duo.mutation, duo.hooks)
 }
 
@@ -158,6 +184,14 @@ func (duo *DefinitionUpdateOne) Exec(ctx context.Context) error {
 func (duo *DefinitionUpdateOne) ExecX(ctx context.Context) {
 	if err := duo.Exec(ctx); err != nil {
 		panic(err)
+	}
+}
+
+// defaults sets the default values of the builder before save.
+func (duo *DefinitionUpdateOne) defaults() {
+	if _, ok := duo.mutation.UpdateTime(); !ok {
+		v := definition.UpdateDefaultUpdateTime()
+		duo.mutation.SetUpdateTime(v)
 	}
 }
 
@@ -199,6 +233,9 @@ func (duo *DefinitionUpdateOne) sqlSave(ctx context.Context) (_node *Definition,
 				ps[i](selector)
 			}
 		}
+	}
+	if value, ok := duo.mutation.UpdateTime(); ok {
+		_spec.SetField(definition.FieldUpdateTime, field.TypeTime, value)
 	}
 	if value, ok := duo.mutation.Description(); ok {
 		_spec.SetField(definition.FieldDescription, field.TypeString, value)
