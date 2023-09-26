@@ -6,4 +6,7 @@ type Mutation {
 
     updateUser(input: UpdateUserInput!): User!
     updateDefinition(id: ID!, input: UpdateDefinitionInput!): Definition!
+
+
+    deleteWord(id: ID!): Boolean!
 }
