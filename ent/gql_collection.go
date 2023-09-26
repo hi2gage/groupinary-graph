@@ -479,6 +479,16 @@ func (u *UserQuery) collectField(ctx context.Context, opCtx *graphql.OperationCo
 			u.WithNamedWords(alias, func(wq *WordQuery) {
 				*wq = *query
 			})
+		case "createTime":
+			if _, ok := fieldSeen[user.FieldCreateTime]; !ok {
+				selectedFields = append(selectedFields, user.FieldCreateTime)
+				fieldSeen[user.FieldCreateTime] = struct{}{}
+			}
+		case "updateTime":
+			if _, ok := fieldSeen[user.FieldUpdateTime]; !ok {
+				selectedFields = append(selectedFields, user.FieldUpdateTime)
+				fieldSeen[user.FieldUpdateTime] = struct{}{}
+			}
 		case "authid":
 			if _, ok := fieldSeen[user.FieldAuthID]; !ok {
 				selectedFields = append(selectedFields, user.FieldAuthID)
