@@ -68,6 +68,10 @@ type DefinitionWhereInput struct {
 	// "creator" edge predicates.
 	HasCreator     *bool             `json:"hasCreator,omitempty"`
 	HasCreatorWith []*UserWhereInput `json:"hasCreatorWith,omitempty"`
+
+	// "word" edge predicates.
+	HasWord     *bool             `json:"hasWord,omitempty"`
+	HasWordWith []*WordWhereInput `json:"hasWordWith,omitempty"`
 }
 
 // AddPredicates adds custom predicates to the where input to be used during the filtering phase.
@@ -270,6 +274,24 @@ func (i *DefinitionWhereInput) P() (predicate.Definition, error) {
 			with = append(with, p)
 		}
 		predicates = append(predicates, definition.HasCreatorWith(with...))
+	}
+	if i.HasWord != nil {
+		p := definition.HasWord()
+		if !*i.HasWord {
+			p = definition.Not(p)
+		}
+		predicates = append(predicates, p)
+	}
+	if len(i.HasWordWith) > 0 {
+		with := make([]predicate.Word, 0, len(i.HasWordWith))
+		for _, w := range i.HasWordWith {
+			p, err := w.P()
+			if err != nil {
+				return nil, fmt.Errorf("%w: field 'HasWordWith'", err)
+			}
+			with = append(with, p)
+		}
+		predicates = append(predicates, definition.HasWordWith(with...))
 	}
 	switch len(predicates) {
 	case 0:

@@ -12,6 +12,7 @@ type CreateDefinitionInput struct {
 	UpdateTime  *time.Time
 	Description string
 	CreatorID   *int
+	WordID      *int
 }
 
 // Mutate applies the CreateDefinitionInput on the DefinitionMutation builder.
@@ -25,6 +26,9 @@ func (i *CreateDefinitionInput) Mutate(m *DefinitionMutation) {
 	m.SetDescription(i.Description)
 	if v := i.CreatorID; v != nil {
 		m.SetCreatorID(*v)
+	}
+	if v := i.WordID; v != nil {
+		m.SetWordID(*v)
 	}
 }
 

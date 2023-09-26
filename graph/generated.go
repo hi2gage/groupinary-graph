@@ -53,6 +53,7 @@ type ComplexityRoot struct {
 		Description func(childComplexity int) int
 		ID          func(childComplexity int) int
 		UpdateTime  func(childComplexity int) int
+		Word        func(childComplexity int) int
 	}
 
 	DefinitionConnection struct {
@@ -76,16 +77,18 @@ type ComplexityRoot struct {
 	}
 
 	Mutation struct {
-		CreateDefinition func(childComplexity int, input ent.CreateDefinitionInput) int
-		CreateGroup      func(childComplexity int, input ent.CreateGroupInput) int
-		CreateWord       func(childComplexity int, input ent.CreateWordInput) int
+		AddChildWord     func(childComplexity int, parentIds []int, childWord string, childDefinition *string) int
+		AddDefinition    func(childComplexity int, wordID int, definition string) int
+		AddParentWord    func(childComplexity int, parentWord string, parentDefinition *string) int
+		ConnectWords     func(childComplexity int, parentID int, childID int) int
+		CreateGroup      func(childComplexity int, name string) int
 		DeleteDefinition func(childComplexity int, id int) int
 		DeleteGroup      func(childComplexity int, id int) int
 		DeleteWord       func(childComplexity int, id int) int
-		UpdateDefinition func(childComplexity int, id int, input ent.UpdateDefinitionInput) int
-		UpdateGroup      func(childComplexity int, id int, input ent.UpdateGroupInput) int
-		UpdateUser       func(childComplexity int, input ent.UpdateUserInput) int
-		UpdateWord       func(childComplexity int, id int, input ent.UpdateWordInput) int
+		UpdateDefinition func(childComplexity int, id int, definitionDescription string) int
+		UpdateGroupName  func(childComplexity int, id int, name string) int
+		UpdateUserName   func(childComplexity int, firstName string, lastName *string) int
+		UpdateWord       func(childComplexity int, id int, wordDescription string) int
 	}
 
 	PageInfo struct {
@@ -142,16 +145,18 @@ type ComplexityRoot struct {
 }
 
 type MutationResolver interface {
-	CreateGroup(ctx context.Context, input ent.CreateGroupInput) (*ent.Group, error)
-	UpdateGroup(ctx context.Context, id int, input ent.UpdateGroupInput) (*ent.Group, error)
+	CreateGroup(ctx context.Context, name string) (*ent.Group, error)
+	UpdateGroupName(ctx context.Context, id int, name string) (*ent.Group, error)
 	DeleteGroup(ctx context.Context, id int) (bool, error)
-	UpdateUser(ctx context.Context, input ent.UpdateUserInput) (*ent.User, error)
-	CreateWord(ctx context.Context, input ent.CreateWordInput) (*ent.Word, error)
-	UpdateWord(ctx context.Context, id int, input ent.UpdateWordInput) (*ent.Word, error)
 	DeleteWord(ctx context.Context, id int) (bool, error)
-	CreateDefinition(ctx context.Context, input ent.CreateDefinitionInput) (*ent.Definition, error)
-	UpdateDefinition(ctx context.Context, id int, input ent.UpdateDefinitionInput) (*ent.Definition, error)
 	DeleteDefinition(ctx context.Context, id int) (bool, error)
+	UpdateUserName(ctx context.Context, firstName string, lastName *string) (*ent.User, error)
+	AddParentWord(ctx context.Context, parentWord string, parentDefinition *string) (*ent.Word, error)
+	AddChildWord(ctx context.Context, parentIds []int, childWord string, childDefinition *string) (*ent.Word, error)
+	AddDefinition(ctx context.Context, wordID int, definition string) (*ent.Definition, error)
+	ConnectWords(ctx context.Context, parentID int, childID int) (*ent.Word, error)
+	UpdateWord(ctx context.Context, id int, wordDescription string) (*ent.Word, error)
+	UpdateDefinition(ctx context.Context, id int, definitionDescription string) (*ent.Definition, error)
 }
 type QueryResolver interface {
 	Node(ctx context.Context, id int) (ent.Noder, error)
@@ -212,6 +217,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Definition.UpdateTime(childComplexity), true
+
+	case "Definition.word":
+		if e.complexity.Definition.Word == nil {
+			break
+		}
+
+		return e.complexity.Definition.Word(childComplexity), true
 
 	case "DefinitionConnection.edges":
 		if e.complexity.DefinitionConnection.Edges == nil {
@@ -295,17 +307,53 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Group.Users(childComplexity), true
 
-	case "Mutation.createDefinition":
-		if e.complexity.Mutation.CreateDefinition == nil {
+	case "Mutation.addChildWord":
+		if e.complexity.Mutation.AddChildWord == nil {
 			break
 		}
 
-		args, err := ec.field_Mutation_createDefinition_args(context.TODO(), rawArgs)
+		args, err := ec.field_Mutation_addChildWord_args(context.TODO(), rawArgs)
 		if err != nil {
 			return 0, false
 		}
 
-		return e.complexity.Mutation.CreateDefinition(childComplexity, args["input"].(ent.CreateDefinitionInput)), true
+		return e.complexity.Mutation.AddChildWord(childComplexity, args["parentIds"].([]int), args["childWord"].(string), args["childDefinition"].(*string)), true
+
+	case "Mutation.addDefinition":
+		if e.complexity.Mutation.AddDefinition == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_addDefinition_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.AddDefinition(childComplexity, args["wordID"].(int), args["definition"].(string)), true
+
+	case "Mutation.addParentWord":
+		if e.complexity.Mutation.AddParentWord == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_addParentWord_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.AddParentWord(childComplexity, args["parentWord"].(string), args["parentDefinition"].(*string)), true
+
+	case "Mutation.connectWords":
+		if e.complexity.Mutation.ConnectWords == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_connectWords_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.ConnectWords(childComplexity, args["parentId"].(int), args["childId"].(int)), true
 
 	case "Mutation.createGroup":
 		if e.complexity.Mutation.CreateGroup == nil {
@@ -317,19 +365,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.CreateGroup(childComplexity, args["input"].(ent.CreateGroupInput)), true
-
-	case "Mutation.createWord":
-		if e.complexity.Mutation.CreateWord == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_createWord_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.CreateWord(childComplexity, args["input"].(ent.CreateWordInput)), true
+		return e.complexity.Mutation.CreateGroup(childComplexity, args["name"].(string)), true
 
 	case "Mutation.deleteDefinition":
 		if e.complexity.Mutation.DeleteDefinition == nil {
@@ -377,31 +413,31 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.UpdateDefinition(childComplexity, args["id"].(int), args["input"].(ent.UpdateDefinitionInput)), true
+		return e.complexity.Mutation.UpdateDefinition(childComplexity, args["id"].(int), args["definitionDescription"].(string)), true
 
-	case "Mutation.updateGroup":
-		if e.complexity.Mutation.UpdateGroup == nil {
+	case "Mutation.updateGroupName":
+		if e.complexity.Mutation.UpdateGroupName == nil {
 			break
 		}
 
-		args, err := ec.field_Mutation_updateGroup_args(context.TODO(), rawArgs)
+		args, err := ec.field_Mutation_updateGroupName_args(context.TODO(), rawArgs)
 		if err != nil {
 			return 0, false
 		}
 
-		return e.complexity.Mutation.UpdateGroup(childComplexity, args["id"].(int), args["input"].(ent.UpdateGroupInput)), true
+		return e.complexity.Mutation.UpdateGroupName(childComplexity, args["id"].(int), args["name"].(string)), true
 
-	case "Mutation.updateUser":
-		if e.complexity.Mutation.UpdateUser == nil {
+	case "Mutation.updateUserName":
+		if e.complexity.Mutation.UpdateUserName == nil {
 			break
 		}
 
-		args, err := ec.field_Mutation_updateUser_args(context.TODO(), rawArgs)
+		args, err := ec.field_Mutation_updateUserName_args(context.TODO(), rawArgs)
 		if err != nil {
 			return 0, false
 		}
 
-		return e.complexity.Mutation.UpdateUser(childComplexity, args["input"].(ent.UpdateUserInput)), true
+		return e.complexity.Mutation.UpdateUserName(childComplexity, args["firstName"].(string), args["lastName"].(*string)), true
 
 	case "Mutation.updateWord":
 		if e.complexity.Mutation.UpdateWord == nil {
@@ -413,7 +449,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.UpdateWord(childComplexity, args["id"].(int), args["input"].(ent.UpdateWordInput)), true
+		return e.complexity.Mutation.UpdateWord(childComplexity, args["id"].(int), args["wordDescription"].(string)), true
 
 	case "PageInfo.endCursor":
 		if e.complexity.PageInfo.EndCursor == nil {
@@ -801,6 +837,7 @@ input CreateDefinitionInput {
   updateTime: Time
   description: String!
   creatorID: ID
+  wordID: ID
 }
 """
 CreateGroupInput is used for create Group object.
@@ -838,6 +875,7 @@ type Definition implements Node {
   updateTime: Time!
   description: String!
   creator: User
+  word: Word
 }
 """A connection to a list of items."""
 type DefinitionConnection {
@@ -918,6 +956,9 @@ input DefinitionWhereInput {
   """creator edge predicates"""
   hasCreator: Boolean
   hasCreatorWith: [UserWhereInput!]
+  """word edge predicates"""
+  hasWord: Boolean
+  hasWordWith: [WordWhereInput!]
 }
 type Group implements Node {
   id: ID!
@@ -1482,48 +1523,123 @@ func (ec *executionContext) field_Group_rootwords_args(ctx context.Context, rawA
 	return args, nil
 }
 
-func (ec *executionContext) field_Mutation_createDefinition_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_Mutation_addChildWord_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 ent.CreateDefinitionInput
-	if tmp, ok := rawArgs["input"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNCreateDefinitionInput2shrektionary_apiᚋentᚐCreateDefinitionInput(ctx, tmp)
+	var arg0 []int
+	if tmp, ok := rawArgs["parentIds"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("parentIds"))
+		arg0, err = ec.unmarshalOID2ᚕintᚄ(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["input"] = arg0
+	args["parentIds"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["childWord"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("childWord"))
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["childWord"] = arg1
+	var arg2 *string
+	if tmp, ok := rawArgs["childDefinition"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("childDefinition"))
+		arg2, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["childDefinition"] = arg2
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_addDefinition_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["wordID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("wordID"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["wordID"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["definition"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("definition"))
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["definition"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_addParentWord_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["parentWord"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("parentWord"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["parentWord"] = arg0
+	var arg1 *string
+	if tmp, ok := rawArgs["parentDefinition"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("parentDefinition"))
+		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["parentDefinition"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_connectWords_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["parentId"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("parentId"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["parentId"] = arg0
+	var arg1 int
+	if tmp, ok := rawArgs["childId"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("childId"))
+		arg1, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["childId"] = arg1
 	return args, nil
 }
 
 func (ec *executionContext) field_Mutation_createGroup_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 ent.CreateGroupInput
-	if tmp, ok := rawArgs["input"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNCreateGroupInput2shrektionary_apiᚋentᚐCreateGroupInput(ctx, tmp)
+	var arg0 string
+	if tmp, ok := rawArgs["name"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["input"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Mutation_createWord_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 ent.CreateWordInput
-	if tmp, ok := rawArgs["input"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNCreateWordInput2shrektionary_apiᚋentᚐCreateWordInput(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["input"] = arg0
+	args["name"] = arg0
 	return args, nil
 }
 
@@ -1584,19 +1700,19 @@ func (ec *executionContext) field_Mutation_updateDefinition_args(ctx context.Con
 		}
 	}
 	args["id"] = arg0
-	var arg1 ent.UpdateDefinitionInput
-	if tmp, ok := rawArgs["input"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg1, err = ec.unmarshalNUpdateDefinitionInput2shrektionary_apiᚋentᚐUpdateDefinitionInput(ctx, tmp)
+	var arg1 string
+	if tmp, ok := rawArgs["definitionDescription"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("definitionDescription"))
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["input"] = arg1
+	args["definitionDescription"] = arg1
 	return args, nil
 }
 
-func (ec *executionContext) field_Mutation_updateGroup_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_Mutation_updateGroupName_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 int
@@ -1608,30 +1724,39 @@ func (ec *executionContext) field_Mutation_updateGroup_args(ctx context.Context,
 		}
 	}
 	args["id"] = arg0
-	var arg1 ent.UpdateGroupInput
-	if tmp, ok := rawArgs["input"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg1, err = ec.unmarshalNUpdateGroupInput2shrektionary_apiᚋentᚐUpdateGroupInput(ctx, tmp)
+	var arg1 string
+	if tmp, ok := rawArgs["name"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["input"] = arg1
+	args["name"] = arg1
 	return args, nil
 }
 
-func (ec *executionContext) field_Mutation_updateUser_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_Mutation_updateUserName_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 ent.UpdateUserInput
-	if tmp, ok := rawArgs["input"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNUpdateUserInput2shrektionary_apiᚋentᚐUpdateUserInput(ctx, tmp)
+	var arg0 string
+	if tmp, ok := rawArgs["firstName"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("firstName"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["input"] = arg0
+	args["firstName"] = arg0
+	var arg1 *string
+	if tmp, ok := rawArgs["lastName"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("lastName"))
+		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["lastName"] = arg1
 	return args, nil
 }
 
@@ -1647,15 +1772,15 @@ func (ec *executionContext) field_Mutation_updateWord_args(ctx context.Context, 
 		}
 	}
 	args["id"] = arg0
-	var arg1 ent.UpdateWordInput
-	if tmp, ok := rawArgs["input"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg1, err = ec.unmarshalNUpdateWordInput2shrektionary_apiᚋentᚐUpdateWordInput(ctx, tmp)
+	var arg1 string
+	if tmp, ok := rawArgs["wordDescription"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("wordDescription"))
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["input"] = arg1
+	args["wordDescription"] = arg1
 	return args, nil
 }
 
@@ -2354,6 +2479,67 @@ func (ec *executionContext) fieldContext_Definition_creator(ctx context.Context,
 	return fc, nil
 }
 
+func (ec *executionContext) _Definition_word(ctx context.Context, field graphql.CollectedField, obj *ent.Definition) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Definition_word(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Word(ctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*ent.Word)
+	fc.Result = res
+	return ec.marshalOWord2ᚖshrektionary_apiᚋentᚐWord(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Definition_word(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Definition",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Word_id(ctx, field)
+			case "createTime":
+				return ec.fieldContext_Word_createTime(ctx, field)
+			case "updateTime":
+				return ec.fieldContext_Word_updateTime(ctx, field)
+			case "description":
+				return ec.fieldContext_Word_description(ctx, field)
+			case "creator":
+				return ec.fieldContext_Word_creator(ctx, field)
+			case "group":
+				return ec.fieldContext_Word_group(ctx, field)
+			case "definitions":
+				return ec.fieldContext_Word_definitions(ctx, field)
+			case "parents":
+				return ec.fieldContext_Word_parents(ctx, field)
+			case "descendants":
+				return ec.fieldContext_Word_descendants(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Word", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _DefinitionConnection_edges(ctx context.Context, field graphql.CollectedField, obj *ent.DefinitionConnection) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_DefinitionConnection_edges(ctx, field)
 	if err != nil {
@@ -2545,6 +2731,8 @@ func (ec *executionContext) fieldContext_DefinitionEdge_node(ctx context.Context
 				return ec.fieldContext_Definition_description(ctx, field)
 			case "creator":
 				return ec.fieldContext_Definition_creator(ctx, field)
+			case "word":
+				return ec.fieldContext_Definition_word(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Definition", field.Name)
 		},
@@ -2910,7 +3098,7 @@ func (ec *executionContext) _Mutation_createGroup(ctx context.Context, field gra
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateGroup(rctx, fc.Args["input"].(ent.CreateGroupInput))
+		return ec.resolvers.Mutation().CreateGroup(rctx, fc.Args["name"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2965,8 +3153,8 @@ func (ec *executionContext) fieldContext_Mutation_createGroup(ctx context.Contex
 	return fc, nil
 }
 
-func (ec *executionContext) _Mutation_updateGroup(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Mutation_updateGroup(ctx, field)
+func (ec *executionContext) _Mutation_updateGroupName(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_updateGroupName(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -2979,7 +3167,7 @@ func (ec *executionContext) _Mutation_updateGroup(ctx context.Context, field gra
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().UpdateGroup(rctx, fc.Args["id"].(int), fc.Args["input"].(ent.UpdateGroupInput))
+		return ec.resolvers.Mutation().UpdateGroupName(rctx, fc.Args["id"].(int), fc.Args["name"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2996,7 +3184,7 @@ func (ec *executionContext) _Mutation_updateGroup(ctx context.Context, field gra
 	return ec.marshalNGroup2ᚖshrektionary_apiᚋentᚐGroup(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Mutation_updateGroup(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Mutation_updateGroupName(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Mutation",
 		Field:      field,
@@ -3027,7 +3215,7 @@ func (ec *executionContext) fieldContext_Mutation_updateGroup(ctx context.Contex
 		}
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Mutation_updateGroup_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+	if fc.Args, err = ec.field_Mutation_updateGroupName_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -3089,8 +3277,8 @@ func (ec *executionContext) fieldContext_Mutation_deleteGroup(ctx context.Contex
 	return fc, nil
 }
 
-func (ec *executionContext) _Mutation_updateUser(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Mutation_updateUser(ctx, field)
+func (ec *executionContext) _Mutation_deleteWord(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_deleteWord(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -3103,7 +3291,117 @@ func (ec *executionContext) _Mutation_updateUser(ctx context.Context, field grap
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().UpdateUser(rctx, fc.Args["input"].(ent.UpdateUserInput))
+		return ec.resolvers.Mutation().DeleteWord(rctx, fc.Args["id"].(int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_deleteWord(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_deleteWord_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_deleteDefinition(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_deleteDefinition(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().DeleteDefinition(rctx, fc.Args["id"].(int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_deleteDefinition(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_deleteDefinition_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_updateUserName(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_updateUserName(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().UpdateUserName(rctx, fc.Args["firstName"].(string), fc.Args["lastName"].(*string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -3120,7 +3418,7 @@ func (ec *executionContext) _Mutation_updateUser(ctx context.Context, field grap
 	return ec.marshalNUser2ᚖshrektionary_apiᚋentᚐUser(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Mutation_updateUser(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Mutation_updateUserName(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Mutation",
 		Field:      field,
@@ -3157,15 +3455,15 @@ func (ec *executionContext) fieldContext_Mutation_updateUser(ctx context.Context
 		}
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Mutation_updateUser_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+	if fc.Args, err = ec.field_Mutation_updateUserName_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
 	return fc, nil
 }
 
-func (ec *executionContext) _Mutation_createWord(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Mutation_createWord(ctx, field)
+func (ec *executionContext) _Mutation_addParentWord(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_addParentWord(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -3178,7 +3476,7 @@ func (ec *executionContext) _Mutation_createWord(ctx context.Context, field grap
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateWord(rctx, fc.Args["input"].(ent.CreateWordInput))
+		return ec.resolvers.Mutation().AddParentWord(rctx, fc.Args["parentWord"].(string), fc.Args["parentDefinition"].(*string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -3195,7 +3493,7 @@ func (ec *executionContext) _Mutation_createWord(ctx context.Context, field grap
 	return ec.marshalNWord2ᚖshrektionary_apiᚋentᚐWord(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Mutation_createWord(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Mutation_addParentWord(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Mutation",
 		Field:      field,
@@ -3232,7 +3530,226 @@ func (ec *executionContext) fieldContext_Mutation_createWord(ctx context.Context
 		}
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Mutation_createWord_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+	if fc.Args, err = ec.field_Mutation_addParentWord_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_addChildWord(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_addChildWord(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().AddChildWord(rctx, fc.Args["parentIds"].([]int), fc.Args["childWord"].(string), fc.Args["childDefinition"].(*string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*ent.Word)
+	fc.Result = res
+	return ec.marshalNWord2ᚖshrektionary_apiᚋentᚐWord(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_addChildWord(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Word_id(ctx, field)
+			case "createTime":
+				return ec.fieldContext_Word_createTime(ctx, field)
+			case "updateTime":
+				return ec.fieldContext_Word_updateTime(ctx, field)
+			case "description":
+				return ec.fieldContext_Word_description(ctx, field)
+			case "creator":
+				return ec.fieldContext_Word_creator(ctx, field)
+			case "group":
+				return ec.fieldContext_Word_group(ctx, field)
+			case "definitions":
+				return ec.fieldContext_Word_definitions(ctx, field)
+			case "parents":
+				return ec.fieldContext_Word_parents(ctx, field)
+			case "descendants":
+				return ec.fieldContext_Word_descendants(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Word", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_addChildWord_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_addDefinition(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_addDefinition(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().AddDefinition(rctx, fc.Args["wordID"].(int), fc.Args["definition"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*ent.Definition)
+	fc.Result = res
+	return ec.marshalNDefinition2ᚖshrektionary_apiᚋentᚐDefinition(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_addDefinition(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Definition_id(ctx, field)
+			case "createTime":
+				return ec.fieldContext_Definition_createTime(ctx, field)
+			case "updateTime":
+				return ec.fieldContext_Definition_updateTime(ctx, field)
+			case "description":
+				return ec.fieldContext_Definition_description(ctx, field)
+			case "creator":
+				return ec.fieldContext_Definition_creator(ctx, field)
+			case "word":
+				return ec.fieldContext_Definition_word(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Definition", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_addDefinition_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_connectWords(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_connectWords(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().ConnectWords(rctx, fc.Args["parentId"].(int), fc.Args["childId"].(int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*ent.Word)
+	fc.Result = res
+	return ec.marshalNWord2ᚖshrektionary_apiᚋentᚐWord(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_connectWords(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Word_id(ctx, field)
+			case "createTime":
+				return ec.fieldContext_Word_createTime(ctx, field)
+			case "updateTime":
+				return ec.fieldContext_Word_updateTime(ctx, field)
+			case "description":
+				return ec.fieldContext_Word_description(ctx, field)
+			case "creator":
+				return ec.fieldContext_Word_creator(ctx, field)
+			case "group":
+				return ec.fieldContext_Word_group(ctx, field)
+			case "definitions":
+				return ec.fieldContext_Word_definitions(ctx, field)
+			case "parents":
+				return ec.fieldContext_Word_parents(ctx, field)
+			case "descendants":
+				return ec.fieldContext_Word_descendants(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Word", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_connectWords_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -3253,7 +3770,7 @@ func (ec *executionContext) _Mutation_updateWord(ctx context.Context, field grap
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().UpdateWord(rctx, fc.Args["id"].(int), fc.Args["input"].(ent.UpdateWordInput))
+		return ec.resolvers.Mutation().UpdateWord(rctx, fc.Args["id"].(int), fc.Args["wordDescription"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -3314,128 +3831,6 @@ func (ec *executionContext) fieldContext_Mutation_updateWord(ctx context.Context
 	return fc, nil
 }
 
-func (ec *executionContext) _Mutation_deleteWord(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Mutation_deleteWord(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().DeleteWord(rctx, fc.Args["id"].(int))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(bool)
-	fc.Result = res
-	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Mutation_deleteWord(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Boolean does not have child fields")
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Mutation_deleteWord_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Mutation_createDefinition(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Mutation_createDefinition(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateDefinition(rctx, fc.Args["input"].(ent.CreateDefinitionInput))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(*ent.Definition)
-	fc.Result = res
-	return ec.marshalNDefinition2ᚖshrektionary_apiᚋentᚐDefinition(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Mutation_createDefinition(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_Definition_id(ctx, field)
-			case "createTime":
-				return ec.fieldContext_Definition_createTime(ctx, field)
-			case "updateTime":
-				return ec.fieldContext_Definition_updateTime(ctx, field)
-			case "description":
-				return ec.fieldContext_Definition_description(ctx, field)
-			case "creator":
-				return ec.fieldContext_Definition_creator(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type Definition", field.Name)
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Mutation_createDefinition_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return
-	}
-	return fc, nil
-}
-
 func (ec *executionContext) _Mutation_updateDefinition(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Mutation_updateDefinition(ctx, field)
 	if err != nil {
@@ -3450,7 +3845,7 @@ func (ec *executionContext) _Mutation_updateDefinition(ctx context.Context, fiel
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().UpdateDefinition(rctx, fc.Args["id"].(int), fc.Args["input"].(ent.UpdateDefinitionInput))
+		return ec.resolvers.Mutation().UpdateDefinition(rctx, fc.Args["id"].(int), fc.Args["definitionDescription"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -3485,6 +3880,8 @@ func (ec *executionContext) fieldContext_Mutation_updateDefinition(ctx context.C
 				return ec.fieldContext_Definition_description(ctx, field)
 			case "creator":
 				return ec.fieldContext_Definition_creator(ctx, field)
+			case "word":
+				return ec.fieldContext_Definition_word(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Definition", field.Name)
 		},
@@ -3497,61 +3894,6 @@ func (ec *executionContext) fieldContext_Mutation_updateDefinition(ctx context.C
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_updateDefinition_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Mutation_deleteDefinition(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Mutation_deleteDefinition(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().DeleteDefinition(rctx, fc.Args["id"].(int))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(bool)
-	fc.Result = res
-	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Mutation_deleteDefinition(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Boolean does not have child fields")
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Mutation_deleteDefinition_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -7235,7 +7577,7 @@ func (ec *executionContext) unmarshalInputCreateDefinitionInput(ctx context.Cont
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"createTime", "updateTime", "description", "creatorID"}
+	fieldsInOrder := [...]string{"createTime", "updateTime", "description", "creatorID", "wordID"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -7278,6 +7620,15 @@ func (ec *executionContext) unmarshalInputCreateDefinitionInput(ctx context.Cont
 				return it, err
 			}
 			it.CreatorID = data
+		case "wordID":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("wordID"))
+			data, err := ec.unmarshalOID2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.WordID = data
 		}
 	}
 
@@ -7490,7 +7841,7 @@ func (ec *executionContext) unmarshalInputDefinitionWhereInput(ctx context.Conte
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"not", "and", "or", "id", "idNEQ", "idIn", "idNotIn", "idGT", "idGTE", "idLT", "idLTE", "createTime", "createTimeNEQ", "createTimeIn", "createTimeNotIn", "createTimeGT", "createTimeGTE", "createTimeLT", "createTimeLTE", "updateTime", "updateTimeNEQ", "updateTimeIn", "updateTimeNotIn", "updateTimeGT", "updateTimeGTE", "updateTimeLT", "updateTimeLTE", "description", "descriptionNEQ", "descriptionIn", "descriptionNotIn", "descriptionGT", "descriptionGTE", "descriptionLT", "descriptionLTE", "descriptionContains", "descriptionHasPrefix", "descriptionHasSuffix", "descriptionEqualFold", "descriptionContainsFold", "hasCreator", "hasCreatorWith"}
+	fieldsInOrder := [...]string{"not", "and", "or", "id", "idNEQ", "idIn", "idNotIn", "idGT", "idGTE", "idLT", "idLTE", "createTime", "createTimeNEQ", "createTimeIn", "createTimeNotIn", "createTimeGT", "createTimeGTE", "createTimeLT", "createTimeLTE", "updateTime", "updateTimeNEQ", "updateTimeIn", "updateTimeNotIn", "updateTimeGT", "updateTimeGTE", "updateTimeLT", "updateTimeLTE", "description", "descriptionNEQ", "descriptionIn", "descriptionNotIn", "descriptionGT", "descriptionGTE", "descriptionLT", "descriptionLTE", "descriptionContains", "descriptionHasPrefix", "descriptionHasSuffix", "descriptionEqualFold", "descriptionContainsFold", "hasCreator", "hasCreatorWith", "hasWord", "hasWordWith"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -7875,6 +8226,24 @@ func (ec *executionContext) unmarshalInputDefinitionWhereInput(ctx context.Conte
 				return it, err
 			}
 			it.HasCreatorWith = data
+		case "hasWord":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hasWord"))
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.HasWord = data
+		case "hasWordWith":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hasWordWith"))
+			data, err := ec.unmarshalOWordWhereInput2ᚕᚖshrektionary_apiᚋentᚐWordWhereInputᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.HasWordWith = data
 		}
 	}
 
@@ -9910,6 +10279,23 @@ func (ec *executionContext) _Definition(ctx context.Context, sel ast.SelectionSe
 				return innerFunc(ctx)
 
 			})
+		case "word":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Definition_word(ctx, field, obj)
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -10106,10 +10492,10 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "updateGroup":
+		case "updateGroupName":
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Mutation_updateGroup(ctx, field)
+				return ec._Mutation_updateGroupName(ctx, field)
 			})
 
 			if out.Values[i] == graphql.Null {
@@ -10124,19 +10510,64 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "updateUser":
+		case "deleteWord":
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Mutation_updateUser(ctx, field)
+				return ec._Mutation_deleteWord(ctx, field)
 			})
 
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "createWord":
+		case "deleteDefinition":
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Mutation_createWord(ctx, field)
+				return ec._Mutation_deleteDefinition(ctx, field)
+			})
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "updateUserName":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_updateUserName(ctx, field)
+			})
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "addParentWord":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_addParentWord(ctx, field)
+			})
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "addChildWord":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_addChildWord(ctx, field)
+			})
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "addDefinition":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_addDefinition(ctx, field)
+			})
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "connectWords":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_connectWords(ctx, field)
 			})
 
 			if out.Values[i] == graphql.Null {
@@ -10151,37 +10582,10 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "deleteWord":
-
-			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Mutation_deleteWord(ctx, field)
-			})
-
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "createDefinition":
-
-			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Mutation_createDefinition(ctx, field)
-			})
-
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		case "updateDefinition":
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_updateDefinition(ctx, field)
-			})
-
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "deleteDefinition":
-
-			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Mutation_deleteDefinition(ctx, field)
 			})
 
 			if out.Values[i] == graphql.Null {
@@ -11099,21 +11503,6 @@ func (ec *executionContext) marshalNBoolean2bool(ctx context.Context, sel ast.Se
 	return res
 }
 
-func (ec *executionContext) unmarshalNCreateDefinitionInput2shrektionary_apiᚋentᚐCreateDefinitionInput(ctx context.Context, v interface{}) (ent.CreateDefinitionInput, error) {
-	res, err := ec.unmarshalInputCreateDefinitionInput(ctx, v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) unmarshalNCreateGroupInput2shrektionary_apiᚋentᚐCreateGroupInput(ctx context.Context, v interface{}) (ent.CreateGroupInput, error) {
-	res, err := ec.unmarshalInputCreateGroupInput(ctx, v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) unmarshalNCreateWordInput2shrektionary_apiᚋentᚐCreateWordInput(ctx context.Context, v interface{}) (ent.CreateWordInput, error) {
-	res, err := ec.unmarshalInputCreateWordInput(ctx, v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
 func (ec *executionContext) unmarshalNCursor2entgoᚗioᚋcontribᚋentgqlᚐCursor(ctx context.Context, v interface{}) (entgql.Cursor[int], error) {
 	var res entgql.Cursor[int]
 	err := res.UnmarshalGQL(v)
@@ -11378,26 +11767,6 @@ func (ec *executionContext) marshalNTime2timeᚐTime(ctx context.Context, sel as
 		}
 	}
 	return res
-}
-
-func (ec *executionContext) unmarshalNUpdateDefinitionInput2shrektionary_apiᚋentᚐUpdateDefinitionInput(ctx context.Context, v interface{}) (ent.UpdateDefinitionInput, error) {
-	res, err := ec.unmarshalInputUpdateDefinitionInput(ctx, v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) unmarshalNUpdateGroupInput2shrektionary_apiᚋentᚐUpdateGroupInput(ctx context.Context, v interface{}) (ent.UpdateGroupInput, error) {
-	res, err := ec.unmarshalInputUpdateGroupInput(ctx, v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) unmarshalNUpdateUserInput2shrektionary_apiᚋentᚐUpdateUserInput(ctx context.Context, v interface{}) (ent.UpdateUserInput, error) {
-	res, err := ec.unmarshalInputUpdateUserInput(ctx, v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) unmarshalNUpdateWordInput2shrektionary_apiᚋentᚐUpdateWordInput(ctx context.Context, v interface{}) (ent.UpdateWordInput, error) {
-	res, err := ec.unmarshalInputUpdateWordInput(ctx, v)
-	return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalNUser2shrektionary_apiᚋentᚐUser(ctx context.Context, sel ast.SelectionSet, v ent.User) graphql.Marshaler {
