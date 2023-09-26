@@ -2,6 +2,10 @@
 
 package ent
 
+import (
+	"time"
+)
+
 // CreateDefinitionInput represents a mutation input for creating definitions.
 type CreateDefinitionInput struct {
 	Description string
@@ -72,6 +76,7 @@ func (c *GroupCreate) SetInput(i CreateGroupInput) *GroupCreate {
 
 // UpdateUserInput represents a mutation input for updating users.
 type UpdateUserInput struct {
+	UpdateTime     *time.Time
 	ClearFirstName bool
 	FirstName      *string
 	ClearLastName  bool
@@ -83,6 +88,9 @@ type UpdateUserInput struct {
 
 // Mutate applies the UpdateUserInput on the UserMutation builder.
 func (i *UpdateUserInput) Mutate(m *UserMutation) {
+	if v := i.UpdateTime; v != nil {
+		m.SetUpdateTime(*v)
+	}
 	if i.ClearFirstName {
 		m.ClearFirstName()
 	}
