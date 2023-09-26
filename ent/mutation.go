@@ -45,6 +45,8 @@ type DefinitionMutation struct {
 	clearedFields  map[string]struct{}
 	creator        *int
 	clearedcreator bool
+	word           *int
+	clearedword    bool
 	done           bool
 	oldValue       func(context.Context) (*Definition, error)
 	predicates     []predicate.Definition
@@ -295,6 +297,45 @@ func (m *DefinitionMutation) ResetCreator() {
 	m.clearedcreator = false
 }
 
+// SetWordID sets the "word" edge to the Word entity by id.
+func (m *DefinitionMutation) SetWordID(id int) {
+	m.word = &id
+}
+
+// ClearWord clears the "word" edge to the Word entity.
+func (m *DefinitionMutation) ClearWord() {
+	m.clearedword = true
+}
+
+// WordCleared reports if the "word" edge to the Word entity was cleared.
+func (m *DefinitionMutation) WordCleared() bool {
+	return m.clearedword
+}
+
+// WordID returns the "word" edge ID in the mutation.
+func (m *DefinitionMutation) WordID() (id int, exists bool) {
+	if m.word != nil {
+		return *m.word, true
+	}
+	return
+}
+
+// WordIDs returns the "word" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// WordID instead. It exists only for internal usage by the builders.
+func (m *DefinitionMutation) WordIDs() (ids []int) {
+	if id := m.word; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetWord resets all changes to the "word" edge.
+func (m *DefinitionMutation) ResetWord() {
+	m.word = nil
+	m.clearedword = false
+}
+
 // Where appends a list predicates to the DefinitionMutation builder.
 func (m *DefinitionMutation) Where(ps ...predicate.Definition) {
 	m.predicates = append(m.predicates, ps...)
@@ -462,9 +503,12 @@ func (m *DefinitionMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *DefinitionMutation) AddedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.creator != nil {
 		edges = append(edges, definition.EdgeCreator)
+	}
+	if m.word != nil {
+		edges = append(edges, definition.EdgeWord)
 	}
 	return edges
 }
@@ -477,13 +521,17 @@ func (m *DefinitionMutation) AddedIDs(name string) []ent.Value {
 		if id := m.creator; id != nil {
 			return []ent.Value{*id}
 		}
+	case definition.EdgeWord:
+		if id := m.word; id != nil {
+			return []ent.Value{*id}
+		}
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *DefinitionMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	return edges
 }
 
@@ -495,9 +543,12 @@ func (m *DefinitionMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *DefinitionMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.clearedcreator {
 		edges = append(edges, definition.EdgeCreator)
+	}
+	if m.clearedword {
+		edges = append(edges, definition.EdgeWord)
 	}
 	return edges
 }
@@ -508,6 +559,8 @@ func (m *DefinitionMutation) EdgeCleared(name string) bool {
 	switch name {
 	case definition.EdgeCreator:
 		return m.clearedcreator
+	case definition.EdgeWord:
+		return m.clearedword
 	}
 	return false
 }
@@ -519,6 +572,9 @@ func (m *DefinitionMutation) ClearEdge(name string) error {
 	case definition.EdgeCreator:
 		m.ClearCreator()
 		return nil
+	case definition.EdgeWord:
+		m.ClearWord()
+		return nil
 	}
 	return fmt.Errorf("unknown Definition unique edge %s", name)
 }
@@ -529,6 +585,9 @@ func (m *DefinitionMutation) ResetEdge(name string) error {
 	switch name {
 	case definition.EdgeCreator:
 		m.ResetCreator()
+		return nil
+	case definition.EdgeWord:
+		m.ResetWord()
 		return nil
 	}
 	return fmt.Errorf("unknown Definition edge %s", name)

@@ -238,6 +238,29 @@ func HasCreatorWith(preds ...predicate.User) predicate.Definition {
 	})
 }
 
+// HasWord applies the HasEdge predicate on the "word" edge.
+func HasWord() predicate.Definition {
+	return predicate.Definition(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, WordTable, WordColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasWordWith applies the HasEdge predicate on the "word" edge with a given conditions (other predicates).
+func HasWordWith(preds ...predicate.Word) predicate.Definition {
+	return predicate.Definition(func(s *sql.Selector) {
+		step := newWordStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.Definition) predicate.Definition {
 	return predicate.Definition(func(s *sql.Selector) {
