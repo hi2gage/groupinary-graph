@@ -9,6 +9,7 @@ input CreateDefinitionInput {
   updateTime: Time
   description: String!
   creatorID: ID
+  wordID: ID
 }
 """
 CreateGroupInput is used for create Group object.
@@ -46,6 +47,7 @@ type Definition implements Node {
   updateTime: Time!
   description: String!
   creator: User
+  word: Word
 }
 """A connection to a list of items."""
 type DefinitionConnection {
@@ -126,6 +128,9 @@ input DefinitionWhereInput {
   """creator edge predicates"""
   hasCreator: Boolean
   hasCreatorWith: [UserWhereInput!]
+  """word edge predicates"""
+  hasWord: Boolean
+  hasWordWith: [WordWhereInput!]
 }
 type Group implements Node {
   id: ID!

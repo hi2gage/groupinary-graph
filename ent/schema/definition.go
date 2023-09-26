@@ -30,6 +30,10 @@ func (Definition) Edges() []ent.Edge {
 			Immutable().
 			Unique().
 			Ref("definitions"),
+		edge.From("word", Word.Type).
+			Immutable().
+			Unique().
+			Ref("definitions"),
 	}
 }
 

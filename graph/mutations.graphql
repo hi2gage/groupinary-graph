@@ -1,19 +1,34 @@
 type Mutation {
     # Group
-    createGroup(input: CreateGroupInput!): Group!
-    updateGroup(id: ID!, input: UpdateGroupInput!): Group!
+    createGroup(name: String!): Group!
+    updateGroupName(id: ID!, name: String!): Group!
+
+
+    # Delete
     deleteGroup(id: ID!): Boolean!
-
-    # User
-    updateUser(input: UpdateUserInput!): User!
-
-    # Word
-    createWord(input: CreateWordInput!): Word!
-    updateWord(id: ID!, input: UpdateWordInput!): Word!
     deleteWord(id: ID!): Boolean!
-
-    # Definition
-    createDefinition(input: CreateDefinitionInput!): Definition!
-    updateDefinition(id: ID!, input: UpdateDefinitionInput!): Definition!
     deleteDefinition(id: ID!): Boolean!
+}
+
+extend type Mutation {
+    updateUserName(firstName: String!, lastName: String): User!
+}
+
+extend type Mutation {
+    addParentWord(parentWord: String!, parentDefinition: String): Word!
+
+    "AddChildWord Testing documentation"
+    addChildWord(
+        parentIds: [ID!], 
+        childWord: String!, 
+        childDefinition: String
+        ): Word!
+
+    addDefinition(wordID: ID!, definition: String!): Definition!
+    connectWords(parentId: ID!, childId: ID!): Word!
+}
+
+extend type Mutation {
+    updateWord(id: ID!, wordDescription: String!): Word!
+    updateDefinition(id: ID!, definitionDescription: String!): Definition!
 }

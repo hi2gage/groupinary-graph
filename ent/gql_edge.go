@@ -16,6 +16,14 @@ func (d *Definition) Creator(ctx context.Context) (*User, error) {
 	return result, MaskNotFound(err)
 }
 
+func (d *Definition) Word(ctx context.Context) (*Word, error) {
+	result, err := d.Edges.WordOrErr()
+	if IsNotLoaded(err) {
+		result, err = d.QueryWord().Only(ctx)
+	}
+	return result, MaskNotFound(err)
+}
+
 func (gr *Group) RootWords(
 	ctx context.Context, after *Cursor, first *int, before *Cursor, last *int, orderBy *WordOrder, where *WordWhereInput,
 ) (*WordConnection, error) {

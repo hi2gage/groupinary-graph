@@ -47,6 +47,16 @@ func (d *DefinitionQuery) collectField(ctx context.Context, opCtx *graphql.Opera
 				return err
 			}
 			d.withCreator = query
+		case "word":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = (&WordClient{config: d.config}).Query()
+			)
+			if err := query.collectField(ctx, opCtx, field, path, satisfies...); err != nil {
+				return err
+			}
+			d.withWord = query
 		case "createTime":
 			if _, ok := fieldSeen[definition.FieldCreateTime]; !ok {
 				selectedFields = append(selectedFields, definition.FieldCreateTime)
