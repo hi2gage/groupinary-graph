@@ -47,6 +47,16 @@ func (d *DefinitionQuery) collectField(ctx context.Context, opCtx *graphql.Opera
 				return err
 			}
 			d.withCreator = query
+		case "createTime":
+			if _, ok := fieldSeen[definition.FieldCreateTime]; !ok {
+				selectedFields = append(selectedFields, definition.FieldCreateTime)
+				fieldSeen[definition.FieldCreateTime] = struct{}{}
+			}
+		case "updateTime":
+			if _, ok := fieldSeen[definition.FieldUpdateTime]; !ok {
+				selectedFields = append(selectedFields, definition.FieldUpdateTime)
+				fieldSeen[definition.FieldUpdateTime] = struct{}{}
+			}
 		case "description":
 			if _, ok := fieldSeen[definition.FieldDescription]; !ok {
 				selectedFields = append(selectedFields, definition.FieldDescription)
@@ -232,6 +242,16 @@ func (gr *GroupQuery) collectField(ctx context.Context, opCtx *graphql.Operation
 			gr.WithNamedUsers(alias, func(wq *UserQuery) {
 				*wq = *query
 			})
+		case "createTime":
+			if _, ok := fieldSeen[group.FieldCreateTime]; !ok {
+				selectedFields = append(selectedFields, group.FieldCreateTime)
+				fieldSeen[group.FieldCreateTime] = struct{}{}
+			}
+		case "updateTime":
+			if _, ok := fieldSeen[group.FieldUpdateTime]; !ok {
+				selectedFields = append(selectedFields, group.FieldUpdateTime)
+				fieldSeen[group.FieldUpdateTime] = struct{}{}
+			}
 		case "description":
 			if _, ok := fieldSeen[group.FieldDescription]; !ok {
 				selectedFields = append(selectedFields, group.FieldDescription)
@@ -770,6 +790,16 @@ func (w *WordQuery) collectField(ctx context.Context, opCtx *graphql.OperationCo
 			w.WithNamedParents(alias, func(wq *WordQuery) {
 				*wq = *query
 			})
+		case "createTime":
+			if _, ok := fieldSeen[word.FieldCreateTime]; !ok {
+				selectedFields = append(selectedFields, word.FieldCreateTime)
+				fieldSeen[word.FieldCreateTime] = struct{}{}
+			}
+		case "updateTime":
+			if _, ok := fieldSeen[word.FieldUpdateTime]; !ok {
+				selectedFields = append(selectedFields, word.FieldUpdateTime)
+				fieldSeen[word.FieldUpdateTime] = struct{}{}
+			}
 		case "description":
 			if _, ok := fieldSeen[word.FieldDescription]; !ok {
 				selectedFields = append(selectedFields, word.FieldDescription)

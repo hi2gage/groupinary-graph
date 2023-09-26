@@ -9,6 +9,7 @@ import (
 	"shrektionary_api/ent/group"
 	"shrektionary_api/ent/user"
 	"shrektionary_api/ent/word"
+	"time"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
@@ -19,6 +20,34 @@ type GroupCreate struct {
 	config
 	mutation *GroupMutation
 	hooks    []Hook
+}
+
+// SetCreateTime sets the "create_time" field.
+func (gc *GroupCreate) SetCreateTime(t time.Time) *GroupCreate {
+	gc.mutation.SetCreateTime(t)
+	return gc
+}
+
+// SetNillableCreateTime sets the "create_time" field if the given value is not nil.
+func (gc *GroupCreate) SetNillableCreateTime(t *time.Time) *GroupCreate {
+	if t != nil {
+		gc.SetCreateTime(*t)
+	}
+	return gc
+}
+
+// SetUpdateTime sets the "update_time" field.
+func (gc *GroupCreate) SetUpdateTime(t time.Time) *GroupCreate {
+	gc.mutation.SetUpdateTime(t)
+	return gc
+}
+
+// SetNillableUpdateTime sets the "update_time" field if the given value is not nil.
+func (gc *GroupCreate) SetNillableUpdateTime(t *time.Time) *GroupCreate {
+	if t != nil {
+		gc.SetUpdateTime(*t)
+	}
+	return gc
 }
 
 // SetDescription sets the "description" field.
@@ -64,6 +93,7 @@ func (gc *GroupCreate) Mutation() *GroupMutation {
 
 // Save creates the Group in the database.
 func (gc *GroupCreate) Save(ctx context.Context) (*Group, error) {
+	gc.defaults()
 	return withHooks(ctx, gc.sqlSave, gc.mutation, gc.hooks)
 }
 
@@ -89,8 +119,26 @@ func (gc *GroupCreate) ExecX(ctx context.Context) {
 	}
 }
 
+// defaults sets the default values of the builder before save.
+func (gc *GroupCreate) defaults() {
+	if _, ok := gc.mutation.CreateTime(); !ok {
+		v := group.DefaultCreateTime()
+		gc.mutation.SetCreateTime(v)
+	}
+	if _, ok := gc.mutation.UpdateTime(); !ok {
+		v := group.DefaultUpdateTime()
+		gc.mutation.SetUpdateTime(v)
+	}
+}
+
 // check runs all checks and user-defined validators on the builder.
 func (gc *GroupCreate) check() error {
+	if _, ok := gc.mutation.CreateTime(); !ok {
+		return &ValidationError{Name: "create_time", err: errors.New(`ent: missing required field "Group.create_time"`)}
+	}
+	if _, ok := gc.mutation.UpdateTime(); !ok {
+		return &ValidationError{Name: "update_time", err: errors.New(`ent: missing required field "Group.update_time"`)}
+	}
 	if _, ok := gc.mutation.Description(); !ok {
 		return &ValidationError{Name: "description", err: errors.New(`ent: missing required field "Group.description"`)}
 	}
@@ -125,6 +173,14 @@ func (gc *GroupCreate) createSpec() (*Group, *sqlgraph.CreateSpec) {
 		_node = &Group{config: gc.config}
 		_spec = sqlgraph.NewCreateSpec(group.Table, sqlgraph.NewFieldSpec(group.FieldID, field.TypeInt))
 	)
+	if value, ok := gc.mutation.CreateTime(); ok {
+		_spec.SetField(group.FieldCreateTime, field.TypeTime, value)
+		_node.CreateTime = value
+	}
+	if value, ok := gc.mutation.UpdateTime(); ok {
+		_spec.SetField(group.FieldUpdateTime, field.TypeTime, value)
+		_node.UpdateTime = value
+	}
 	if value, ok := gc.mutation.Description(); ok {
 		_spec.SetField(group.FieldDescription, field.TypeString, value)
 		_node.Description = value
@@ -178,6 +234,7 @@ func (gcb *GroupCreateBulk) Save(ctx context.Context) ([]*Group, error) {
 	for i := range gcb.builders {
 		func(i int, root context.Context) {
 			builder := gcb.builders[i]
+			builder.defaults()
 			var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 				mutation, ok := m.(*GroupMutation)
 				if !ok {

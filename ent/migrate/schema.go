@@ -11,6 +11,8 @@ var (
 	// DefinitionsColumns holds the columns for the "definitions" table.
 	DefinitionsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "create_time", Type: field.TypeTime},
+		{Name: "update_time", Type: field.TypeTime},
 		{Name: "description", Type: field.TypeString},
 		{Name: "user_definitions", Type: field.TypeInt, Nullable: true},
 		{Name: "word_definitions", Type: field.TypeInt, Nullable: true},
@@ -23,13 +25,13 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "definitions_users_definitions",
-				Columns:    []*schema.Column{DefinitionsColumns[2]},
+				Columns:    []*schema.Column{DefinitionsColumns[4]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "definitions_words_definitions",
-				Columns:    []*schema.Column{DefinitionsColumns[3]},
+				Columns:    []*schema.Column{DefinitionsColumns[5]},
 				RefColumns: []*schema.Column{WordsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -38,6 +40,8 @@ var (
 	// GroupsColumns holds the columns for the "groups" table.
 	GroupsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "create_time", Type: field.TypeTime},
+		{Name: "update_time", Type: field.TypeTime},
 		{Name: "description", Type: field.TypeString},
 	}
 	// GroupsTable holds the schema information for the "groups" table.
@@ -64,6 +68,8 @@ var (
 	// WordsColumns holds the columns for the "words" table.
 	WordsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "create_time", Type: field.TypeTime},
+		{Name: "update_time", Type: field.TypeTime},
 		{Name: "description", Type: field.TypeString},
 		{Name: "descendant_count", Type: field.TypeInt, Default: 0},
 		{Name: "group_root_words", Type: field.TypeInt, Nullable: true},
@@ -77,13 +83,13 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "words_groups_rootWords",
-				Columns:    []*schema.Column{WordsColumns[3]},
+				Columns:    []*schema.Column{WordsColumns[5]},
 				RefColumns: []*schema.Column{GroupsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "words_users_words",
-				Columns:    []*schema.Column{WordsColumns[4]},
+				Columns:    []*schema.Column{WordsColumns[6]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.SetNull,
 			},

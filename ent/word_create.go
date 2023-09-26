@@ -10,6 +10,7 @@ import (
 	"shrektionary_api/ent/group"
 	"shrektionary_api/ent/user"
 	"shrektionary_api/ent/word"
+	"time"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
@@ -20,6 +21,34 @@ type WordCreate struct {
 	config
 	mutation *WordMutation
 	hooks    []Hook
+}
+
+// SetCreateTime sets the "create_time" field.
+func (wc *WordCreate) SetCreateTime(t time.Time) *WordCreate {
+	wc.mutation.SetCreateTime(t)
+	return wc
+}
+
+// SetNillableCreateTime sets the "create_time" field if the given value is not nil.
+func (wc *WordCreate) SetNillableCreateTime(t *time.Time) *WordCreate {
+	if t != nil {
+		wc.SetCreateTime(*t)
+	}
+	return wc
+}
+
+// SetUpdateTime sets the "update_time" field.
+func (wc *WordCreate) SetUpdateTime(t time.Time) *WordCreate {
+	wc.mutation.SetUpdateTime(t)
+	return wc
+}
+
+// SetNillableUpdateTime sets the "update_time" field if the given value is not nil.
+func (wc *WordCreate) SetNillableUpdateTime(t *time.Time) *WordCreate {
+	if t != nil {
+		wc.SetUpdateTime(*t)
+	}
+	return wc
 }
 
 // SetDescription sets the "description" field.
@@ -160,6 +189,14 @@ func (wc *WordCreate) ExecX(ctx context.Context) {
 
 // defaults sets the default values of the builder before save.
 func (wc *WordCreate) defaults() {
+	if _, ok := wc.mutation.CreateTime(); !ok {
+		v := word.DefaultCreateTime()
+		wc.mutation.SetCreateTime(v)
+	}
+	if _, ok := wc.mutation.UpdateTime(); !ok {
+		v := word.DefaultUpdateTime()
+		wc.mutation.SetUpdateTime(v)
+	}
 	if _, ok := wc.mutation.DescendantCount(); !ok {
 		v := word.DefaultDescendantCount
 		wc.mutation.SetDescendantCount(v)
@@ -168,6 +205,12 @@ func (wc *WordCreate) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (wc *WordCreate) check() error {
+	if _, ok := wc.mutation.CreateTime(); !ok {
+		return &ValidationError{Name: "create_time", err: errors.New(`ent: missing required field "Word.create_time"`)}
+	}
+	if _, ok := wc.mutation.UpdateTime(); !ok {
+		return &ValidationError{Name: "update_time", err: errors.New(`ent: missing required field "Word.update_time"`)}
+	}
 	if _, ok := wc.mutation.Description(); !ok {
 		return &ValidationError{Name: "description", err: errors.New(`ent: missing required field "Word.description"`)}
 	}
@@ -205,6 +248,14 @@ func (wc *WordCreate) createSpec() (*Word, *sqlgraph.CreateSpec) {
 		_node = &Word{config: wc.config}
 		_spec = sqlgraph.NewCreateSpec(word.Table, sqlgraph.NewFieldSpec(word.FieldID, field.TypeInt))
 	)
+	if value, ok := wc.mutation.CreateTime(); ok {
+		_spec.SetField(word.FieldCreateTime, field.TypeTime, value)
+		_node.CreateTime = value
+	}
+	if value, ok := wc.mutation.UpdateTime(); ok {
+		_spec.SetField(word.FieldUpdateTime, field.TypeTime, value)
+		_node.UpdateTime = value
+	}
 	if value, ok := wc.mutation.Description(); ok {
 		_spec.SetField(word.FieldDescription, field.TypeString, value)
 		_node.Description = value

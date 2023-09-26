@@ -446,12 +446,12 @@ func (wq *WordQuery) WithParents(opts ...func(*WordQuery)) *WordQuery {
 // Example:
 //
 //	var v []struct {
-//		Description string `json:"description,omitempty"`
+//		CreateTime time.Time `json:"create_time,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
 //	client.Word.Query().
-//		GroupBy(word.FieldDescription).
+//		GroupBy(word.FieldCreateTime).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
 func (wq *WordQuery) GroupBy(field string, fields ...string) *WordGroupBy {
@@ -469,11 +469,11 @@ func (wq *WordQuery) GroupBy(field string, fields ...string) *WordGroupBy {
 // Example:
 //
 //	var v []struct {
-//		Description string `json:"description,omitempty"`
+//		CreateTime time.Time `json:"create_time,omitempty"`
 //	}
 //
 //	client.Word.Query().
-//		Select(word.FieldDescription).
+//		Select(word.FieldCreateTime).
 //		Scan(ctx, &v)
 func (wq *WordQuery) Select(fields ...string) *WordSelect {
 	wq.ctx.Fields = append(wq.ctx.Fields, fields...)

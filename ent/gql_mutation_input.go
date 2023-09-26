@@ -8,12 +8,20 @@ import (
 
 // CreateDefinitionInput represents a mutation input for creating definitions.
 type CreateDefinitionInput struct {
+	CreateTime  *time.Time
+	UpdateTime  *time.Time
 	Description string
 	CreatorID   *int
 }
 
 // Mutate applies the CreateDefinitionInput on the DefinitionMutation builder.
 func (i *CreateDefinitionInput) Mutate(m *DefinitionMutation) {
+	if v := i.CreateTime; v != nil {
+		m.SetCreateTime(*v)
+	}
+	if v := i.UpdateTime; v != nil {
+		m.SetUpdateTime(*v)
+	}
 	m.SetDescription(i.Description)
 	if v := i.CreatorID; v != nil {
 		m.SetCreatorID(*v)
@@ -28,11 +36,15 @@ func (c *DefinitionCreate) SetInput(i CreateDefinitionInput) *DefinitionCreate {
 
 // UpdateDefinitionInput represents a mutation input for updating definitions.
 type UpdateDefinitionInput struct {
+	UpdateTime  *time.Time
 	Description *string
 }
 
 // Mutate applies the UpdateDefinitionInput on the DefinitionMutation builder.
 func (i *UpdateDefinitionInput) Mutate(m *DefinitionMutation) {
+	if v := i.UpdateTime; v != nil {
+		m.SetUpdateTime(*v)
+	}
 	if v := i.Description; v != nil {
 		m.SetDescription(*v)
 	}
@@ -52,6 +64,8 @@ func (c *DefinitionUpdateOne) SetInput(i UpdateDefinitionInput) *DefinitionUpdat
 
 // CreateGroupInput represents a mutation input for creating groups.
 type CreateGroupInput struct {
+	CreateTime  *time.Time
+	UpdateTime  *time.Time
 	Description string
 	RootWordIDs []int
 	UserIDs     []int
@@ -59,6 +73,12 @@ type CreateGroupInput struct {
 
 // Mutate applies the CreateGroupInput on the GroupMutation builder.
 func (i *CreateGroupInput) Mutate(m *GroupMutation) {
+	if v := i.CreateTime; v != nil {
+		m.SetCreateTime(*v)
+	}
+	if v := i.UpdateTime; v != nil {
+		m.SetUpdateTime(*v)
+	}
 	m.SetDescription(i.Description)
 	if v := i.RootWordIDs; len(v) > 0 {
 		m.AddRootWordIDs(v...)
@@ -76,6 +96,7 @@ func (c *GroupCreate) SetInput(i CreateGroupInput) *GroupCreate {
 
 // UpdateGroupInput represents a mutation input for updating groups.
 type UpdateGroupInput struct {
+	UpdateTime        *time.Time
 	Description       *string
 	ClearRootWords    bool
 	AddRootWordIDs    []int
@@ -87,6 +108,9 @@ type UpdateGroupInput struct {
 
 // Mutate applies the UpdateGroupInput on the GroupMutation builder.
 func (i *UpdateGroupInput) Mutate(m *GroupMutation) {
+	if v := i.UpdateTime; v != nil {
+		m.SetUpdateTime(*v)
+	}
 	if v := i.Description; v != nil {
 		m.SetDescription(*v)
 	}
@@ -176,6 +200,8 @@ func (c *UserUpdateOne) SetInput(i UpdateUserInput) *UserUpdateOne {
 
 // CreateWordInput represents a mutation input for creating words.
 type CreateWordInput struct {
+	CreateTime      *time.Time
+	UpdateTime      *time.Time
 	Description     string
 	DescendantCount *int
 	CreatorID       *int
@@ -187,6 +213,12 @@ type CreateWordInput struct {
 
 // Mutate applies the CreateWordInput on the WordMutation builder.
 func (i *CreateWordInput) Mutate(m *WordMutation) {
+	if v := i.CreateTime; v != nil {
+		m.SetCreateTime(*v)
+	}
+	if v := i.UpdateTime; v != nil {
+		m.SetUpdateTime(*v)
+	}
 	m.SetDescription(i.Description)
 	if v := i.DescendantCount; v != nil {
 		m.SetDescendantCount(*v)
@@ -216,6 +248,7 @@ func (c *WordCreate) SetInput(i CreateWordInput) *WordCreate {
 
 // UpdateWordInput represents a mutation input for updating words.
 type UpdateWordInput struct {
+	UpdateTime      *time.Time
 	Description     *string
 	ClearGroup      bool
 	GroupID         *int
@@ -226,6 +259,9 @@ type UpdateWordInput struct {
 
 // Mutate applies the UpdateWordInput on the WordMutation builder.
 func (i *UpdateWordInput) Mutate(m *WordMutation) {
+	if v := i.UpdateTime; v != nil {
+		m.SetUpdateTime(*v)
+	}
 	if v := i.Description; v != nil {
 		m.SetDescription(*v)
 	}
