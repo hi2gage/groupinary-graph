@@ -15,16 +15,26 @@ func (r *mutationResolver) CreateGroup(ctx context.Context, input ent.CreateGrou
 	return r.client.Group.Create().SetInput(input).Save(ctx)
 }
 
-// CreateDefinition is the resolver for the createDefinition field.
-func (r *mutationResolver) CreateDefinition(ctx context.Context, input ent.CreateDefinitionInput) (*ent.Definition, error) {
-	err := input.ValidateCreateInput()
+// UpdateGroup is the resolver for the updateGroup field.
+func (r *mutationResolver) UpdateGroup(ctx context.Context, id int, input ent.UpdateGroupInput) (*ent.Group, error) {
+	return r.client.Group.UpdateOneID(id).SetInput(input).Save(ctx)
+}
+
+// DeleteGroup is the resolver for the deleteGroup field.
+func (r *mutationResolver) DeleteGroup(ctx context.Context, id int) (bool, error) {
+	if err := r.client.Group.DeleteOneID(id).Exec(ctx); err != nil {
+		return false, err
+	}
+	return true, nil
+}
+
+// UpdateUser is the resolver for the updateUser field.
+func (r *mutationResolver) UpdateUser(ctx context.Context, input ent.UpdateUserInput) (*ent.User, error) {
+	creatorID, err := utils.GetCreatorIDFromContext(ctx)
 	if err != nil {
 		return nil, err
 	}
-
-	input.SetCreatorID(ctx)
-
-	return r.client.Definition.Create().SetInput(input).Save(ctx)
+	return r.client.User.UpdateOneID(creatorID).SetInput(input).Save(ctx)
 }
 
 // CreateWord is the resolver for the createWord field.
@@ -39,40 +49,9 @@ func (r *mutationResolver) CreateWord(ctx context.Context, input ent.CreateWordI
 	return r.client.Word.Create().SetInput(input).Save(ctx)
 }
 
-// CreateRootWord is the resolver for the createRootWord field.
-func (r *mutationResolver) CreateRootWord(ctx context.Context, input ent.CreateWordInput) (*ent.Word, error) {
-	err := input.ValidateCreateInput()
-	if err != nil {
-		return nil, err
-	}
-
-	input.SetCreatorID(ctx)
-
-	return r.client.Word.Create().SetInput(input).Save(ctx)
-}
-
-// UpdateGroup is the resolver for the updateGroup field.
-func (r *mutationResolver) UpdateGroup(ctx context.Context, id int, input ent.UpdateGroupInput) (*ent.Group, error) {
-	return r.client.Group.UpdateOneID(id).SetInput(input).Save(ctx)
-}
-
-// UpdateUser is the resolver for the updateUser field.
-func (r *mutationResolver) UpdateUser(ctx context.Context, input ent.UpdateUserInput) (*ent.User, error) {
-	creatorID, err := utils.GetCreatorIDFromContext(ctx)
-	if err != nil {
-		return nil, err
-	}
-	return r.client.User.UpdateOneID(creatorID).SetInput(input).Save(ctx)
-}
-
 // UpdateWord is the resolver for the updateWord field.
 func (r *mutationResolver) UpdateWord(ctx context.Context, id int, input ent.UpdateWordInput) (*ent.Word, error) {
 	return r.client.Word.UpdateOneID(id).SetInput(input).Save(ctx)
-}
-
-// UpdateDefinition is the resolver for the updateDefinition field.
-func (r *mutationResolver) UpdateDefinition(ctx context.Context, id int, input ent.UpdateDefinitionInput) (*ent.Definition, error) {
-	return r.client.Definition.UpdateOneID(id).SetInput(input).Save(ctx)
 }
 
 // DeleteWord is the resolver for the deleteWord field.
@@ -81,6 +60,23 @@ func (r *mutationResolver) DeleteWord(ctx context.Context, id int) (bool, error)
 		return false, err
 	}
 	return true, nil
+}
+
+// CreateDefinition is the resolver for the createDefinition field.
+func (r *mutationResolver) CreateDefinition(ctx context.Context, input ent.CreateDefinitionInput) (*ent.Definition, error) {
+	err := input.ValidateCreateInput()
+	if err != nil {
+		return nil, err
+	}
+
+	input.SetCreatorID(ctx)
+
+	return r.client.Definition.Create().SetInput(input).Save(ctx)
+}
+
+// UpdateDefinition is the resolver for the updateDefinition field.
+func (r *mutationResolver) UpdateDefinition(ctx context.Context, id int, input ent.UpdateDefinitionInput) (*ent.Definition, error) {
+	return r.client.Definition.UpdateOneID(id).SetInput(input).Save(ctx)
 }
 
 // DeleteDefinition is the resolver for the deleteDefinition field.
