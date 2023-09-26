@@ -74,6 +74,54 @@ func (c *GroupCreate) SetInput(i CreateGroupInput) *GroupCreate {
 	return c
 }
 
+// UpdateGroupInput represents a mutation input for updating groups.
+type UpdateGroupInput struct {
+	Description       *string
+	ClearRootWords    bool
+	AddRootWordIDs    []int
+	RemoveRootWordIDs []int
+	ClearUsers        bool
+	AddUserIDs        []int
+	RemoveUserIDs     []int
+}
+
+// Mutate applies the UpdateGroupInput on the GroupMutation builder.
+func (i *UpdateGroupInput) Mutate(m *GroupMutation) {
+	if v := i.Description; v != nil {
+		m.SetDescription(*v)
+	}
+	if i.ClearRootWords {
+		m.ClearRootWords()
+	}
+	if v := i.AddRootWordIDs; len(v) > 0 {
+		m.AddRootWordIDs(v...)
+	}
+	if v := i.RemoveRootWordIDs; len(v) > 0 {
+		m.RemoveRootWordIDs(v...)
+	}
+	if i.ClearUsers {
+		m.ClearUsers()
+	}
+	if v := i.AddUserIDs; len(v) > 0 {
+		m.AddUserIDs(v...)
+	}
+	if v := i.RemoveUserIDs; len(v) > 0 {
+		m.RemoveUserIDs(v...)
+	}
+}
+
+// SetInput applies the change-set in the UpdateGroupInput on the GroupUpdate builder.
+func (c *GroupUpdate) SetInput(i UpdateGroupInput) *GroupUpdate {
+	i.Mutate(c.Mutation())
+	return c
+}
+
+// SetInput applies the change-set in the UpdateGroupInput on the GroupUpdateOne builder.
+func (c *GroupUpdateOne) SetInput(i UpdateGroupInput) *GroupUpdateOne {
+	i.Mutate(c.Mutation())
+	return c
+}
+
 // UpdateUserInput represents a mutation input for updating users.
 type UpdateUserInput struct {
 	UpdateTime     *time.Time
