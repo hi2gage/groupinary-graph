@@ -200,15 +200,14 @@ func (c *UserUpdateOne) SetInput(i UpdateUserInput) *UserUpdateOne {
 
 // CreateWordInput represents a mutation input for creating words.
 type CreateWordInput struct {
-	CreateTime      *time.Time
-	UpdateTime      *time.Time
-	Description     string
-	DescendantCount *int
-	CreatorID       *int
-	GroupID         *int
-	DefinitionIDs   []int
-	DescendantIDs   []int
-	ParentIDs       []int
+	CreateTime    *time.Time
+	UpdateTime    *time.Time
+	Description   string
+	CreatorID     *int
+	GroupID       *int
+	DefinitionIDs []int
+	ParentIDs     []int
+	DescendantIDs []int
 }
 
 // Mutate applies the CreateWordInput on the WordMutation builder.
@@ -220,9 +219,6 @@ func (i *CreateWordInput) Mutate(m *WordMutation) {
 		m.SetUpdateTime(*v)
 	}
 	m.SetDescription(i.Description)
-	if v := i.DescendantCount; v != nil {
-		m.SetDescendantCount(*v)
-	}
 	if v := i.CreatorID; v != nil {
 		m.SetCreatorID(*v)
 	}
@@ -232,11 +228,11 @@ func (i *CreateWordInput) Mutate(m *WordMutation) {
 	if v := i.DefinitionIDs; len(v) > 0 {
 		m.AddDefinitionIDs(v...)
 	}
-	if v := i.DescendantIDs; len(v) > 0 {
-		m.AddDescendantIDs(v...)
-	}
 	if v := i.ParentIDs; len(v) > 0 {
 		m.AddParentIDs(v...)
+	}
+	if v := i.DescendantIDs; len(v) > 0 {
+		m.AddDescendantIDs(v...)
 	}
 }
 

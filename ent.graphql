@@ -29,12 +29,11 @@ input CreateWordInput {
   createTime: Time
   updateTime: Time
   description: String!
-  descendantcount: Int
   creatorID: ID
   groupID: ID
   definitionIDs: [ID!]
-  descendantIDs: [ID!]
   parentIDs: [ID!]
+  descendantIDs: [ID!]
 }
 """
 Define a Relay Cursor type:
@@ -145,6 +144,9 @@ type Group implements Node {
 
     """Returns the last _n_ elements from the list."""
     last: Int
+
+    """Ordering options for Words returned from the connection."""
+    orderBy: WordOrder
 
     """Filtering options for Words returned from the connection."""
     where: WordWhereInput
@@ -281,6 +283,9 @@ type Query {
     """Returns the last _n_ elements from the list."""
     last: Int
 
+    """Ordering options for Words returned from the connection."""
+    orderBy: WordOrder
+
     """Filtering options for Words returned from the connection."""
     where: WordWhereInput
   ): WordConnection!
@@ -375,6 +380,9 @@ type User implements Node {
 
     """Returns the last _n_ elements from the list."""
     last: Int
+
+    """Ordering options for Words returned from the connection."""
+    orderBy: WordOrder
 
     """Filtering options for Words returned from the connection."""
     where: WordWhereInput
@@ -476,7 +484,6 @@ type Word implements Node {
   createTime: Time!
   updateTime: Time!
   description: String!
-  descendantcount: Int! @goField(name: "DescendantCount", forceResolver: false)
   creator: User
   group: Group
   definitions(
@@ -498,6 +505,7 @@ type Word implements Node {
     """Filtering options for Definitions returned from the connection."""
     where: DefinitionWhereInput
   ): DefinitionConnection!
+  parents: [Word!]
   descendants(
     """Returns the elements in the list that come after the specified cursor."""
     after: Cursor
@@ -511,10 +519,12 @@ type Word implements Node {
     """Returns the last _n_ elements from the list."""
     last: Int
 
+    """Ordering options for Words returned from the connection."""
+    orderBy: WordOrder
+
     """Filtering options for Words returned from the connection."""
     where: WordWhereInput
   ): WordConnection!
-  parents: [Word!]
 }
 """A connection to a list of items."""
 type WordConnection {
@@ -531,6 +541,19 @@ type WordEdge {
   node: Word
   """A cursor for use in pagination."""
   cursor: Cursor!
+}
+"""Ordering options for Word connections"""
+input WordOrder {
+  """The ordering direction."""
+  direction: OrderDirection! = ASC
+  """The field by which to order Words."""
+  field: WordOrderField!
+}
+"""Properties by which Word connections can be ordered."""
+enum WordOrderField {
+  ALPHA
+  DEFINITIONS_COUNT
+  DESCENDANTS_COUNT
 }
 """
 WordWhereInput is used for filtering Word objects.
@@ -581,15 +604,6 @@ input WordWhereInput {
   descriptionHasSuffix: String
   descriptionEqualFold: String
   descriptionContainsFold: String
-  """descendantCount field predicates"""
-  descendantcount: Int
-  descendantcountNEQ: Int
-  descendantcountIn: [Int!]
-  descendantcountNotIn: [Int!]
-  descendantcountGT: Int
-  descendantcountGTE: Int
-  descendantcountLT: Int
-  descendantcountLTE: Int
   """creator edge predicates"""
   hasCreator: Boolean
   hasCreatorWith: [UserWhereInput!]
@@ -599,10 +613,10 @@ input WordWhereInput {
   """definitions edge predicates"""
   hasDefinitions: Boolean
   hasDefinitionsWith: [DefinitionWhereInput!]
-  """descendants edge predicates"""
-  hasDescendants: Boolean
-  hasDescendantsWith: [WordWhereInput!]
   """parents edge predicates"""
   hasParents: Boolean
   hasParentsWith: [WordWhereInput!]
+  """descendants edge predicates"""
+  hasDescendants: Boolean
+  hasDescendantsWith: [WordWhereInput!]
 }

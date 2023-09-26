@@ -25,8 +25,6 @@ type Word struct {
 	UpdateTime time.Time `json:"update_time,omitempty"`
 	// Description holds the value of the "description" field.
 	Description string `json:"description,omitempty"`
-	// DescendantCount holds the value of the "descendantCount" field.
-	DescendantCount int `json:"descendantCount,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the WordQuery when eager-loading is set.
 	Edges            WordEdges `json:"edges"`
@@ -43,10 +41,10 @@ type WordEdges struct {
 	Group *Group `json:"group,omitempty"`
 	// Definitions holds the value of the definitions edge.
 	Definitions []*Definition `json:"definitions,omitempty"`
-	// Descendants holds the value of the descendants edge.
-	Descendants []*Word `json:"descendants,omitempty"`
 	// Parents holds the value of the parents edge.
 	Parents []*Word `json:"parents,omitempty"`
+	// Descendants holds the value of the descendants edge.
+	Descendants []*Word `json:"descendants,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
 	loadedTypes [5]bool
@@ -54,8 +52,8 @@ type WordEdges struct {
 	totalCount [5]map[string]int
 
 	namedDefinitions map[string][]*Definition
-	namedDescendants map[string][]*Word
 	namedParents     map[string][]*Word
+	namedDescendants map[string][]*Word
 }
 
 // CreatorOrErr returns the Creator value or an error if the edge
@@ -93,22 +91,22 @@ func (e WordEdges) DefinitionsOrErr() ([]*Definition, error) {
 	return nil, &NotLoadedError{edge: "definitions"}
 }
 
-// DescendantsOrErr returns the Descendants value or an error if the edge
-// was not loaded in eager-loading.
-func (e WordEdges) DescendantsOrErr() ([]*Word, error) {
-	if e.loadedTypes[3] {
-		return e.Descendants, nil
-	}
-	return nil, &NotLoadedError{edge: "descendants"}
-}
-
 // ParentsOrErr returns the Parents value or an error if the edge
 // was not loaded in eager-loading.
 func (e WordEdges) ParentsOrErr() ([]*Word, error) {
-	if e.loadedTypes[4] {
+	if e.loadedTypes[3] {
 		return e.Parents, nil
 	}
 	return nil, &NotLoadedError{edge: "parents"}
+}
+
+// DescendantsOrErr returns the Descendants value or an error if the edge
+// was not loaded in eager-loading.
+func (e WordEdges) DescendantsOrErr() ([]*Word, error) {
+	if e.loadedTypes[4] {
+		return e.Descendants, nil
+	}
+	return nil, &NotLoadedError{edge: "descendants"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -116,7 +114,7 @@ func (*Word) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case word.FieldID, word.FieldDescendantCount:
+		case word.FieldID:
 			values[i] = new(sql.NullInt64)
 		case word.FieldDescription:
 			values[i] = new(sql.NullString)
@@ -165,12 +163,6 @@ func (w *Word) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				w.Description = value.String
 			}
-		case word.FieldDescendantCount:
-			if value, ok := values[i].(*sql.NullInt64); !ok {
-				return fmt.Errorf("unexpected type %T for field descendantCount", values[i])
-			} else if value.Valid {
-				w.DescendantCount = int(value.Int64)
-			}
 		case word.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for edge-field group_root_words", value)
@@ -213,14 +205,14 @@ func (w *Word) QueryDefinitions() *DefinitionQuery {
 	return NewWordClient(w.config).QueryDefinitions(w)
 }
 
-// QueryDescendants queries the "descendants" edge of the Word entity.
-func (w *Word) QueryDescendants() *WordQuery {
-	return NewWordClient(w.config).QueryDescendants(w)
-}
-
 // QueryParents queries the "parents" edge of the Word entity.
 func (w *Word) QueryParents() *WordQuery {
 	return NewWordClient(w.config).QueryParents(w)
+}
+
+// QueryDescendants queries the "descendants" edge of the Word entity.
+func (w *Word) QueryDescendants() *WordQuery {
+	return NewWordClient(w.config).QueryDescendants(w)
 }
 
 // Update returns a builder for updating this Word.
@@ -254,9 +246,6 @@ func (w *Word) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("description=")
 	builder.WriteString(w.Description)
-	builder.WriteString(", ")
-	builder.WriteString("descendantCount=")
-	builder.WriteString(fmt.Sprintf("%v", w.DescendantCount))
 	builder.WriteByte(')')
 	return builder.String()
 }
@@ -285,30 +274,6 @@ func (w *Word) appendNamedDefinitions(name string, edges ...*Definition) {
 	}
 }
 
-// NamedDescendants returns the Descendants named value or an error if the edge was not
-// loaded in eager-loading with this name.
-func (w *Word) NamedDescendants(name string) ([]*Word, error) {
-	if w.Edges.namedDescendants == nil {
-		return nil, &NotLoadedError{edge: name}
-	}
-	nodes, ok := w.Edges.namedDescendants[name]
-	if !ok {
-		return nil, &NotLoadedError{edge: name}
-	}
-	return nodes, nil
-}
-
-func (w *Word) appendNamedDescendants(name string, edges ...*Word) {
-	if w.Edges.namedDescendants == nil {
-		w.Edges.namedDescendants = make(map[string][]*Word)
-	}
-	if len(edges) == 0 {
-		w.Edges.namedDescendants[name] = []*Word{}
-	} else {
-		w.Edges.namedDescendants[name] = append(w.Edges.namedDescendants[name], edges...)
-	}
-}
-
 // NamedParents returns the Parents named value or an error if the edge was not
 // loaded in eager-loading with this name.
 func (w *Word) NamedParents(name string) ([]*Word, error) {
@@ -330,6 +295,30 @@ func (w *Word) appendNamedParents(name string, edges ...*Word) {
 		w.Edges.namedParents[name] = []*Word{}
 	} else {
 		w.Edges.namedParents[name] = append(w.Edges.namedParents[name], edges...)
+	}
+}
+
+// NamedDescendants returns the Descendants named value or an error if the edge was not
+// loaded in eager-loading with this name.
+func (w *Word) NamedDescendants(name string) ([]*Word, error) {
+	if w.Edges.namedDescendants == nil {
+		return nil, &NotLoadedError{edge: name}
+	}
+	nodes, ok := w.Edges.namedDescendants[name]
+	if !ok {
+		return nil, &NotLoadedError{edge: name}
+	}
+	return nodes, nil
+}
+
+func (w *Word) appendNamedDescendants(name string, edges ...*Word) {
+	if w.Edges.namedDescendants == nil {
+		w.Edges.namedDescendants = make(map[string][]*Word)
+	}
+	if len(edges) == 0 {
+		w.Edges.namedDescendants[name] = []*Word{}
+	} else {
+		w.Edges.namedDescendants[name] = append(w.Edges.namedDescendants[name], edges...)
 	}
 }
 

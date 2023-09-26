@@ -1019,8 +1019,12 @@ func (p *wordPager) applyOrder(query *WordQuery) *WordQuery {
 	if p.order.Field != DefaultWordOrder.Field {
 		query = query.Order(DefaultWordOrder.Field.toTerm(direction.OrderTermOption()))
 	}
-	if len(query.ctx.Fields) > 0 {
-		query.ctx.AppendFieldOnce(p.order.Field.column)
+	switch p.order.Field.column {
+	case WordOrderFieldDefinitionsCount.column, WordOrderFieldDescendantsCount.column:
+	default:
+		if len(query.ctx.Fields) > 0 {
+			query.ctx.AppendFieldOnce(p.order.Field.column)
+		}
 	}
 	return query
 }
@@ -1030,8 +1034,13 @@ func (p *wordPager) orderExpr(query *WordQuery) sql.Querier {
 	if p.reverse {
 		direction = direction.Reverse()
 	}
-	if len(query.ctx.Fields) > 0 {
-		query.ctx.AppendFieldOnce(p.order.Field.column)
+	switch p.order.Field.column {
+	case WordOrderFieldDefinitionsCount.column, WordOrderFieldDescendantsCount.column:
+		query = query.Order(p.order.Field.toTerm(direction.OrderTermOption()))
+	default:
+		if len(query.ctx.Fields) > 0 {
+			query.ctx.AppendFieldOnce(p.order.Field.column)
+		}
 	}
 	return sql.ExprFunc(func(b *sql.Builder) {
 		b.Ident(p.order.Field.column).Pad().WriteString(string(direction))
@@ -1089,6 +1098,99 @@ func (w *WordQuery) Paginate(
 	}
 	conn.build(nodes, pager, after, first, before, last)
 	return conn, nil
+}
+
+var (
+	// WordOrderFieldDescription orders Word by description.
+	WordOrderFieldDescription = &WordOrderField{
+		Value: func(w *Word) (ent.Value, error) {
+			return w.Description, nil
+		},
+		column: word.FieldDescription,
+		toTerm: word.ByDescription,
+		toCursor: func(w *Word) Cursor {
+			return Cursor{
+				ID:    w.ID,
+				Value: w.Description,
+			}
+		},
+	}
+	// WordOrderFieldDefinitionsCount orders by DEFINITIONS_COUNT.
+	WordOrderFieldDefinitionsCount = &WordOrderField{
+		Value: func(w *Word) (ent.Value, error) {
+			return w.Value("definitions_count")
+		},
+		column: "definitions_count",
+		toTerm: func(opts ...sql.OrderTermOption) word.OrderOption {
+			return word.ByDefinitionsCount(
+				append(opts, sql.OrderSelectAs("definitions_count"))...,
+			)
+		},
+		toCursor: func(w *Word) Cursor {
+			cv, _ := w.Value("definitions_count")
+			return Cursor{
+				ID:    w.ID,
+				Value: cv,
+			}
+		},
+	}
+	// WordOrderFieldDescendantsCount orders by DESCENDANTS_COUNT.
+	WordOrderFieldDescendantsCount = &WordOrderField{
+		Value: func(w *Word) (ent.Value, error) {
+			return w.Value("descendants_count")
+		},
+		column: "descendants_count",
+		toTerm: func(opts ...sql.OrderTermOption) word.OrderOption {
+			return word.ByDescendantsCount(
+				append(opts, sql.OrderSelectAs("descendants_count"))...,
+			)
+		},
+		toCursor: func(w *Word) Cursor {
+			cv, _ := w.Value("descendants_count")
+			return Cursor{
+				ID:    w.ID,
+				Value: cv,
+			}
+		},
+	}
+)
+
+// String implement fmt.Stringer interface.
+func (f WordOrderField) String() string {
+	var str string
+	switch f.column {
+	case WordOrderFieldDescription.column:
+		str = "ALPHA"
+	case WordOrderFieldDefinitionsCount.column:
+		str = "DEFINITIONS_COUNT"
+	case WordOrderFieldDescendantsCount.column:
+		str = "DESCENDANTS_COUNT"
+	}
+	return str
+}
+
+// MarshalGQL implements graphql.Marshaler interface.
+func (f WordOrderField) MarshalGQL(w io.Writer) {
+	io.WriteString(w, strconv.Quote(f.String()))
+}
+
+// UnmarshalGQL implements graphql.Unmarshaler interface.
+func (f *WordOrderField) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("WordOrderField %T must be a string", v)
+	}
+	switch str {
+	case "ALPHA":
+		*f = *WordOrderFieldDescription
+	case "DEFINITIONS_COUNT":
+		*f = *WordOrderFieldDefinitionsCount
+	case "DESCENDANTS_COUNT":
+		*f = *WordOrderFieldDescendantsCount
+	default:
+		return fmt.Errorf("%s is not a valid WordOrderField", str)
+	}
+	return nil
 }
 
 // WordOrderField defines the ordering field of Word.
