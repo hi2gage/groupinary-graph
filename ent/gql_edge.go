@@ -17,9 +17,10 @@ func (d *Definition) Creator(ctx context.Context) (*User, error) {
 }
 
 func (gr *Group) RootWords(
-	ctx context.Context, after *Cursor, first *int, before *Cursor, last *int, where *WordWhereInput,
+	ctx context.Context, after *Cursor, first *int, before *Cursor, last *int, orderBy *WordOrder, where *WordWhereInput,
 ) (*WordConnection, error) {
 	opts := []WordPaginateOption{
+		WithWordOrder(orderBy),
 		WithWordFilter(where.Filter),
 	}
 	alias := graphql.GetFieldContext(ctx).Field.Alias
@@ -82,9 +83,10 @@ func (u *User) Definitions(
 }
 
 func (u *User) Words(
-	ctx context.Context, after *Cursor, first *int, before *Cursor, last *int, where *WordWhereInput,
+	ctx context.Context, after *Cursor, first *int, before *Cursor, last *int, orderBy *WordOrder, where *WordWhereInput,
 ) (*WordConnection, error) {
 	opts := []WordPaginateOption{
+		WithWordOrder(orderBy),
 		WithWordFilter(where.Filter),
 	}
 	alias := graphql.GetFieldContext(ctx).Field.Alias
@@ -138,26 +140,6 @@ func (w *Word) Definitions(
 	return w.QueryDefinitions().Paginate(ctx, after, first, before, last, opts...)
 }
 
-func (w *Word) Descendants(
-	ctx context.Context, after *Cursor, first *int, before *Cursor, last *int, where *WordWhereInput,
-) (*WordConnection, error) {
-	opts := []WordPaginateOption{
-		WithWordFilter(where.Filter),
-	}
-	alias := graphql.GetFieldContext(ctx).Field.Alias
-	totalCount, hasTotalCount := w.Edges.totalCount[3][alias]
-	if nodes, err := w.NamedDescendants(alias); err == nil || hasTotalCount {
-		pager, err := newWordPager(opts, last != nil)
-		if err != nil {
-			return nil, err
-		}
-		conn := &WordConnection{Edges: []*WordEdge{}, TotalCount: totalCount}
-		conn.build(nodes, pager, after, first, before, last)
-		return conn, nil
-	}
-	return w.QueryDescendants().Paginate(ctx, after, first, before, last, opts...)
-}
-
 func (w *Word) Parents(ctx context.Context) (result []*Word, err error) {
 	if fc := graphql.GetFieldContext(ctx); fc != nil && fc.Field.Alias != "" {
 		result, err = w.NamedParents(graphql.GetFieldContext(ctx).Field.Alias)
@@ -168,4 +150,25 @@ func (w *Word) Parents(ctx context.Context) (result []*Word, err error) {
 		result, err = w.QueryParents().All(ctx)
 	}
 	return result, err
+}
+
+func (w *Word) Descendants(
+	ctx context.Context, after *Cursor, first *int, before *Cursor, last *int, orderBy *WordOrder, where *WordWhereInput,
+) (*WordConnection, error) {
+	opts := []WordPaginateOption{
+		WithWordOrder(orderBy),
+		WithWordFilter(where.Filter),
+	}
+	alias := graphql.GetFieldContext(ctx).Field.Alias
+	totalCount, hasTotalCount := w.Edges.totalCount[4][alias]
+	if nodes, err := w.NamedDescendants(alias); err == nil || hasTotalCount {
+		pager, err := newWordPager(opts, last != nil)
+		if err != nil {
+			return nil, err
+		}
+		conn := &WordConnection{Edges: []*WordEdge{}, TotalCount: totalCount}
+		conn.build(nodes, pager, after, first, before, last)
+		return conn, nil
+	}
+	return w.QueryDescendants().Paginate(ctx, after, first, before, last, opts...)
 }

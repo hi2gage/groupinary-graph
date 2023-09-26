@@ -1995,8 +1995,6 @@ type WordMutation struct {
 	create_time        *time.Time
 	update_time        *time.Time
 	description        *string
-	descendantCount    *int
-	adddescendantCount *int
 	clearedFields      map[string]struct{}
 	creator            *int
 	clearedcreator     bool
@@ -2005,12 +2003,12 @@ type WordMutation struct {
 	definitions        map[int]struct{}
 	removeddefinitions map[int]struct{}
 	cleareddefinitions bool
-	descendants        map[int]struct{}
-	removeddescendants map[int]struct{}
-	cleareddescendants bool
 	parents            map[int]struct{}
 	removedparents     map[int]struct{}
 	clearedparents     bool
+	descendants        map[int]struct{}
+	removeddescendants map[int]struct{}
+	cleareddescendants bool
 	done               bool
 	oldValue           func(context.Context) (*Word, error)
 	predicates         []predicate.Word
@@ -2222,62 +2220,6 @@ func (m *WordMutation) ResetDescription() {
 	m.description = nil
 }
 
-// SetDescendantCount sets the "descendantCount" field.
-func (m *WordMutation) SetDescendantCount(i int) {
-	m.descendantCount = &i
-	m.adddescendantCount = nil
-}
-
-// DescendantCount returns the value of the "descendantCount" field in the mutation.
-func (m *WordMutation) DescendantCount() (r int, exists bool) {
-	v := m.descendantCount
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldDescendantCount returns the old "descendantCount" field's value of the Word entity.
-// If the Word object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *WordMutation) OldDescendantCount(ctx context.Context) (v int, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldDescendantCount is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldDescendantCount requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldDescendantCount: %w", err)
-	}
-	return oldValue.DescendantCount, nil
-}
-
-// AddDescendantCount adds i to the "descendantCount" field.
-func (m *WordMutation) AddDescendantCount(i int) {
-	if m.adddescendantCount != nil {
-		*m.adddescendantCount += i
-	} else {
-		m.adddescendantCount = &i
-	}
-}
-
-// AddedDescendantCount returns the value that was added to the "descendantCount" field in this mutation.
-func (m *WordMutation) AddedDescendantCount() (r int, exists bool) {
-	v := m.adddescendantCount
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// ResetDescendantCount resets all changes to the "descendantCount" field.
-func (m *WordMutation) ResetDescendantCount() {
-	m.descendantCount = nil
-	m.adddescendantCount = nil
-}
-
 // SetCreatorID sets the "creator" edge to the User entity by id.
 func (m *WordMutation) SetCreatorID(id int) {
 	m.creator = &id
@@ -2410,60 +2352,6 @@ func (m *WordMutation) ResetDefinitions() {
 	m.removeddefinitions = nil
 }
 
-// AddDescendantIDs adds the "descendants" edge to the Word entity by ids.
-func (m *WordMutation) AddDescendantIDs(ids ...int) {
-	if m.descendants == nil {
-		m.descendants = make(map[int]struct{})
-	}
-	for i := range ids {
-		m.descendants[ids[i]] = struct{}{}
-	}
-}
-
-// ClearDescendants clears the "descendants" edge to the Word entity.
-func (m *WordMutation) ClearDescendants() {
-	m.cleareddescendants = true
-}
-
-// DescendantsCleared reports if the "descendants" edge to the Word entity was cleared.
-func (m *WordMutation) DescendantsCleared() bool {
-	return m.cleareddescendants
-}
-
-// RemoveDescendantIDs removes the "descendants" edge to the Word entity by IDs.
-func (m *WordMutation) RemoveDescendantIDs(ids ...int) {
-	if m.removeddescendants == nil {
-		m.removeddescendants = make(map[int]struct{})
-	}
-	for i := range ids {
-		delete(m.descendants, ids[i])
-		m.removeddescendants[ids[i]] = struct{}{}
-	}
-}
-
-// RemovedDescendants returns the removed IDs of the "descendants" edge to the Word entity.
-func (m *WordMutation) RemovedDescendantsIDs() (ids []int) {
-	for id := range m.removeddescendants {
-		ids = append(ids, id)
-	}
-	return
-}
-
-// DescendantsIDs returns the "descendants" edge IDs in the mutation.
-func (m *WordMutation) DescendantsIDs() (ids []int) {
-	for id := range m.descendants {
-		ids = append(ids, id)
-	}
-	return
-}
-
-// ResetDescendants resets all changes to the "descendants" edge.
-func (m *WordMutation) ResetDescendants() {
-	m.descendants = nil
-	m.cleareddescendants = false
-	m.removeddescendants = nil
-}
-
 // AddParentIDs adds the "parents" edge to the Word entity by ids.
 func (m *WordMutation) AddParentIDs(ids ...int) {
 	if m.parents == nil {
@@ -2518,6 +2406,60 @@ func (m *WordMutation) ResetParents() {
 	m.removedparents = nil
 }
 
+// AddDescendantIDs adds the "descendants" edge to the Word entity by ids.
+func (m *WordMutation) AddDescendantIDs(ids ...int) {
+	if m.descendants == nil {
+		m.descendants = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.descendants[ids[i]] = struct{}{}
+	}
+}
+
+// ClearDescendants clears the "descendants" edge to the Word entity.
+func (m *WordMutation) ClearDescendants() {
+	m.cleareddescendants = true
+}
+
+// DescendantsCleared reports if the "descendants" edge to the Word entity was cleared.
+func (m *WordMutation) DescendantsCleared() bool {
+	return m.cleareddescendants
+}
+
+// RemoveDescendantIDs removes the "descendants" edge to the Word entity by IDs.
+func (m *WordMutation) RemoveDescendantIDs(ids ...int) {
+	if m.removeddescendants == nil {
+		m.removeddescendants = make(map[int]struct{})
+	}
+	for i := range ids {
+		delete(m.descendants, ids[i])
+		m.removeddescendants[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedDescendants returns the removed IDs of the "descendants" edge to the Word entity.
+func (m *WordMutation) RemovedDescendantsIDs() (ids []int) {
+	for id := range m.removeddescendants {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// DescendantsIDs returns the "descendants" edge IDs in the mutation.
+func (m *WordMutation) DescendantsIDs() (ids []int) {
+	for id := range m.descendants {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetDescendants resets all changes to the "descendants" edge.
+func (m *WordMutation) ResetDescendants() {
+	m.descendants = nil
+	m.cleareddescendants = false
+	m.removeddescendants = nil
+}
+
 // Where appends a list predicates to the WordMutation builder.
 func (m *WordMutation) Where(ps ...predicate.Word) {
 	m.predicates = append(m.predicates, ps...)
@@ -2552,7 +2494,7 @@ func (m *WordMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *WordMutation) Fields() []string {
-	fields := make([]string, 0, 4)
+	fields := make([]string, 0, 3)
 	if m.create_time != nil {
 		fields = append(fields, word.FieldCreateTime)
 	}
@@ -2561,9 +2503,6 @@ func (m *WordMutation) Fields() []string {
 	}
 	if m.description != nil {
 		fields = append(fields, word.FieldDescription)
-	}
-	if m.descendantCount != nil {
-		fields = append(fields, word.FieldDescendantCount)
 	}
 	return fields
 }
@@ -2579,8 +2518,6 @@ func (m *WordMutation) Field(name string) (ent.Value, bool) {
 		return m.UpdateTime()
 	case word.FieldDescription:
 		return m.Description()
-	case word.FieldDescendantCount:
-		return m.DescendantCount()
 	}
 	return nil, false
 }
@@ -2596,8 +2533,6 @@ func (m *WordMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldUpdateTime(ctx)
 	case word.FieldDescription:
 		return m.OldDescription(ctx)
-	case word.FieldDescendantCount:
-		return m.OldDescendantCount(ctx)
 	}
 	return nil, fmt.Errorf("unknown Word field %s", name)
 }
@@ -2628,13 +2563,6 @@ func (m *WordMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetDescription(v)
 		return nil
-	case word.FieldDescendantCount:
-		v, ok := value.(int)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetDescendantCount(v)
-		return nil
 	}
 	return fmt.Errorf("unknown Word field %s", name)
 }
@@ -2642,21 +2570,13 @@ func (m *WordMutation) SetField(name string, value ent.Value) error {
 // AddedFields returns all numeric fields that were incremented/decremented during
 // this mutation.
 func (m *WordMutation) AddedFields() []string {
-	var fields []string
-	if m.adddescendantCount != nil {
-		fields = append(fields, word.FieldDescendantCount)
-	}
-	return fields
+	return nil
 }
 
 // AddedField returns the numeric value that was incremented/decremented on a field
 // with the given name. The second boolean return value indicates that this field
 // was not set, or was not defined in the schema.
 func (m *WordMutation) AddedField(name string) (ent.Value, bool) {
-	switch name {
-	case word.FieldDescendantCount:
-		return m.AddedDescendantCount()
-	}
 	return nil, false
 }
 
@@ -2665,13 +2585,6 @@ func (m *WordMutation) AddedField(name string) (ent.Value, bool) {
 // type.
 func (m *WordMutation) AddField(name string, value ent.Value) error {
 	switch name {
-	case word.FieldDescendantCount:
-		v, ok := value.(int)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.AddDescendantCount(v)
-		return nil
 	}
 	return fmt.Errorf("unknown Word numeric field %s", name)
 }
@@ -2708,9 +2621,6 @@ func (m *WordMutation) ResetField(name string) error {
 	case word.FieldDescription:
 		m.ResetDescription()
 		return nil
-	case word.FieldDescendantCount:
-		m.ResetDescendantCount()
-		return nil
 	}
 	return fmt.Errorf("unknown Word field %s", name)
 }
@@ -2727,11 +2637,11 @@ func (m *WordMutation) AddedEdges() []string {
 	if m.definitions != nil {
 		edges = append(edges, word.EdgeDefinitions)
 	}
-	if m.descendants != nil {
-		edges = append(edges, word.EdgeDescendants)
-	}
 	if m.parents != nil {
 		edges = append(edges, word.EdgeParents)
+	}
+	if m.descendants != nil {
+		edges = append(edges, word.EdgeDescendants)
 	}
 	return edges
 }
@@ -2754,15 +2664,15 @@ func (m *WordMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
-	case word.EdgeDescendants:
-		ids := make([]ent.Value, 0, len(m.descendants))
-		for id := range m.descendants {
-			ids = append(ids, id)
-		}
-		return ids
 	case word.EdgeParents:
 		ids := make([]ent.Value, 0, len(m.parents))
 		for id := range m.parents {
+			ids = append(ids, id)
+		}
+		return ids
+	case word.EdgeDescendants:
+		ids := make([]ent.Value, 0, len(m.descendants))
+		for id := range m.descendants {
 			ids = append(ids, id)
 		}
 		return ids
@@ -2776,11 +2686,11 @@ func (m *WordMutation) RemovedEdges() []string {
 	if m.removeddefinitions != nil {
 		edges = append(edges, word.EdgeDefinitions)
 	}
-	if m.removeddescendants != nil {
-		edges = append(edges, word.EdgeDescendants)
-	}
 	if m.removedparents != nil {
 		edges = append(edges, word.EdgeParents)
+	}
+	if m.removeddescendants != nil {
+		edges = append(edges, word.EdgeDescendants)
 	}
 	return edges
 }
@@ -2795,15 +2705,15 @@ func (m *WordMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
-	case word.EdgeDescendants:
-		ids := make([]ent.Value, 0, len(m.removeddescendants))
-		for id := range m.removeddescendants {
-			ids = append(ids, id)
-		}
-		return ids
 	case word.EdgeParents:
 		ids := make([]ent.Value, 0, len(m.removedparents))
 		for id := range m.removedparents {
+			ids = append(ids, id)
+		}
+		return ids
+	case word.EdgeDescendants:
+		ids := make([]ent.Value, 0, len(m.removeddescendants))
+		for id := range m.removeddescendants {
 			ids = append(ids, id)
 		}
 		return ids
@@ -2823,11 +2733,11 @@ func (m *WordMutation) ClearedEdges() []string {
 	if m.cleareddefinitions {
 		edges = append(edges, word.EdgeDefinitions)
 	}
-	if m.cleareddescendants {
-		edges = append(edges, word.EdgeDescendants)
-	}
 	if m.clearedparents {
 		edges = append(edges, word.EdgeParents)
+	}
+	if m.cleareddescendants {
+		edges = append(edges, word.EdgeDescendants)
 	}
 	return edges
 }
@@ -2842,10 +2752,10 @@ func (m *WordMutation) EdgeCleared(name string) bool {
 		return m.clearedgroup
 	case word.EdgeDefinitions:
 		return m.cleareddefinitions
-	case word.EdgeDescendants:
-		return m.cleareddescendants
 	case word.EdgeParents:
 		return m.clearedparents
+	case word.EdgeDescendants:
+		return m.cleareddescendants
 	}
 	return false
 }
@@ -2877,11 +2787,11 @@ func (m *WordMutation) ResetEdge(name string) error {
 	case word.EdgeDefinitions:
 		m.ResetDefinitions()
 		return nil
-	case word.EdgeDescendants:
-		m.ResetDescendants()
-		return nil
 	case word.EdgeParents:
 		m.ResetParents()
+		return nil
+	case word.EdgeDescendants:
+		m.ResetDescendants()
 		return nil
 	}
 	return fmt.Errorf("unknown Word edge %s", name)

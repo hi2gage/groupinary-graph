@@ -690,6 +690,18 @@ func (w *WordQuery) collectField(ctx context.Context, opCtx *graphql.OperationCo
 			w.WithNamedDefinitions(alias, func(wq *DefinitionQuery) {
 				*wq = *query
 			})
+		case "parents":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = (&WordClient{config: w.config}).Query()
+			)
+			if err := query.collectField(ctx, opCtx, field, path, satisfies...); err != nil {
+				return err
+			}
+			w.WithNamedParents(alias, func(wq *WordQuery) {
+				*wq = *query
+			})
 		case "descendants":
 			var (
 				alias = field.Alias
@@ -737,10 +749,10 @@ func (w *WordQuery) collectField(ctx context.Context, opCtx *graphql.OperationCo
 						}
 						for i := range nodes {
 							n := m[nodes[i].ID]
-							if nodes[i].Edges.totalCount[3] == nil {
-								nodes[i].Edges.totalCount[3] = make(map[string]int)
+							if nodes[i].Edges.totalCount[4] == nil {
+								nodes[i].Edges.totalCount[4] = make(map[string]int)
 							}
-							nodes[i].Edges.totalCount[3][alias] = n
+							nodes[i].Edges.totalCount[4][alias] = n
 						}
 						return nil
 					})
@@ -748,10 +760,10 @@ func (w *WordQuery) collectField(ctx context.Context, opCtx *graphql.OperationCo
 					w.loadTotal = append(w.loadTotal, func(_ context.Context, nodes []*Word) error {
 						for i := range nodes {
 							n := len(nodes[i].Edges.Descendants)
-							if nodes[i].Edges.totalCount[3] == nil {
-								nodes[i].Edges.totalCount[3] = make(map[string]int)
+							if nodes[i].Edges.totalCount[4] == nil {
+								nodes[i].Edges.totalCount[4] = make(map[string]int)
 							}
-							nodes[i].Edges.totalCount[3][alias] = n
+							nodes[i].Edges.totalCount[4][alias] = n
 						}
 						return nil
 					})
@@ -778,18 +790,6 @@ func (w *WordQuery) collectField(ctx context.Context, opCtx *graphql.OperationCo
 			w.WithNamedDescendants(alias, func(wq *WordQuery) {
 				*wq = *query
 			})
-		case "parents":
-			var (
-				alias = field.Alias
-				path  = append(path, alias)
-				query = (&WordClient{config: w.config}).Query()
-			)
-			if err := query.collectField(ctx, opCtx, field, path, satisfies...); err != nil {
-				return err
-			}
-			w.WithNamedParents(alias, func(wq *WordQuery) {
-				*wq = *query
-			})
 		case "createTime":
 			if _, ok := fieldSeen[word.FieldCreateTime]; !ok {
 				selectedFields = append(selectedFields, word.FieldCreateTime)
@@ -804,11 +804,6 @@ func (w *WordQuery) collectField(ctx context.Context, opCtx *graphql.OperationCo
 			if _, ok := fieldSeen[word.FieldDescription]; !ok {
 				selectedFields = append(selectedFields, word.FieldDescription)
 				fieldSeen[word.FieldDescription] = struct{}{}
-			}
-		case "descendantcount":
-			if _, ok := fieldSeen[word.FieldDescendantCount]; !ok {
-				selectedFields = append(selectedFields, word.FieldDescendantCount)
-				fieldSeen[word.FieldDescendantCount] = struct{}{}
 			}
 		case "id":
 		case "__typename":
@@ -844,6 +839,28 @@ func newWordPaginateArgs(rv map[string]any) *wordPaginateArgs {
 	}
 	if v := rv[beforeField]; v != nil {
 		args.before = v.(*Cursor)
+	}
+	if v, ok := rv[orderByField]; ok {
+		switch v := v.(type) {
+		case map[string]any:
+			var (
+				err1, err2 error
+				order      = &WordOrder{Field: &WordOrderField{}, Direction: entgql.OrderDirectionAsc}
+			)
+			if d, ok := v[directionField]; ok {
+				err1 = order.Direction.UnmarshalGQL(d)
+			}
+			if f, ok := v[fieldField]; ok {
+				err2 = order.Field.UnmarshalGQL(f)
+			}
+			if err1 == nil && err2 == nil {
+				args.opts = append(args.opts, WithWordOrder(order))
+			}
+		case *WordOrder:
+			if v != nil {
+				args.opts = append(args.opts, WithWordOrder(v))
+			}
+		}
 	}
 	if v, ok := rv[whereField].(*WordWhereInput); ok {
 		args.opts = append(args.opts, WithWordFilter(v.Filter))

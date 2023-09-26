@@ -27,6 +27,7 @@ func (r *queryResolver) Definitions(ctx context.Context, after *entgql.Cursor[in
 		Paginate(ctx, after, first, before, last,
 			ent.WithDefinitionOrder(ent.DefaultDefinitionOrder),
 			ent.WithDefinitionFilter(where.Filter),
+			ent.WithDefinitionOrder(orderBy),
 		)
 }
 
@@ -41,11 +42,12 @@ func (r *queryResolver) Users(ctx context.Context) ([]*ent.User, error) {
 }
 
 // Words is the resolver for the words field.
-func (r *queryResolver) Words(ctx context.Context, after *entgql.Cursor[int], first *int, before *entgql.Cursor[int], last *int, where *ent.WordWhereInput) (*ent.WordConnection, error) {
+func (r *queryResolver) Words(ctx context.Context, after *entgql.Cursor[int], first *int, before *entgql.Cursor[int], last *int, orderBy *ent.WordOrder, where *ent.WordWhereInput) (*ent.WordConnection, error) {
 	return r.client.Word.Query().
 		Paginate(ctx, after, first, before, last,
 			ent.WithWordOrder(ent.DefaultWordOrder),
 			ent.WithWordFilter(where.Filter),
+			ent.WithWordOrder(orderBy),
 		)
 }
 

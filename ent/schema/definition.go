@@ -18,7 +18,7 @@ type Definition struct {
 func (Definition) Fields() []ent.Field {
 	return []ent.Field{
 		field.String("description").NotEmpty().Annotations(
-			entgql.OrderField("ALPHA"), // Specify the ordering tag
+			entgql.OrderField("ALPHA"),
 		),
 	}
 }

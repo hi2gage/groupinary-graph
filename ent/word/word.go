@@ -20,18 +20,16 @@ const (
 	FieldUpdateTime = "update_time"
 	// FieldDescription holds the string denoting the description field in the database.
 	FieldDescription = "description"
-	// FieldDescendantCount holds the string denoting the descendantcount field in the database.
-	FieldDescendantCount = "descendant_count"
 	// EdgeCreator holds the string denoting the creator edge name in mutations.
 	EdgeCreator = "creator"
 	// EdgeGroup holds the string denoting the group edge name in mutations.
 	EdgeGroup = "group"
 	// EdgeDefinitions holds the string denoting the definitions edge name in mutations.
 	EdgeDefinitions = "definitions"
-	// EdgeDescendants holds the string denoting the descendants edge name in mutations.
-	EdgeDescendants = "descendants"
 	// EdgeParents holds the string denoting the parents edge name in mutations.
 	EdgeParents = "parents"
+	// EdgeDescendants holds the string denoting the descendants edge name in mutations.
+	EdgeDescendants = "descendants"
 	// Table holds the table name of the word in the database.
 	Table = "words"
 	// CreatorTable is the table that holds the creator relation/edge.
@@ -55,10 +53,10 @@ const (
 	DefinitionsInverseTable = "definitions"
 	// DefinitionsColumn is the table column denoting the definitions relation/edge.
 	DefinitionsColumn = "word_definitions"
-	// DescendantsTable is the table that holds the descendants relation/edge. The primary key declared below.
-	DescendantsTable = "word_descendants"
 	// ParentsTable is the table that holds the parents relation/edge. The primary key declared below.
 	ParentsTable = "word_descendants"
+	// DescendantsTable is the table that holds the descendants relation/edge. The primary key declared below.
+	DescendantsTable = "word_descendants"
 )
 
 // Columns holds all SQL columns for word fields.
@@ -67,7 +65,6 @@ var Columns = []string{
 	FieldCreateTime,
 	FieldUpdateTime,
 	FieldDescription,
-	FieldDescendantCount,
 }
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the "words"
@@ -78,12 +75,12 @@ var ForeignKeys = []string{
 }
 
 var (
-	// DescendantsPrimaryKey and DescendantsColumn2 are the table columns denoting the
-	// primary key for the descendants relation (M2M).
-	DescendantsPrimaryKey = []string{"word_id", "parent_id"}
 	// ParentsPrimaryKey and ParentsColumn2 are the table columns denoting the
 	// primary key for the parents relation (M2M).
 	ParentsPrimaryKey = []string{"word_id", "parent_id"}
+	// DescendantsPrimaryKey and DescendantsColumn2 are the table columns denoting the
+	// primary key for the descendants relation (M2M).
+	DescendantsPrimaryKey = []string{"word_id", "parent_id"}
 )
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -110,8 +107,6 @@ var (
 	UpdateDefaultUpdateTime func() time.Time
 	// DescriptionValidator is a validator for the "description" field. It is called by the builders before save.
 	DescriptionValidator func(string) error
-	// DefaultDescendantCount holds the default value on creation for the "descendantCount" field.
-	DefaultDescendantCount int
 )
 
 // OrderOption defines the ordering options for the Word queries.
@@ -135,11 +130,6 @@ func ByUpdateTime(opts ...sql.OrderTermOption) OrderOption {
 // ByDescription orders the results by the description field.
 func ByDescription(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldDescription, opts...).ToFunc()
-}
-
-// ByDescendantCount orders the results by the descendantCount field.
-func ByDescendantCount(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldDescendantCount, opts...).ToFunc()
 }
 
 // ByCreatorField orders the results by creator field.
@@ -170,20 +160,6 @@ func ByDefinitions(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	}
 }
 
-// ByDescendantsCount orders the results by descendants count.
-func ByDescendantsCount(opts ...sql.OrderTermOption) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborsCount(s, newDescendantsStep(), opts...)
-	}
-}
-
-// ByDescendants orders the results by descendants terms.
-func ByDescendants(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newDescendantsStep(), append([]sql.OrderTerm{term}, terms...)...)
-	}
-}
-
 // ByParentsCount orders the results by parents count.
 func ByParentsCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -195,6 +171,20 @@ func ByParentsCount(opts ...sql.OrderTermOption) OrderOption {
 func ByParents(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	return func(s *sql.Selector) {
 		sqlgraph.OrderByNeighborTerms(s, newParentsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByDescendantsCount orders the results by descendants count.
+func ByDescendantsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newDescendantsStep(), opts...)
+	}
+}
+
+// ByDescendants orders the results by descendants terms.
+func ByDescendants(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newDescendantsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
 func newCreatorStep() *sqlgraph.Step {
@@ -218,17 +208,17 @@ func newDefinitionsStep() *sqlgraph.Step {
 		sqlgraph.Edge(sqlgraph.O2M, false, DefinitionsTable, DefinitionsColumn),
 	)
 }
-func newDescendantsStep() *sqlgraph.Step {
-	return sqlgraph.NewStep(
-		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(Table, FieldID),
-		sqlgraph.Edge(sqlgraph.M2M, false, DescendantsTable, DescendantsPrimaryKey...),
-	)
-}
 func newParentsStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(Table, FieldID),
 		sqlgraph.Edge(sqlgraph.M2M, true, ParentsTable, ParentsPrimaryKey...),
+	)
+}
+func newDescendantsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(Table, FieldID),
+		sqlgraph.Edge(sqlgraph.M2M, false, DescendantsTable, DescendantsPrimaryKey...),
 	)
 }
