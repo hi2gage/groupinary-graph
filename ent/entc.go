@@ -14,10 +14,10 @@ import (
 func main() {
 	ex, err := entgql.NewExtension(
 		// Tell Ent to generate a GraphQL schema for
-		// the Ent schema in a file named ent.graphql.
+		// the Ent schema in a file named schema/ent.graphql.
 		entgql.WithSchemaGenerator(),
 		entgql.WithWhereInputs(true),
-		entgql.WithSchemaPath("ent.graphql"),
+		entgql.WithSchemaPath("graph/schema/ent.graphql"),
 		entgql.WithConfigPath("gqlgen.yml"),
 	)
 	if err != nil {

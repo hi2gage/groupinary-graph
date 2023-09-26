@@ -9,15 +9,14 @@ import (
 
 	"shrektionary_api/ent"
 	"shrektionary_api/ent/migrate"
-	"shrektionary_api/graph"
+	"shrektionary_api/graph/resolvers"
 	"shrektionary_api/middleware"
 
 	"entgo.io/ent/dialect"
-	"github.com/joho/godotenv"
-	_ "github.com/lib/pq" // Import the PostgreSQL driver package
-
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/playground"
+	"github.com/joho/godotenv"
+	_ "github.com/lib/pq" // Import the PostgreSQL driver package
 )
 
 const (
@@ -60,7 +59,7 @@ func main() {
 		log.Fatal("opening ent client", err)
 	}
 
-	srv := handler.NewDefaultServer(graph.NewSchema(client))
+	srv := handler.NewDefaultServer(resolvers.NewSchema(client))
 
 	// Middleware for logging requests
 	loggingMiddleware := func(next http.Handler) http.Handler {
