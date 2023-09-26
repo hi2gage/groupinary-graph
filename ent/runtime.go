@@ -91,8 +91,4 @@ func init() {
 	wordDescDescription := wordFields[0].Descriptor()
 	// word.DescriptionValidator is a validator for the "description" field. It is called by the builders before save.
 	word.DescriptionValidator = wordDescDescription.Validators[0].(func(string) error)
-	// wordDescDescendantCount is the schema descriptor for descendantCount field.
-	wordDescDescendantCount := wordFields[1].Descriptor()
-	// word.DefaultDescendantCount holds the default value on creation for the descendantCount field.
-	word.DefaultDescendantCount = wordDescDescendantCount.Default.(int)
 }

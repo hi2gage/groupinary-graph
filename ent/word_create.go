@@ -57,20 +57,6 @@ func (wc *WordCreate) SetDescription(s string) *WordCreate {
 	return wc
 }
 
-// SetDescendantCount sets the "descendantCount" field.
-func (wc *WordCreate) SetDescendantCount(i int) *WordCreate {
-	wc.mutation.SetDescendantCount(i)
-	return wc
-}
-
-// SetNillableDescendantCount sets the "descendantCount" field if the given value is not nil.
-func (wc *WordCreate) SetNillableDescendantCount(i *int) *WordCreate {
-	if i != nil {
-		wc.SetDescendantCount(*i)
-	}
-	return wc
-}
-
 // SetCreatorID sets the "creator" edge to the User entity by ID.
 func (wc *WordCreate) SetCreatorID(id int) *WordCreate {
 	wc.mutation.SetCreatorID(id)
@@ -124,21 +110,6 @@ func (wc *WordCreate) AddDefinitions(d ...*Definition) *WordCreate {
 	return wc.AddDefinitionIDs(ids...)
 }
 
-// AddDescendantIDs adds the "descendants" edge to the Word entity by IDs.
-func (wc *WordCreate) AddDescendantIDs(ids ...int) *WordCreate {
-	wc.mutation.AddDescendantIDs(ids...)
-	return wc
-}
-
-// AddDescendants adds the "descendants" edges to the Word entity.
-func (wc *WordCreate) AddDescendants(w ...*Word) *WordCreate {
-	ids := make([]int, len(w))
-	for i := range w {
-		ids[i] = w[i].ID
-	}
-	return wc.AddDescendantIDs(ids...)
-}
-
 // AddParentIDs adds the "parents" edge to the Word entity by IDs.
 func (wc *WordCreate) AddParentIDs(ids ...int) *WordCreate {
 	wc.mutation.AddParentIDs(ids...)
@@ -152,6 +123,21 @@ func (wc *WordCreate) AddParents(w ...*Word) *WordCreate {
 		ids[i] = w[i].ID
 	}
 	return wc.AddParentIDs(ids...)
+}
+
+// AddDescendantIDs adds the "descendants" edge to the Word entity by IDs.
+func (wc *WordCreate) AddDescendantIDs(ids ...int) *WordCreate {
+	wc.mutation.AddDescendantIDs(ids...)
+	return wc
+}
+
+// AddDescendants adds the "descendants" edges to the Word entity.
+func (wc *WordCreate) AddDescendants(w ...*Word) *WordCreate {
+	ids := make([]int, len(w))
+	for i := range w {
+		ids[i] = w[i].ID
+	}
+	return wc.AddDescendantIDs(ids...)
 }
 
 // Mutation returns the WordMutation object of the builder.
@@ -197,10 +183,6 @@ func (wc *WordCreate) defaults() {
 		v := word.DefaultUpdateTime()
 		wc.mutation.SetUpdateTime(v)
 	}
-	if _, ok := wc.mutation.DescendantCount(); !ok {
-		v := word.DefaultDescendantCount
-		wc.mutation.SetDescendantCount(v)
-	}
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -218,9 +200,6 @@ func (wc *WordCreate) check() error {
 		if err := word.DescriptionValidator(v); err != nil {
 			return &ValidationError{Name: "description", err: fmt.Errorf(`ent: validator failed for field "Word.description": %w`, err)}
 		}
-	}
-	if _, ok := wc.mutation.DescendantCount(); !ok {
-		return &ValidationError{Name: "descendantCount", err: errors.New(`ent: missing required field "Word.descendantCount"`)}
 	}
 	return nil
 }
@@ -259,10 +238,6 @@ func (wc *WordCreate) createSpec() (*Word, *sqlgraph.CreateSpec) {
 	if value, ok := wc.mutation.Description(); ok {
 		_spec.SetField(word.FieldDescription, field.TypeString, value)
 		_node.Description = value
-	}
-	if value, ok := wc.mutation.DescendantCount(); ok {
-		_spec.SetField(word.FieldDescendantCount, field.TypeInt, value)
-		_node.DescendantCount = value
 	}
 	if nodes := wc.mutation.CreatorIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -314,13 +289,13 @@ func (wc *WordCreate) createSpec() (*Word, *sqlgraph.CreateSpec) {
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := wc.mutation.DescendantsIDs(); len(nodes) > 0 {
+	if nodes := wc.mutation.ParentsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
-			Inverse: false,
-			Table:   word.DescendantsTable,
-			Columns: word.DescendantsPrimaryKey,
-			Bidi:    true,
+			Inverse: true,
+			Table:   word.ParentsTable,
+			Columns: word.ParentsPrimaryKey,
+			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(word.FieldID, field.TypeInt),
 			},
@@ -330,12 +305,12 @@ func (wc *WordCreate) createSpec() (*Word, *sqlgraph.CreateSpec) {
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := wc.mutation.ParentsIDs(); len(nodes) > 0 {
+	if nodes := wc.mutation.DescendantsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
-			Inverse: true,
-			Table:   word.ParentsTable,
-			Columns: word.ParentsPrimaryKey,
+			Inverse: false,
+			Table:   word.DescendantsTable,
+			Columns: word.DescendantsPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(word.FieldID, field.TypeInt),

@@ -70,7 +70,7 @@ type ComplexityRoot struct {
 		CreateTime  func(childComplexity int) int
 		Description func(childComplexity int) int
 		ID          func(childComplexity int) int
-		RootWords   func(childComplexity int, after *entgql.Cursor[int], first *int, before *entgql.Cursor[int], last *int, where *ent.WordWhereInput) int
+		RootWords   func(childComplexity int, after *entgql.Cursor[int], first *int, before *entgql.Cursor[int], last *int, orderBy *ent.WordOrder, where *ent.WordWhereInput) int
 		UpdateTime  func(childComplexity int) int
 		Users       func(childComplexity int) int
 	}
@@ -102,7 +102,7 @@ type ComplexityRoot struct {
 		Node        func(childComplexity int, id int) int
 		Nodes       func(childComplexity int, ids []int) int
 		Users       func(childComplexity int) int
-		Words       func(childComplexity int, after *entgql.Cursor[int], first *int, before *entgql.Cursor[int], last *int, where *ent.WordWhereInput) int
+		Words       func(childComplexity int, after *entgql.Cursor[int], first *int, before *entgql.Cursor[int], last *int, orderBy *ent.WordOrder, where *ent.WordWhereInput) int
 	}
 
 	User struct {
@@ -114,20 +114,19 @@ type ComplexityRoot struct {
 		ID          func(childComplexity int) int
 		LastName    func(childComplexity int) int
 		UpdateTime  func(childComplexity int) int
-		Words       func(childComplexity int, after *entgql.Cursor[int], first *int, before *entgql.Cursor[int], last *int, where *ent.WordWhereInput) int
+		Words       func(childComplexity int, after *entgql.Cursor[int], first *int, before *entgql.Cursor[int], last *int, orderBy *ent.WordOrder, where *ent.WordWhereInput) int
 	}
 
 	Word struct {
-		CreateTime      func(childComplexity int) int
-		Creator         func(childComplexity int) int
-		Definitions     func(childComplexity int, after *entgql.Cursor[int], first *int, before *entgql.Cursor[int], last *int, orderBy *ent.DefinitionOrder, where *ent.DefinitionWhereInput) int
-		DescendantCount func(childComplexity int) int
-		Descendants     func(childComplexity int, after *entgql.Cursor[int], first *int, before *entgql.Cursor[int], last *int, where *ent.WordWhereInput) int
-		Description     func(childComplexity int) int
-		Group           func(childComplexity int) int
-		ID              func(childComplexity int) int
-		Parents         func(childComplexity int) int
-		UpdateTime      func(childComplexity int) int
+		CreateTime  func(childComplexity int) int
+		Creator     func(childComplexity int) int
+		Definitions func(childComplexity int, after *entgql.Cursor[int], first *int, before *entgql.Cursor[int], last *int, orderBy *ent.DefinitionOrder, where *ent.DefinitionWhereInput) int
+		Descendants func(childComplexity int, after *entgql.Cursor[int], first *int, before *entgql.Cursor[int], last *int, orderBy *ent.WordOrder, where *ent.WordWhereInput) int
+		Description func(childComplexity int) int
+		Group       func(childComplexity int) int
+		ID          func(childComplexity int) int
+		Parents     func(childComplexity int) int
+		UpdateTime  func(childComplexity int) int
 	}
 
 	WordConnection struct {
@@ -160,7 +159,7 @@ type QueryResolver interface {
 	Definitions(ctx context.Context, after *entgql.Cursor[int], first *int, before *entgql.Cursor[int], last *int, orderBy *ent.DefinitionOrder, where *ent.DefinitionWhereInput) (*ent.DefinitionConnection, error)
 	Groups(ctx context.Context) ([]*ent.Group, error)
 	Users(ctx context.Context) ([]*ent.User, error)
-	Words(ctx context.Context, after *entgql.Cursor[int], first *int, before *entgql.Cursor[int], last *int, where *ent.WordWhereInput) (*ent.WordConnection, error)
+	Words(ctx context.Context, after *entgql.Cursor[int], first *int, before *entgql.Cursor[int], last *int, orderBy *ent.WordOrder, where *ent.WordWhereInput) (*ent.WordConnection, error)
 	CurrentUser(ctx context.Context, input *int) (*ent.User, error)
 }
 
@@ -280,7 +279,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Group.RootWords(childComplexity, args["after"].(*entgql.Cursor[int]), args["first"].(*int), args["before"].(*entgql.Cursor[int]), args["last"].(*int), args["where"].(*ent.WordWhereInput)), true
+		return e.complexity.Group.RootWords(childComplexity, args["after"].(*entgql.Cursor[int]), args["first"].(*int), args["before"].(*entgql.Cursor[int]), args["last"].(*int), args["orderBy"].(*ent.WordOrder), args["where"].(*ent.WordWhereInput)), true
 
 	case "Group.updateTime":
 		if e.complexity.Group.UpdateTime == nil {
@@ -516,7 +515,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.Words(childComplexity, args["after"].(*entgql.Cursor[int]), args["first"].(*int), args["before"].(*entgql.Cursor[int]), args["last"].(*int), args["where"].(*ent.WordWhereInput)), true
+		return e.complexity.Query.Words(childComplexity, args["after"].(*entgql.Cursor[int]), args["first"].(*int), args["before"].(*entgql.Cursor[int]), args["last"].(*int), args["orderBy"].(*ent.WordOrder), args["where"].(*ent.WordWhereInput)), true
 
 	case "User.authid":
 		if e.complexity.User.AuthID == nil {
@@ -589,7 +588,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.User.Words(childComplexity, args["after"].(*entgql.Cursor[int]), args["first"].(*int), args["before"].(*entgql.Cursor[int]), args["last"].(*int), args["where"].(*ent.WordWhereInput)), true
+		return e.complexity.User.Words(childComplexity, args["after"].(*entgql.Cursor[int]), args["first"].(*int), args["before"].(*entgql.Cursor[int]), args["last"].(*int), args["orderBy"].(*ent.WordOrder), args["where"].(*ent.WordWhereInput)), true
 
 	case "Word.createTime":
 		if e.complexity.Word.CreateTime == nil {
@@ -617,13 +616,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Word.Definitions(childComplexity, args["after"].(*entgql.Cursor[int]), args["first"].(*int), args["before"].(*entgql.Cursor[int]), args["last"].(*int), args["orderBy"].(*ent.DefinitionOrder), args["where"].(*ent.DefinitionWhereInput)), true
 
-	case "Word.descendantcount":
-		if e.complexity.Word.DescendantCount == nil {
-			break
-		}
-
-		return e.complexity.Word.DescendantCount(childComplexity), true
-
 	case "Word.descendants":
 		if e.complexity.Word.Descendants == nil {
 			break
@@ -634,7 +626,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Word.Descendants(childComplexity, args["after"].(*entgql.Cursor[int]), args["first"].(*int), args["before"].(*entgql.Cursor[int]), args["last"].(*int), args["where"].(*ent.WordWhereInput)), true
+		return e.complexity.Word.Descendants(childComplexity, args["after"].(*entgql.Cursor[int]), args["first"].(*int), args["before"].(*entgql.Cursor[int]), args["last"].(*int), args["orderBy"].(*ent.WordOrder), args["where"].(*ent.WordWhereInput)), true
 
 	case "Word.description":
 		if e.complexity.Word.Description == nil {
@@ -725,6 +717,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputUpdateUserInput,
 		ec.unmarshalInputUpdateWordInput,
 		ec.unmarshalInputUserWhereInput,
+		ec.unmarshalInputWordOrder,
 		ec.unmarshalInputWordWhereInput,
 	)
 	first := true
@@ -828,12 +821,11 @@ input CreateWordInput {
   createTime: Time
   updateTime: Time
   description: String!
-  descendantcount: Int
   creatorID: ID
   groupID: ID
   definitionIDs: [ID!]
-  descendantIDs: [ID!]
   parentIDs: [ID!]
+  descendantIDs: [ID!]
 }
 """
 Define a Relay Cursor type:
@@ -944,6 +936,9 @@ type Group implements Node {
 
     """Returns the last _n_ elements from the list."""
     last: Int
+
+    """Ordering options for Words returned from the connection."""
+    orderBy: WordOrder
 
     """Filtering options for Words returned from the connection."""
     where: WordWhereInput
@@ -1080,6 +1075,9 @@ type Query {
     """Returns the last _n_ elements from the list."""
     last: Int
 
+    """Ordering options for Words returned from the connection."""
+    orderBy: WordOrder
+
     """Filtering options for Words returned from the connection."""
     where: WordWhereInput
   ): WordConnection!
@@ -1174,6 +1172,9 @@ type User implements Node {
 
     """Returns the last _n_ elements from the list."""
     last: Int
+
+    """Ordering options for Words returned from the connection."""
+    orderBy: WordOrder
 
     """Filtering options for Words returned from the connection."""
     where: WordWhereInput
@@ -1275,7 +1276,6 @@ type Word implements Node {
   createTime: Time!
   updateTime: Time!
   description: String!
-  descendantcount: Int! @goField(name: "DescendantCount", forceResolver: false)
   creator: User
   group: Group
   definitions(
@@ -1297,6 +1297,7 @@ type Word implements Node {
     """Filtering options for Definitions returned from the connection."""
     where: DefinitionWhereInput
   ): DefinitionConnection!
+  parents: [Word!]
   descendants(
     """Returns the elements in the list that come after the specified cursor."""
     after: Cursor
@@ -1310,10 +1311,12 @@ type Word implements Node {
     """Returns the last _n_ elements from the list."""
     last: Int
 
+    """Ordering options for Words returned from the connection."""
+    orderBy: WordOrder
+
     """Filtering options for Words returned from the connection."""
     where: WordWhereInput
   ): WordConnection!
-  parents: [Word!]
 }
 """A connection to a list of items."""
 type WordConnection {
@@ -1330,6 +1333,19 @@ type WordEdge {
   node: Word
   """A cursor for use in pagination."""
   cursor: Cursor!
+}
+"""Ordering options for Word connections"""
+input WordOrder {
+  """The ordering direction."""
+  direction: OrderDirection! = ASC
+  """The field by which to order Words."""
+  field: WordOrderField!
+}
+"""Properties by which Word connections can be ordered."""
+enum WordOrderField {
+  ALPHA
+  DEFINITIONS_COUNT
+  DESCENDANTS_COUNT
 }
 """
 WordWhereInput is used for filtering Word objects.
@@ -1380,15 +1396,6 @@ input WordWhereInput {
   descriptionHasSuffix: String
   descriptionEqualFold: String
   descriptionContainsFold: String
-  """descendantCount field predicates"""
-  descendantcount: Int
-  descendantcountNEQ: Int
-  descendantcountIn: [Int!]
-  descendantcountNotIn: [Int!]
-  descendantcountGT: Int
-  descendantcountGTE: Int
-  descendantcountLT: Int
-  descendantcountLTE: Int
   """creator edge predicates"""
   hasCreator: Boolean
   hasCreatorWith: [UserWhereInput!]
@@ -1398,12 +1405,12 @@ input WordWhereInput {
   """definitions edge predicates"""
   hasDefinitions: Boolean
   hasDefinitionsWith: [DefinitionWhereInput!]
-  """descendants edge predicates"""
-  hasDescendants: Boolean
-  hasDescendantsWith: [WordWhereInput!]
   """parents edge predicates"""
   hasParents: Boolean
   hasParentsWith: [WordWhereInput!]
+  """descendants edge predicates"""
+  hasDescendants: Boolean
+  hasDescendantsWith: [WordWhereInput!]
 }
 `, BuiltIn: false},
 	{Name: "mutations.graphql", Input: sourceData("mutations.graphql"), BuiltIn: false},
@@ -1454,15 +1461,24 @@ func (ec *executionContext) field_Group_rootwords_args(ctx context.Context, rawA
 		}
 	}
 	args["last"] = arg3
-	var arg4 *ent.WordWhereInput
-	if tmp, ok := rawArgs["where"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("where"))
-		arg4, err = ec.unmarshalOWordWhereInput2ᚖshrektionary_apiᚋentᚐWordWhereInput(ctx, tmp)
+	var arg4 *ent.WordOrder
+	if tmp, ok := rawArgs["orderBy"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("orderBy"))
+		arg4, err = ec.unmarshalOWordOrder2ᚖshrektionary_apiᚋentᚐWordOrder(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["where"] = arg4
+	args["orderBy"] = arg4
+	var arg5 *ent.WordWhereInput
+	if tmp, ok := rawArgs["where"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("where"))
+		arg5, err = ec.unmarshalOWordWhereInput2ᚖshrektionary_apiᚋentᚐWordWhereInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["where"] = arg5
 	return args, nil
 }
 
@@ -1802,15 +1818,24 @@ func (ec *executionContext) field_Query_words_args(ctx context.Context, rawArgs 
 		}
 	}
 	args["last"] = arg3
-	var arg4 *ent.WordWhereInput
-	if tmp, ok := rawArgs["where"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("where"))
-		arg4, err = ec.unmarshalOWordWhereInput2ᚖshrektionary_apiᚋentᚐWordWhereInput(ctx, tmp)
+	var arg4 *ent.WordOrder
+	if tmp, ok := rawArgs["orderBy"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("orderBy"))
+		arg4, err = ec.unmarshalOWordOrder2ᚖshrektionary_apiᚋentᚐWordOrder(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["where"] = arg4
+	args["orderBy"] = arg4
+	var arg5 *ent.WordWhereInput
+	if tmp, ok := rawArgs["where"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("where"))
+		arg5, err = ec.unmarshalOWordWhereInput2ᚖshrektionary_apiᚋentᚐWordWhereInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["where"] = arg5
 	return args, nil
 }
 
@@ -1913,15 +1938,24 @@ func (ec *executionContext) field_User_words_args(ctx context.Context, rawArgs m
 		}
 	}
 	args["last"] = arg3
-	var arg4 *ent.WordWhereInput
-	if tmp, ok := rawArgs["where"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("where"))
-		arg4, err = ec.unmarshalOWordWhereInput2ᚖshrektionary_apiᚋentᚐWordWhereInput(ctx, tmp)
+	var arg4 *ent.WordOrder
+	if tmp, ok := rawArgs["orderBy"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("orderBy"))
+		arg4, err = ec.unmarshalOWordOrder2ᚖshrektionary_apiᚋentᚐWordOrder(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["where"] = arg4
+	args["orderBy"] = arg4
+	var arg5 *ent.WordWhereInput
+	if tmp, ok := rawArgs["where"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("where"))
+		arg5, err = ec.unmarshalOWordWhereInput2ᚖshrektionary_apiᚋentᚐWordWhereInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["where"] = arg5
 	return args, nil
 }
 
@@ -2024,15 +2058,24 @@ func (ec *executionContext) field_Word_descendants_args(ctx context.Context, raw
 		}
 	}
 	args["last"] = arg3
-	var arg4 *ent.WordWhereInput
-	if tmp, ok := rawArgs["where"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("where"))
-		arg4, err = ec.unmarshalOWordWhereInput2ᚖshrektionary_apiᚋentᚐWordWhereInput(ctx, tmp)
+	var arg4 *ent.WordOrder
+	if tmp, ok := rawArgs["orderBy"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("orderBy"))
+		arg4, err = ec.unmarshalOWordOrder2ᚖshrektionary_apiᚋentᚐWordOrder(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["where"] = arg4
+	args["orderBy"] = arg4
+	var arg5 *ent.WordWhereInput
+	if tmp, ok := rawArgs["where"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("where"))
+		arg5, err = ec.unmarshalOWordWhereInput2ᚖshrektionary_apiᚋentᚐWordWhereInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["where"] = arg5
 	return args, nil
 }
 
@@ -2743,7 +2786,7 @@ func (ec *executionContext) _Group_rootwords(ctx context.Context, field graphql.
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.RootWords(ctx, fc.Args["after"].(*entgql.Cursor[int]), fc.Args["first"].(*int), fc.Args["before"].(*entgql.Cursor[int]), fc.Args["last"].(*int), fc.Args["where"].(*ent.WordWhereInput))
+		return obj.RootWords(ctx, fc.Args["after"].(*entgql.Cursor[int]), fc.Args["first"].(*int), fc.Args["before"].(*entgql.Cursor[int]), fc.Args["last"].(*int), fc.Args["orderBy"].(*ent.WordOrder), fc.Args["where"].(*ent.WordWhereInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -3168,18 +3211,16 @@ func (ec *executionContext) fieldContext_Mutation_createWord(ctx context.Context
 				return ec.fieldContext_Word_updateTime(ctx, field)
 			case "description":
 				return ec.fieldContext_Word_description(ctx, field)
-			case "descendantcount":
-				return ec.fieldContext_Word_descendantcount(ctx, field)
 			case "creator":
 				return ec.fieldContext_Word_creator(ctx, field)
 			case "group":
 				return ec.fieldContext_Word_group(ctx, field)
 			case "definitions":
 				return ec.fieldContext_Word_definitions(ctx, field)
-			case "descendants":
-				return ec.fieldContext_Word_descendants(ctx, field)
 			case "parents":
 				return ec.fieldContext_Word_parents(ctx, field)
+			case "descendants":
+				return ec.fieldContext_Word_descendants(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Word", field.Name)
 		},
@@ -3245,18 +3286,16 @@ func (ec *executionContext) fieldContext_Mutation_updateWord(ctx context.Context
 				return ec.fieldContext_Word_updateTime(ctx, field)
 			case "description":
 				return ec.fieldContext_Word_description(ctx, field)
-			case "descendantcount":
-				return ec.fieldContext_Word_descendantcount(ctx, field)
 			case "creator":
 				return ec.fieldContext_Word_creator(ctx, field)
 			case "group":
 				return ec.fieldContext_Word_group(ctx, field)
 			case "definitions":
 				return ec.fieldContext_Word_definitions(ctx, field)
-			case "descendants":
-				return ec.fieldContext_Word_descendants(ctx, field)
 			case "parents":
 				return ec.fieldContext_Word_parents(ctx, field)
+			case "descendants":
+				return ec.fieldContext_Word_descendants(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Word", field.Name)
 		},
@@ -3995,7 +4034,7 @@ func (ec *executionContext) _Query_words(ctx context.Context, field graphql.Coll
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Words(rctx, fc.Args["after"].(*entgql.Cursor[int]), fc.Args["first"].(*int), fc.Args["before"].(*entgql.Cursor[int]), fc.Args["last"].(*int), fc.Args["where"].(*ent.WordWhereInput))
+		return ec.resolvers.Query().Words(rctx, fc.Args["after"].(*entgql.Cursor[int]), fc.Args["first"].(*int), fc.Args["before"].(*entgql.Cursor[int]), fc.Args["last"].(*int), fc.Args["orderBy"].(*ent.WordOrder), fc.Args["where"].(*ent.WordWhereInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -4638,7 +4677,7 @@ func (ec *executionContext) _User_words(ctx context.Context, field graphql.Colle
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Words(ctx, fc.Args["after"].(*entgql.Cursor[int]), fc.Args["first"].(*int), fc.Args["before"].(*entgql.Cursor[int]), fc.Args["last"].(*int), fc.Args["where"].(*ent.WordWhereInput))
+		return obj.Words(ctx, fc.Args["after"].(*entgql.Cursor[int]), fc.Args["first"].(*int), fc.Args["before"].(*entgql.Cursor[int]), fc.Args["last"].(*int), fc.Args["orderBy"].(*ent.WordOrder), fc.Args["where"].(*ent.WordWhereInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -4863,50 +4902,6 @@ func (ec *executionContext) fieldContext_Word_description(ctx context.Context, f
 	return fc, nil
 }
 
-func (ec *executionContext) _Word_descendantcount(ctx context.Context, field graphql.CollectedField, obj *ent.Word) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Word_descendantcount(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.DescendantCount, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(int)
-	fc.Result = res
-	return ec.marshalNInt2int(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Word_descendantcount(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Word",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Int does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
 func (ec *executionContext) _Word_creator(ctx context.Context, field graphql.CollectedField, obj *ent.Word) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Word_creator(ctx, field)
 	if err != nil {
@@ -5086,69 +5081,6 @@ func (ec *executionContext) fieldContext_Word_definitions(ctx context.Context, f
 	return fc, nil
 }
 
-func (ec *executionContext) _Word_descendants(ctx context.Context, field graphql.CollectedField, obj *ent.Word) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Word_descendants(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Descendants(ctx, fc.Args["after"].(*entgql.Cursor[int]), fc.Args["first"].(*int), fc.Args["before"].(*entgql.Cursor[int]), fc.Args["last"].(*int), fc.Args["where"].(*ent.WordWhereInput))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(*ent.WordConnection)
-	fc.Result = res
-	return ec.marshalNWordConnection2ᚖshrektionary_apiᚋentᚐWordConnection(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Word_descendants(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Word",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "edges":
-				return ec.fieldContext_WordConnection_edges(ctx, field)
-			case "pageInfo":
-				return ec.fieldContext_WordConnection_pageInfo(ctx, field)
-			case "totalCount":
-				return ec.fieldContext_WordConnection_totalCount(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type WordConnection", field.Name)
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Word_descendants_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return
-	}
-	return fc, nil
-}
-
 func (ec *executionContext) _Word_parents(ctx context.Context, field graphql.CollectedField, obj *ent.Word) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Word_parents(ctx, field)
 	if err != nil {
@@ -5193,21 +5125,82 @@ func (ec *executionContext) fieldContext_Word_parents(ctx context.Context, field
 				return ec.fieldContext_Word_updateTime(ctx, field)
 			case "description":
 				return ec.fieldContext_Word_description(ctx, field)
-			case "descendantcount":
-				return ec.fieldContext_Word_descendantcount(ctx, field)
 			case "creator":
 				return ec.fieldContext_Word_creator(ctx, field)
 			case "group":
 				return ec.fieldContext_Word_group(ctx, field)
 			case "definitions":
 				return ec.fieldContext_Word_definitions(ctx, field)
-			case "descendants":
-				return ec.fieldContext_Word_descendants(ctx, field)
 			case "parents":
 				return ec.fieldContext_Word_parents(ctx, field)
+			case "descendants":
+				return ec.fieldContext_Word_descendants(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Word", field.Name)
 		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Word_descendants(ctx context.Context, field graphql.CollectedField, obj *ent.Word) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Word_descendants(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Descendants(ctx, fc.Args["after"].(*entgql.Cursor[int]), fc.Args["first"].(*int), fc.Args["before"].(*entgql.Cursor[int]), fc.Args["last"].(*int), fc.Args["orderBy"].(*ent.WordOrder), fc.Args["where"].(*ent.WordWhereInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*ent.WordConnection)
+	fc.Result = res
+	return ec.marshalNWordConnection2ᚖshrektionary_apiᚋentᚐWordConnection(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Word_descendants(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Word",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "edges":
+				return ec.fieldContext_WordConnection_edges(ctx, field)
+			case "pageInfo":
+				return ec.fieldContext_WordConnection_pageInfo(ctx, field)
+			case "totalCount":
+				return ec.fieldContext_WordConnection_totalCount(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type WordConnection", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Word_descendants_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
 	}
 	return fc, nil
 }
@@ -5401,18 +5394,16 @@ func (ec *executionContext) fieldContext_WordEdge_node(ctx context.Context, fiel
 				return ec.fieldContext_Word_updateTime(ctx, field)
 			case "description":
 				return ec.fieldContext_Word_description(ctx, field)
-			case "descendantcount":
-				return ec.fieldContext_Word_descendantcount(ctx, field)
 			case "creator":
 				return ec.fieldContext_Word_creator(ctx, field)
 			case "group":
 				return ec.fieldContext_Word_group(ctx, field)
 			case "definitions":
 				return ec.fieldContext_Word_definitions(ctx, field)
-			case "descendants":
-				return ec.fieldContext_Word_descendants(ctx, field)
 			case "parents":
 				return ec.fieldContext_Word_parents(ctx, field)
+			case "descendants":
+				return ec.fieldContext_Word_descendants(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Word", field.Name)
 		},
@@ -7365,7 +7356,7 @@ func (ec *executionContext) unmarshalInputCreateWordInput(ctx context.Context, o
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"createTime", "updateTime", "description", "descendantcount", "creatorID", "groupID", "definitionIDs", "descendantIDs", "parentIDs"}
+	fieldsInOrder := [...]string{"createTime", "updateTime", "description", "creatorID", "groupID", "definitionIDs", "parentIDs", "descendantIDs"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -7399,15 +7390,6 @@ func (ec *executionContext) unmarshalInputCreateWordInput(ctx context.Context, o
 				return it, err
 			}
 			it.Description = data
-		case "descendantcount":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("descendantcount"))
-			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.DescendantCount = data
 		case "creatorID":
 			var err error
 
@@ -7435,15 +7417,6 @@ func (ec *executionContext) unmarshalInputCreateWordInput(ctx context.Context, o
 				return it, err
 			}
 			it.DefinitionIDs = data
-		case "descendantIDs":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("descendantIDs"))
-			data, err := ec.unmarshalOID2ᚕintᚄ(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.DescendantIDs = data
 		case "parentIDs":
 			var err error
 
@@ -7453,6 +7426,15 @@ func (ec *executionContext) unmarshalInputCreateWordInput(ctx context.Context, o
 				return it, err
 			}
 			it.ParentIDs = data
+		case "descendantIDs":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("descendantIDs"))
+			data, err := ec.unmarshalOID2ᚕintᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.DescendantIDs = data
 		}
 	}
 
@@ -9324,6 +9306,48 @@ func (ec *executionContext) unmarshalInputUserWhereInput(ctx context.Context, ob
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputWordOrder(ctx context.Context, obj interface{}) (ent.WordOrder, error) {
+	var it ent.WordOrder
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	if _, present := asMap["direction"]; !present {
+		asMap["direction"] = "ASC"
+	}
+
+	fieldsInOrder := [...]string{"direction", "field"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "direction":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("direction"))
+			data, err := ec.unmarshalNOrderDirection2entgoᚗioᚋcontribᚋentgqlᚐOrderDirection(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Direction = data
+		case "field":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("field"))
+			data, err := ec.unmarshalNWordOrderField2ᚖshrektionary_apiᚋentᚐWordOrderField(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Field = data
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputWordWhereInput(ctx context.Context, obj interface{}) (ent.WordWhereInput, error) {
 	var it ent.WordWhereInput
 	asMap := map[string]interface{}{}
@@ -9331,7 +9355,7 @@ func (ec *executionContext) unmarshalInputWordWhereInput(ctx context.Context, ob
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"not", "and", "or", "id", "idNEQ", "idIn", "idNotIn", "idGT", "idGTE", "idLT", "idLTE", "createTime", "createTimeNEQ", "createTimeIn", "createTimeNotIn", "createTimeGT", "createTimeGTE", "createTimeLT", "createTimeLTE", "updateTime", "updateTimeNEQ", "updateTimeIn", "updateTimeNotIn", "updateTimeGT", "updateTimeGTE", "updateTimeLT", "updateTimeLTE", "description", "descriptionNEQ", "descriptionIn", "descriptionNotIn", "descriptionGT", "descriptionGTE", "descriptionLT", "descriptionLTE", "descriptionContains", "descriptionHasPrefix", "descriptionHasSuffix", "descriptionEqualFold", "descriptionContainsFold", "descendantcount", "descendantcountNEQ", "descendantcountIn", "descendantcountNotIn", "descendantcountGT", "descendantcountGTE", "descendantcountLT", "descendantcountLTE", "hasCreator", "hasCreatorWith", "hasGroup", "hasGroupWith", "hasDefinitions", "hasDefinitionsWith", "hasDescendants", "hasDescendantsWith", "hasParents", "hasParentsWith"}
+	fieldsInOrder := [...]string{"not", "and", "or", "id", "idNEQ", "idIn", "idNotIn", "idGT", "idGTE", "idLT", "idLTE", "createTime", "createTimeNEQ", "createTimeIn", "createTimeNotIn", "createTimeGT", "createTimeGTE", "createTimeLT", "createTimeLTE", "updateTime", "updateTimeNEQ", "updateTimeIn", "updateTimeNotIn", "updateTimeGT", "updateTimeGTE", "updateTimeLT", "updateTimeLTE", "description", "descriptionNEQ", "descriptionIn", "descriptionNotIn", "descriptionGT", "descriptionGTE", "descriptionLT", "descriptionLTE", "descriptionContains", "descriptionHasPrefix", "descriptionHasSuffix", "descriptionEqualFold", "descriptionContainsFold", "hasCreator", "hasCreatorWith", "hasGroup", "hasGroupWith", "hasDefinitions", "hasDefinitionsWith", "hasParents", "hasParentsWith", "hasDescendants", "hasDescendantsWith"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -9698,78 +9722,6 @@ func (ec *executionContext) unmarshalInputWordWhereInput(ctx context.Context, ob
 				return it, err
 			}
 			it.DescriptionContainsFold = data
-		case "descendantcount":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("descendantcount"))
-			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.DescendantCount = data
-		case "descendantcountNEQ":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("descendantcountNEQ"))
-			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.DescendantCountNEQ = data
-		case "descendantcountIn":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("descendantcountIn"))
-			data, err := ec.unmarshalOInt2ᚕintᚄ(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.DescendantCountIn = data
-		case "descendantcountNotIn":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("descendantcountNotIn"))
-			data, err := ec.unmarshalOInt2ᚕintᚄ(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.DescendantCountNotIn = data
-		case "descendantcountGT":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("descendantcountGT"))
-			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.DescendantCountGT = data
-		case "descendantcountGTE":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("descendantcountGTE"))
-			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.DescendantCountGTE = data
-		case "descendantcountLT":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("descendantcountLT"))
-			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.DescendantCountLT = data
-		case "descendantcountLTE":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("descendantcountLTE"))
-			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.DescendantCountLTE = data
 		case "hasCreator":
 			var err error
 
@@ -9824,24 +9776,6 @@ func (ec *executionContext) unmarshalInputWordWhereInput(ctx context.Context, ob
 				return it, err
 			}
 			it.HasDefinitionsWith = data
-		case "hasDescendants":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hasDescendants"))
-			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.HasDescendants = data
-		case "hasDescendantsWith":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hasDescendantsWith"))
-			data, err := ec.unmarshalOWordWhereInput2ᚕᚖshrektionary_apiᚋentᚐWordWhereInputᚄ(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.HasDescendantsWith = data
 		case "hasParents":
 			var err error
 
@@ -9860,6 +9794,24 @@ func (ec *executionContext) unmarshalInputWordWhereInput(ctx context.Context, ob
 				return it, err
 			}
 			it.HasParentsWith = data
+		case "hasDescendants":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hasDescendants"))
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.HasDescendants = data
+		case "hasDescendantsWith":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hasDescendantsWith"))
+			data, err := ec.unmarshalOWordWhereInput2ᚕᚖshrektionary_apiᚋentᚐWordWhereInputᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.HasDescendantsWith = data
 		}
 	}
 
@@ -10641,13 +10593,6 @@ func (ec *executionContext) _Word(ctx context.Context, sel ast.SelectionSet, obj
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
-		case "descendantcount":
-
-			out.Values[i] = ec._Word_descendantcount(ctx, field, obj)
-
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
 		case "creator":
 			field := field
 
@@ -10702,6 +10647,23 @@ func (ec *executionContext) _Word(ctx context.Context, sel ast.SelectionSet, obj
 				return innerFunc(ctx)
 
 			})
+		case "parents":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Word_parents(ctx, field, obj)
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
 		case "descendants":
 			field := field
 
@@ -10715,23 +10677,6 @@ func (ec *executionContext) _Word(ctx context.Context, sel ast.SelectionSet, obj
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
-				return res
-			}
-
-			out.Concurrently(i, func() graphql.Marshaler {
-				return innerFunc(ctx)
-
-			})
-		case "parents":
-			field := field
-
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Word_parents(ctx, field, obj)
 				return res
 			}
 
@@ -11546,6 +11491,22 @@ func (ec *executionContext) marshalNWordConnection2ᚖshrektionary_apiᚋentᚐW
 	return ec._WordConnection(ctx, sel, v)
 }
 
+func (ec *executionContext) unmarshalNWordOrderField2ᚖshrektionary_apiᚋentᚐWordOrderField(ctx context.Context, v interface{}) (*ent.WordOrderField, error) {
+	var res = new(ent.WordOrderField)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNWordOrderField2ᚖshrektionary_apiᚋentᚐWordOrderField(ctx context.Context, sel ast.SelectionSet, v *ent.WordOrderField) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return v
+}
+
 func (ec *executionContext) unmarshalNWordWhereInput2ᚖshrektionary_apiᚋentᚐWordWhereInput(ctx context.Context, v interface{}) (*ent.WordWhereInput, error) {
 	res, err := ec.unmarshalInputWordWhereInput(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
@@ -12073,44 +12034,6 @@ func (ec *executionContext) marshalOID2ᚖint(ctx context.Context, sel ast.Selec
 	return res
 }
 
-func (ec *executionContext) unmarshalOInt2ᚕintᚄ(ctx context.Context, v interface{}) ([]int, error) {
-	if v == nil {
-		return nil, nil
-	}
-	var vSlice []interface{}
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
-	var err error
-	res := make([]int, len(vSlice))
-	for i := range vSlice {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
-		res[i], err = ec.unmarshalNInt2int(ctx, vSlice[i])
-		if err != nil {
-			return nil, err
-		}
-	}
-	return res, nil
-}
-
-func (ec *executionContext) marshalOInt2ᚕintᚄ(ctx context.Context, sel ast.SelectionSet, v []int) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	ret := make(graphql.Array, len(v))
-	for i := range v {
-		ret[i] = ec.marshalNInt2int(ctx, sel, v[i])
-	}
-
-	for _, e := range ret {
-		if e == graphql.Null {
-			return graphql.Null
-		}
-	}
-
-	return ret
-}
-
 func (ec *executionContext) unmarshalOInt2ᚖint(ctx context.Context, v interface{}) (*int, error) {
 	if v == nil {
 		return nil, nil
@@ -12434,6 +12357,14 @@ func (ec *executionContext) marshalOWordEdge2ᚖshrektionary_apiᚋentᚐWordEdg
 		return graphql.Null
 	}
 	return ec._WordEdge(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOWordOrder2ᚖshrektionary_apiᚋentᚐWordOrder(ctx context.Context, v interface{}) (*ent.WordOrder, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputWordOrder(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) unmarshalOWordWhereInput2ᚕᚖshrektionary_apiᚋentᚐWordWhereInputᚄ(ctx context.Context, v interface{}) ([]*ent.WordWhereInput, error) {

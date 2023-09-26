@@ -70,11 +70,6 @@ func Description(v string) predicate.Word {
 	return predicate.Word(sql.FieldEQ(FieldDescription, v))
 }
 
-// DescendantCount applies equality check predicate on the "descendantCount" field. It's identical to DescendantCountEQ.
-func DescendantCount(v int) predicate.Word {
-	return predicate.Word(sql.FieldEQ(FieldDescendantCount, v))
-}
-
 // CreateTimeEQ applies the EQ predicate on the "create_time" field.
 func CreateTimeEQ(v time.Time) predicate.Word {
 	return predicate.Word(sql.FieldEQ(FieldCreateTime, v))
@@ -220,46 +215,6 @@ func DescriptionContainsFold(v string) predicate.Word {
 	return predicate.Word(sql.FieldContainsFold(FieldDescription, v))
 }
 
-// DescendantCountEQ applies the EQ predicate on the "descendantCount" field.
-func DescendantCountEQ(v int) predicate.Word {
-	return predicate.Word(sql.FieldEQ(FieldDescendantCount, v))
-}
-
-// DescendantCountNEQ applies the NEQ predicate on the "descendantCount" field.
-func DescendantCountNEQ(v int) predicate.Word {
-	return predicate.Word(sql.FieldNEQ(FieldDescendantCount, v))
-}
-
-// DescendantCountIn applies the In predicate on the "descendantCount" field.
-func DescendantCountIn(vs ...int) predicate.Word {
-	return predicate.Word(sql.FieldIn(FieldDescendantCount, vs...))
-}
-
-// DescendantCountNotIn applies the NotIn predicate on the "descendantCount" field.
-func DescendantCountNotIn(vs ...int) predicate.Word {
-	return predicate.Word(sql.FieldNotIn(FieldDescendantCount, vs...))
-}
-
-// DescendantCountGT applies the GT predicate on the "descendantCount" field.
-func DescendantCountGT(v int) predicate.Word {
-	return predicate.Word(sql.FieldGT(FieldDescendantCount, v))
-}
-
-// DescendantCountGTE applies the GTE predicate on the "descendantCount" field.
-func DescendantCountGTE(v int) predicate.Word {
-	return predicate.Word(sql.FieldGTE(FieldDescendantCount, v))
-}
-
-// DescendantCountLT applies the LT predicate on the "descendantCount" field.
-func DescendantCountLT(v int) predicate.Word {
-	return predicate.Word(sql.FieldLT(FieldDescendantCount, v))
-}
-
-// DescendantCountLTE applies the LTE predicate on the "descendantCount" field.
-func DescendantCountLTE(v int) predicate.Word {
-	return predicate.Word(sql.FieldLTE(FieldDescendantCount, v))
-}
-
 // HasCreator applies the HasEdge predicate on the "creator" edge.
 func HasCreator() predicate.Word {
 	return predicate.Word(func(s *sql.Selector) {
@@ -329,29 +284,6 @@ func HasDefinitionsWith(preds ...predicate.Definition) predicate.Word {
 	})
 }
 
-// HasDescendants applies the HasEdge predicate on the "descendants" edge.
-func HasDescendants() predicate.Word {
-	return predicate.Word(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.M2M, false, DescendantsTable, DescendantsPrimaryKey...),
-		)
-		sqlgraph.HasNeighbors(s, step)
-	})
-}
-
-// HasDescendantsWith applies the HasEdge predicate on the "descendants" edge with a given conditions (other predicates).
-func HasDescendantsWith(preds ...predicate.Word) predicate.Word {
-	return predicate.Word(func(s *sql.Selector) {
-		step := newDescendantsStep()
-		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
-			for _, p := range preds {
-				p(s)
-			}
-		})
-	})
-}
-
 // HasParents applies the HasEdge predicate on the "parents" edge.
 func HasParents() predicate.Word {
 	return predicate.Word(func(s *sql.Selector) {
@@ -367,6 +299,29 @@ func HasParents() predicate.Word {
 func HasParentsWith(preds ...predicate.Word) predicate.Word {
 	return predicate.Word(func(s *sql.Selector) {
 		step := newParentsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasDescendants applies the HasEdge predicate on the "descendants" edge.
+func HasDescendants() predicate.Word {
+	return predicate.Word(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, DescendantsTable, DescendantsPrimaryKey...),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasDescendantsWith applies the HasEdge predicate on the "descendants" edge with a given conditions (other predicates).
+func HasDescendantsWith(preds ...predicate.Word) predicate.Word {
+	return predicate.Word(func(s *sql.Selector) {
+		step := newDescendantsStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

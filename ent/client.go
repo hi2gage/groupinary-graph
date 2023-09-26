@@ -812,22 +812,6 @@ func (c *WordClient) QueryDefinitions(w *Word) *DefinitionQuery {
 	return query
 }
 
-// QueryDescendants queries the descendants edge of a Word.
-func (c *WordClient) QueryDescendants(w *Word) *WordQuery {
-	query := (&WordClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := w.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(word.Table, word.FieldID, id),
-			sqlgraph.To(word.Table, word.FieldID),
-			sqlgraph.Edge(sqlgraph.M2M, false, word.DescendantsTable, word.DescendantsPrimaryKey...),
-		)
-		fromV = sqlgraph.Neighbors(w.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
 // QueryParents queries the parents edge of a Word.
 func (c *WordClient) QueryParents(w *Word) *WordQuery {
 	query := (&WordClient{config: c.config}).Query()
@@ -837,6 +821,22 @@ func (c *WordClient) QueryParents(w *Word) *WordQuery {
 			sqlgraph.From(word.Table, word.FieldID, id),
 			sqlgraph.To(word.Table, word.FieldID),
 			sqlgraph.Edge(sqlgraph.M2M, true, word.ParentsTable, word.ParentsPrimaryKey...),
+		)
+		fromV = sqlgraph.Neighbors(w.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryDescendants queries the descendants edge of a Word.
+func (c *WordClient) QueryDescendants(w *Word) *WordQuery {
+	query := (&WordClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := w.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(word.Table, word.FieldID, id),
+			sqlgraph.To(word.Table, word.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, word.DescendantsTable, word.DescendantsPrimaryKey...),
 		)
 		fromV = sqlgraph.Neighbors(w.driver.Dialect(), step)
 		return fromV, nil

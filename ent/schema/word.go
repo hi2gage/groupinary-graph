@@ -18,11 +18,9 @@ type Word struct {
 // Fields of the Word.
 func (Word) Fields() []ent.Field {
 	return []ent.Field{
-		field.String("description").NotEmpty(),
-		field.Int("descendantCount").
-			StorageKey("descendant_count").
-			Default(0).
-			Immutable(), // Make the field immutable.
+		field.String("description").
+			NotEmpty().
+			Annotations(entgql.OrderField("ALPHA")),
 	}
 }
 
@@ -38,12 +36,19 @@ func (Word) Edges() []ent.Edge {
 			Unique(),
 		edge.To("definitions", Definition.Type).
 			Immutable().
-			Annotations(entgql.RelayConnection()),
+			Annotations(
+				entgql.RelayConnection(),
+				entgql.OrderField("DEFINITIONS_COUNT"),
+			),
 		edge.To("descendants", Word.Type).
 			Immutable().
-			Annotations(entgql.RelayConnection()),
-		edge.From("parents", Word.Type).
-			Ref("descendants"),
+			Annotations(
+				entgql.RelayConnection(),
+				entgql.OrderField("DESCENDANTS_COUNT"),
+			).
+			From("parents"),
+		// edge.From("parents", Word.Type).
+		// 	Ref("descendants"),
 	}
 }
 
@@ -64,38 +69,3 @@ func (Word) Mixin() []ent.Mixin {
 		mixin.Time{},
 	}
 }
-
-// // Hooks for the Word.
-// func (Word) Hooks() []ent.Hook {
-// 	return []ent.Hook{
-// 		CountDescendantsHook(),
-// 	}
-// }
-
-// // CountDescendantsHook is a custom hook to update the descendant count field.
-// func CountDescendantsHook() ent.Hook {
-// 	return func(next ent.Mutator) ent.Mutator {
-// 		return ent.MutateFunc(func(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-// 			// Call the original mutation operation.
-// 			v, err := next.Mutate(ctx, m)
-// 			if err != nil {
-// 				return nil, err
-// 			}
-
-// 			// Update the descendant count after the mutation is applied.
-// 			word, ok := v.(*Word)
-// 			if ok {
-// 				count, err := ctx.Ent().Word.
-// 					Query().
-// 					Where(word.HasParentsWith(word.Field("id"))).
-// 					Count(ctx)
-// 				if err != nil {
-// 					return nil, err
-// 				}
-// 				word.DescendantCount = count
-// 			}
-
-// 			return v, nil
-// 		})
-// 	}
-// }
