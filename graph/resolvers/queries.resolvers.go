@@ -6,11 +6,15 @@ package resolvers
 
 import (
 	"context"
-	"fmt"
 	"shrektionary_api/ent"
+	"shrektionary_api/utils"
 )
 
 // CurrentUser is the resolver for the currentUser field.
 func (r *queryResolver) CurrentUser(ctx context.Context, input *int) (*ent.User, error) {
-	panic(fmt.Errorf("not implemented: CurrentUser - currentUser"))
+	creatorID, err := utils.GetCreatorIDFromContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return r.client.User.Get(ctx, creatorID)
 }
