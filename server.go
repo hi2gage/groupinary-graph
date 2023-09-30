@@ -44,10 +44,10 @@ func main() {
 	if err != nil {
 		log.Fatal("opening ent client", err)
 	}
+	defer client.Close()
 
 	// Seed the data
 
-	defer client.Close()
 	ctx := context.Background()
 
 	if err := client.Schema.Create(
@@ -99,7 +99,7 @@ func main() {
 		})
 	}
 
-	authMiddleware := middleware.EnsureValidToken()
+	authMiddleware := middleware.EnsureValidToken(client)
 
 	http.Handle("/", playground.Handler("GraphQL playground", "/query"))
 	http.Handle("/viz", ent.ServeEntviz())
