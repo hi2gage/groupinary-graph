@@ -41,7 +41,7 @@ func EnsureValidToken(client *ent.Client) func(next http.Handler) http.Handler {
 		provider.KeyFunc,
 		validator.RS256,
 		issuerURL.String(),
-		[]string{"https://shrektionary.com/api", "UJuMkLZ3wOERGYV4icU0hpIldfcZ07sW"},
+		[]string{"https://shrektionary.com/api", "4W01gsxupS4xoLLxbe8jdVVlGTFOKjd3"},
 		validator.WithCustomClaims(
 			func() validator.CustomClaims {
 				return &CustomClaims{}
