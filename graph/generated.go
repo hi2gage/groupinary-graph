@@ -77,9 +77,9 @@ type ComplexityRoot struct {
 	}
 
 	Mutation struct {
-		AddChildWord     func(childComplexity int, parentIds []int, childWord string, childDefinition *string) int
+		AddChildWord     func(childComplexity int, rootIds []int, childWord string, childDefinition *string) int
 		AddDefinition    func(childComplexity int, wordID int, definition string) int
-		AddParentWord    func(childComplexity int, parentWord string, parentDefinition *string) int
+		AddRootWord      func(childComplexity int, rootWord string, rootDefinition *string) int
 		ConnectWords     func(childComplexity int, parentID int, childID int) int
 		CreateGroup      func(childComplexity int, name string) int
 		DeleteDefinition func(childComplexity int, id int) int
@@ -99,13 +99,14 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
-		CurrentUser func(childComplexity int, input *int) int
-		Definitions func(childComplexity int, after *entgql.Cursor[int], first *int, before *entgql.Cursor[int], last *int, orderBy *ent.DefinitionOrder, where *ent.DefinitionWhereInput) int
-		Groups      func(childComplexity int) int
-		Node        func(childComplexity int, id int) int
-		Nodes       func(childComplexity int, ids []int) int
-		Users       func(childComplexity int) int
-		Words       func(childComplexity int, after *entgql.Cursor[int], first *int, before *entgql.Cursor[int], last *int, orderBy *ent.WordOrder, where *ent.WordWhereInput) int
+		CurrentUser            func(childComplexity int, input *int) int
+		Definitions            func(childComplexity int, after *entgql.Cursor[int], first *int, before *entgql.Cursor[int], last *int, orderBy *ent.DefinitionOrder, where *ent.DefinitionWhereInput) int
+		DefinitionsConnections func(childComplexity int, wordID *int, after *entgql.Cursor[int], first *int, before *entgql.Cursor[int], last *int, orderBy *ent.DefinitionOrder, where *ent.DefinitionWhereInput) int
+		Groups                 func(childComplexity int) int
+		Node                   func(childComplexity int, id int) int
+		Nodes                  func(childComplexity int, ids []int) int
+		Users                  func(childComplexity int) int
+		Words                  func(childComplexity int, after *entgql.Cursor[int], first *int, before *entgql.Cursor[int], last *int, orderBy *ent.WordOrder, where *ent.WordWhereInput) int
 	}
 
 	User struct {
@@ -151,8 +152,8 @@ type MutationResolver interface {
 	DeleteWord(ctx context.Context, id int) (bool, error)
 	DeleteDefinition(ctx context.Context, id int) (bool, error)
 	UpdateUserName(ctx context.Context, firstName string, lastName *string) (*ent.User, error)
-	AddParentWord(ctx context.Context, parentWord string, parentDefinition *string) (*ent.Word, error)
-	AddChildWord(ctx context.Context, parentIds []int, childWord string, childDefinition *string) (*ent.Word, error)
+	AddRootWord(ctx context.Context, rootWord string, rootDefinition *string) (*ent.Word, error)
+	AddChildWord(ctx context.Context, rootIds []int, childWord string, childDefinition *string) (*ent.Word, error)
 	AddDefinition(ctx context.Context, wordID int, definition string) (*ent.Definition, error)
 	ConnectWords(ctx context.Context, parentID int, childID int) (*ent.Word, error)
 	UpdateWord(ctx context.Context, id int, wordDescription string) (*ent.Word, error)
@@ -166,6 +167,7 @@ type QueryResolver interface {
 	Users(ctx context.Context) ([]*ent.User, error)
 	Words(ctx context.Context, after *entgql.Cursor[int], first *int, before *entgql.Cursor[int], last *int, orderBy *ent.WordOrder, where *ent.WordWhereInput) (*ent.WordConnection, error)
 	CurrentUser(ctx context.Context, input *int) (*ent.User, error)
+	DefinitionsConnections(ctx context.Context, wordID *int, after *entgql.Cursor[int], first *int, before *entgql.Cursor[int], last *int, orderBy *ent.DefinitionOrder, where *ent.DefinitionWhereInput) (*ent.DefinitionConnection, error)
 }
 
 type executableSchema struct {
@@ -317,7 +319,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.AddChildWord(childComplexity, args["parentIds"].([]int), args["childWord"].(string), args["childDefinition"].(*string)), true
+		return e.complexity.Mutation.AddChildWord(childComplexity, args["rootIds"].([]int), args["childWord"].(string), args["childDefinition"].(*string)), true
 
 	case "Mutation.addDefinition":
 		if e.complexity.Mutation.AddDefinition == nil {
@@ -331,17 +333,17 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.AddDefinition(childComplexity, args["wordID"].(int), args["definition"].(string)), true
 
-	case "Mutation.addParentWord":
-		if e.complexity.Mutation.AddParentWord == nil {
+	case "Mutation.addRootWord":
+		if e.complexity.Mutation.AddRootWord == nil {
 			break
 		}
 
-		args, err := ec.field_Mutation_addParentWord_args(context.TODO(), rawArgs)
+		args, err := ec.field_Mutation_addRootWord_args(context.TODO(), rawArgs)
 		if err != nil {
 			return 0, false
 		}
 
-		return e.complexity.Mutation.AddParentWord(childComplexity, args["parentWord"].(string), args["parentDefinition"].(*string)), true
+		return e.complexity.Mutation.AddRootWord(childComplexity, args["rootWord"].(string), args["rootDefinition"].(*string)), true
 
 	case "Mutation.connectWords":
 		if e.complexity.Mutation.ConnectWords == nil {
@@ -502,6 +504,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.Definitions(childComplexity, args["after"].(*entgql.Cursor[int]), args["first"].(*int), args["before"].(*entgql.Cursor[int]), args["last"].(*int), args["orderBy"].(*ent.DefinitionOrder), args["where"].(*ent.DefinitionWhereInput)), true
+
+	case "Query.definitionsConnections":
+		if e.complexity.Query.DefinitionsConnections == nil {
+			break
+		}
+
+		args, err := ec.field_Query_definitionsConnections_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.DefinitionsConnections(childComplexity, args["wordID"].(*int), args["after"].(*entgql.Cursor[int]), args["first"].(*int), args["before"].(*entgql.Cursor[int]), args["last"].(*int), args["orderBy"].(*ent.DefinitionOrder), args["where"].(*ent.DefinitionWhereInput)), true
 
 	case "Query.groups":
 		if e.complexity.Query.Groups == nil {
@@ -900,14 +914,14 @@ func (ec *executionContext) field_Mutation_addChildWord_args(ctx context.Context
 	var err error
 	args := map[string]interface{}{}
 	var arg0 []int
-	if tmp, ok := rawArgs["parentIds"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("parentIds"))
+	if tmp, ok := rawArgs["rootIds"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("rootIds"))
 		arg0, err = ec.unmarshalOID2ᚕintᚄ(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["parentIds"] = arg0
+	args["rootIds"] = arg0
 	var arg1 string
 	if tmp, ok := rawArgs["childWord"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("childWord"))
@@ -953,27 +967,27 @@ func (ec *executionContext) field_Mutation_addDefinition_args(ctx context.Contex
 	return args, nil
 }
 
-func (ec *executionContext) field_Mutation_addParentWord_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_Mutation_addRootWord_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 string
-	if tmp, ok := rawArgs["parentWord"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("parentWord"))
+	if tmp, ok := rawArgs["rootWord"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("rootWord"))
 		arg0, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["parentWord"] = arg0
+	args["rootWord"] = arg0
 	var arg1 *string
-	if tmp, ok := rawArgs["parentDefinition"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("parentDefinition"))
+	if tmp, ok := rawArgs["rootDefinition"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("rootDefinition"))
 		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["parentDefinition"] = arg1
+	args["rootDefinition"] = arg1
 	return args, nil
 }
 
@@ -1184,6 +1198,75 @@ func (ec *executionContext) field_Query_currentUser_args(ctx context.Context, ra
 		}
 	}
 	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_definitionsConnections_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *int
+	if tmp, ok := rawArgs["wordID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("wordID"))
+		arg0, err = ec.unmarshalOID2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["wordID"] = arg0
+	var arg1 *entgql.Cursor[int]
+	if tmp, ok := rawArgs["after"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("after"))
+		arg1, err = ec.unmarshalOCursor2ᚖentgoᚗioᚋcontribᚋentgqlᚐCursor(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["after"] = arg1
+	var arg2 *int
+	if tmp, ok := rawArgs["first"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("first"))
+		arg2, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["first"] = arg2
+	var arg3 *entgql.Cursor[int]
+	if tmp, ok := rawArgs["before"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("before"))
+		arg3, err = ec.unmarshalOCursor2ᚖentgoᚗioᚋcontribᚋentgqlᚐCursor(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["before"] = arg3
+	var arg4 *int
+	if tmp, ok := rawArgs["last"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("last"))
+		arg4, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["last"] = arg4
+	var arg5 *ent.DefinitionOrder
+	if tmp, ok := rawArgs["orderBy"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("orderBy"))
+		arg5, err = ec.unmarshalODefinitionOrder2ᚖshrektionary_apiᚋentᚐDefinitionOrder(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["orderBy"] = arg5
+	var arg6 *ent.DefinitionWhereInput
+	if tmp, ok := rawArgs["where"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("where"))
+		arg6, err = ec.unmarshalODefinitionWhereInput2ᚖshrektionary_apiᚋentᚐDefinitionWhereInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["where"] = arg6
 	return args, nil
 }
 
@@ -2835,8 +2918,8 @@ func (ec *executionContext) fieldContext_Mutation_updateUserName(ctx context.Con
 	return fc, nil
 }
 
-func (ec *executionContext) _Mutation_addParentWord(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Mutation_addParentWord(ctx, field)
+func (ec *executionContext) _Mutation_addRootWord(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_addRootWord(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -2849,7 +2932,7 @@ func (ec *executionContext) _Mutation_addParentWord(ctx context.Context, field g
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().AddParentWord(rctx, fc.Args["parentWord"].(string), fc.Args["parentDefinition"].(*string))
+		return ec.resolvers.Mutation().AddRootWord(rctx, fc.Args["rootWord"].(string), fc.Args["rootDefinition"].(*string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2866,7 +2949,7 @@ func (ec *executionContext) _Mutation_addParentWord(ctx context.Context, field g
 	return ec.marshalNWord2ᚖshrektionary_apiᚋentᚐWord(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Mutation_addParentWord(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Mutation_addRootWord(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Mutation",
 		Field:      field,
@@ -2903,7 +2986,7 @@ func (ec *executionContext) fieldContext_Mutation_addParentWord(ctx context.Cont
 		}
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Mutation_addParentWord_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+	if fc.Args, err = ec.field_Mutation_addRootWord_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -2924,7 +3007,7 @@ func (ec *executionContext) _Mutation_addChildWord(ctx context.Context, field gr
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().AddChildWord(rctx, fc.Args["parentIds"].([]int), fc.Args["childWord"].(string), fc.Args["childDefinition"].(*string))
+		return ec.resolvers.Mutation().AddChildWord(rctx, fc.Args["rootIds"].([]int), fc.Args["childWord"].(string), fc.Args["childDefinition"].(*string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -3867,6 +3950,69 @@ func (ec *executionContext) fieldContext_Query_currentUser(ctx context.Context, 
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query_currentUser_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_definitionsConnections(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_definitionsConnections(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().DefinitionsConnections(rctx, fc.Args["wordID"].(*int), fc.Args["after"].(*entgql.Cursor[int]), fc.Args["first"].(*int), fc.Args["before"].(*entgql.Cursor[int]), fc.Args["last"].(*int), fc.Args["orderBy"].(*ent.DefinitionOrder), fc.Args["where"].(*ent.DefinitionWhereInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*ent.DefinitionConnection)
+	fc.Result = res
+	return ec.marshalNDefinitionConnection2ᚖshrektionary_apiᚋentᚐDefinitionConnection(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_definitionsConnections(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "edges":
+				return ec.fieldContext_DefinitionConnection_edges(ctx, field)
+			case "pageInfo":
+				return ec.fieldContext_DefinitionConnection_pageInfo(ctx, field)
+			case "totalCount":
+				return ec.fieldContext_DefinitionConnection_totalCount(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type DefinitionConnection", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_definitionsConnections_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -9910,10 +10056,10 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "addParentWord":
+		case "addRootWord":
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Mutation_addParentWord(ctx, field)
+				return ec._Mutation_addRootWord(ctx, field)
 			})
 
 			if out.Values[i] == graphql.Null {
@@ -10182,6 +10328,29 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_currentUser(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
+		case "definitionsConnections":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_definitionsConnections(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
