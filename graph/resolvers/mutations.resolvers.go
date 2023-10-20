@@ -67,8 +67,8 @@ func (r *mutationResolver) UpdateUserName(ctx context.Context, firstName string,
 	return u.Save(ctx)
 }
 
-// AddParentWord is the resolver for the addParentWord field.
-func (r *mutationResolver) AddParentWord(ctx context.Context, parentWord string, parentDefinition *string) (*ent.Word, error) {
+// AddRootWord is the resolver for the addRootWord field.
+func (r *mutationResolver) AddRootWord(ctx context.Context, rootWord string, rootDefinition *string) (*ent.Word, error) {
 	creatorID, err := utils.GetCreatorIDFromContext(ctx)
 	if err != nil {
 		return nil, err
@@ -76,12 +76,12 @@ func (r *mutationResolver) AddParentWord(ctx context.Context, parentWord string,
 
 	wordCreate := r.client.Word.Create().
 		SetCreatorID(creatorID).
-		SetDescription(parentWord)
+		SetDescription(rootWord)
 
-	if parentDefinition != nil {
+	if rootDefinition != nil {
 		definition, err := r.client.Definition.Create().
 			SetCreatorID(creatorID).
-			SetDescription(*parentDefinition).
+			SetDescription(*rootDefinition).
 			Save(ctx)
 		if err != nil {
 			return nil, err
@@ -94,7 +94,7 @@ func (r *mutationResolver) AddParentWord(ctx context.Context, parentWord string,
 }
 
 // AddChildWord is the resolver for the addChildWord field.
-func (r *mutationResolver) AddChildWord(ctx context.Context, parentIds []int, childWord string, childDefinition *string) (*ent.Word, error) {
+func (r *mutationResolver) AddChildWord(ctx context.Context, rootIds []int, childWord string, childDefinition *string) (*ent.Word, error) {
 	creatorID, err := utils.GetCreatorIDFromContext(ctx)
 	if err != nil {
 		return nil, err
@@ -116,7 +116,7 @@ func (r *mutationResolver) AddChildWord(ctx context.Context, parentIds []int, ch
 		wordCreate.AddDefinitions(definition)
 	}
 
-	wordCreate.AddParentIDs(parentIds...)
+	wordCreate.AddParentIDs(rootIds...)
 
 	return wordCreate.Save(ctx)
 }
