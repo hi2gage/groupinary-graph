@@ -8,6 +8,8 @@ import (
 	"context"
 	"shrektionary_api/ent"
 	"shrektionary_api/utils"
+
+	"entgo.io/contrib/entgql"
 )
 
 // CurrentUser is the resolver for the currentUser field.
@@ -17,4 +19,14 @@ func (r *queryResolver) CurrentUser(ctx context.Context, input *int) (*ent.User,
 		return nil, err
 	}
 	return r.client.User.Get(ctx, creatorID)
+}
+
+// DefinitionsConnections is the resolver for the definitionsConnections field.
+func (r *queryResolver) DefinitionsConnections(ctx context.Context, wordID *int, after *entgql.Cursor[int], first *int, before *entgql.Cursor[int], last *int, orderBy *ent.DefinitionOrder, where *ent.DefinitionWhereInput) (*ent.DefinitionConnection, error) {
+	return r.client.Definition.Query().
+		Paginate(ctx, after, first, before, last,
+			ent.WithDefinitionOrder(ent.DefaultDefinitionOrder),
+			ent.WithDefinitionFilter(where.Filter),
+			ent.WithDefinitionOrder(orderBy),
+		)
 }
