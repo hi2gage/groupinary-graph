@@ -44,12 +44,6 @@ type UserEdges struct {
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
 	loadedTypes [3]bool
-	// totalCount holds the count of the edges above.
-	totalCount [3]map[string]int
-
-	namedGroups      map[string][]*Group
-	namedDefinitions map[string][]*Definition
-	namedWords       map[string][]*Word
 }
 
 // GroupsOrErr returns the Groups value or an error if the edge
@@ -208,78 +202,6 @@ func (u *User) String() string {
 	builder.WriteString(u.LastName)
 	builder.WriteByte(')')
 	return builder.String()
-}
-
-// NamedGroups returns the Groups named value or an error if the edge was not
-// loaded in eager-loading with this name.
-func (u *User) NamedGroups(name string) ([]*Group, error) {
-	if u.Edges.namedGroups == nil {
-		return nil, &NotLoadedError{edge: name}
-	}
-	nodes, ok := u.Edges.namedGroups[name]
-	if !ok {
-		return nil, &NotLoadedError{edge: name}
-	}
-	return nodes, nil
-}
-
-func (u *User) appendNamedGroups(name string, edges ...*Group) {
-	if u.Edges.namedGroups == nil {
-		u.Edges.namedGroups = make(map[string][]*Group)
-	}
-	if len(edges) == 0 {
-		u.Edges.namedGroups[name] = []*Group{}
-	} else {
-		u.Edges.namedGroups[name] = append(u.Edges.namedGroups[name], edges...)
-	}
-}
-
-// NamedDefinitions returns the Definitions named value or an error if the edge was not
-// loaded in eager-loading with this name.
-func (u *User) NamedDefinitions(name string) ([]*Definition, error) {
-	if u.Edges.namedDefinitions == nil {
-		return nil, &NotLoadedError{edge: name}
-	}
-	nodes, ok := u.Edges.namedDefinitions[name]
-	if !ok {
-		return nil, &NotLoadedError{edge: name}
-	}
-	return nodes, nil
-}
-
-func (u *User) appendNamedDefinitions(name string, edges ...*Definition) {
-	if u.Edges.namedDefinitions == nil {
-		u.Edges.namedDefinitions = make(map[string][]*Definition)
-	}
-	if len(edges) == 0 {
-		u.Edges.namedDefinitions[name] = []*Definition{}
-	} else {
-		u.Edges.namedDefinitions[name] = append(u.Edges.namedDefinitions[name], edges...)
-	}
-}
-
-// NamedWords returns the Words named value or an error if the edge was not
-// loaded in eager-loading with this name.
-func (u *User) NamedWords(name string) ([]*Word, error) {
-	if u.Edges.namedWords == nil {
-		return nil, &NotLoadedError{edge: name}
-	}
-	nodes, ok := u.Edges.namedWords[name]
-	if !ok {
-		return nil, &NotLoadedError{edge: name}
-	}
-	return nodes, nil
-}
-
-func (u *User) appendNamedWords(name string, edges ...*Word) {
-	if u.Edges.namedWords == nil {
-		u.Edges.namedWords = make(map[string][]*Word)
-	}
-	if len(edges) == 0 {
-		u.Edges.namedWords[name] = []*Word{}
-	} else {
-		u.Edges.namedWords[name] = append(u.Edges.namedWords[name], edges...)
-	}
 }
 
 // Users is a parsable slice of User.
