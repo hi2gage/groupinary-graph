@@ -4,9 +4,9 @@ package main
 
 import (
 	"context"
+	"groupionary/ent/migrate"
 	"log"
 	"os"
-	"shrektionary_api/ent/migrate"
 
 	atlas "ariga.io/atlas/sql/migrate"
 	"entgo.io/ent/dialect"

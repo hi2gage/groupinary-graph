@@ -4,11 +4,11 @@ package enttest
 
 import (
 	"context"
-	"shrektionary_api/ent"
+	"groupionary/ent"
 	// required by schema hooks.
-	_ "shrektionary_api/ent/runtime"
+	_ "groupionary/ent/runtime"
 
-	"shrektionary_api/ent/migrate"
+	"groupionary/ent/migrate"
 
 	"entgo.io/ent/dialect/sql/schema"
 )

@@ -7,10 +7,10 @@ import (
 	"os"
 	"strings"
 
-	"shrektionary_api/ent"
-	"shrektionary_api/ent/migrate"
-	"shrektionary_api/graph/resolvers"
-	"shrektionary_api/middleware"
+	"groupionary/ent"
+	"groupionary/ent/migrate"
+	"groupionary/graph/resolvers"
+	"groupionary/middleware"
 
 	"entgo.io/ent/dialect"
 	"github.com/99designs/gqlgen/graphql/handler"

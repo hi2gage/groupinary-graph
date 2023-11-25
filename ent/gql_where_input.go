@@ -5,11 +5,11 @@ package ent
 import (
 	"errors"
 	"fmt"
-	"shrektionary_api/ent/definition"
-	"shrektionary_api/ent/group"
-	"shrektionary_api/ent/predicate"
-	"shrektionary_api/ent/user"
-	"shrektionary_api/ent/word"
+	"groupionary/ent/definition"
+	"groupionary/ent/group"
+	"groupionary/ent/predicate"
+	"groupionary/ent/user"
+	"groupionary/ent/word"
 	"time"
 )
 

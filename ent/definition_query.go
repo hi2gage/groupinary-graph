@@ -5,11 +5,11 @@ package ent
 import (
 	"context"
 	"fmt"
+	"groupionary/ent/definition"
+	"groupionary/ent/predicate"
+	"groupionary/ent/user"
+	"groupionary/ent/word"
 	"math"
-	"shrektionary_api/ent/definition"
-	"shrektionary_api/ent/predicate"
-	"shrektionary_api/ent/user"
-	"shrektionary_api/ent/word"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -26,6 +26,8 @@ type DefinitionQuery struct {
 	withCreator *UserQuery
 	withWord    *WordQuery
 	withFKs     bool
+	modifiers   []func(*sql.Selector)
+	loadTotal   []func(context.Context, []*Definition) error
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -427,6 +429,9 @@ func (dq *DefinitionQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*D
 		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
 	}
+	if len(dq.modifiers) > 0 {
+		_spec.Modifiers = dq.modifiers
+	}
 	for i := range hooks {
 		hooks[i](ctx, _spec)
 	}
@@ -445,6 +450,11 @@ func (dq *DefinitionQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*D
 	if query := dq.withWord; query != nil {
 		if err := dq.loadWord(ctx, query, nodes, nil,
 			func(n *Definition, e *Word) { n.Edges.Word = e }); err != nil {
+			return nil, err
+		}
+	}
+	for i := range dq.loadTotal {
+		if err := dq.loadTotal[i](ctx, nodes); err != nil {
 			return nil, err
 		}
 	}
@@ -518,6 +528,9 @@ func (dq *DefinitionQuery) loadWord(ctx context.Context, query *WordQuery, nodes
 
 func (dq *DefinitionQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := dq.querySpec()
+	if len(dq.modifiers) > 0 {
+		_spec.Modifiers = dq.modifiers
+	}
 	_spec.Node.Columns = dq.ctx.Fields
 	if len(dq.ctx.Fields) > 0 {
 		_spec.Unique = dq.ctx.Unique != nil && *dq.ctx.Unique

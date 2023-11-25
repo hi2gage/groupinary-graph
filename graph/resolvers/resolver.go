@@ -1,9 +1,9 @@
 package resolvers
 
 import (
-	"shrektionary_api/ent"
+	"groupionary/ent"
 
-	"shrektionary_api/graph"
+	"groupionary/graph"
 
 	"github.com/99designs/gqlgen/graphql"
 )

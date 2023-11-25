@@ -4,8 +4,8 @@ package ent
 
 import (
 	"context"
-	"shrektionary_api/ent/predicate"
-	"shrektionary_api/ent/user"
+	"groupionary/ent/predicate"
+	"groupionary/ent/user"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"

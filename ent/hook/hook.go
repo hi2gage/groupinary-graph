@@ -5,7 +5,7 @@ package hook
 import (
 	"context"
 	"fmt"
-	"shrektionary_api/ent"
+	"groupionary/ent"
 )
 
 // The DefinitionFunc type is an adapter to allow the use of ordinary
