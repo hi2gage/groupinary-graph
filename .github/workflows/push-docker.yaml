@@ -21,6 +21,6 @@ jobs:
         with:
           push: true
           file: migrations.Dockerfile
-          tags: ghcr.io/ariga/groupinary-graph:${{ github.sha }}
+          tags: ghcr.io/hi2gage/groupinary-graph:${{ github.sha }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
