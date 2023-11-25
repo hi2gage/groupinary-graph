@@ -48,12 +48,6 @@ type WordEdges struct {
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
 	loadedTypes [5]bool
-	// totalCount holds the count of the edges above.
-	totalCount [5]map[string]int
-
-	namedDefinitions map[string][]*Definition
-	namedParents     map[string][]*Word
-	namedDescendants map[string][]*Word
 }
 
 // CreatorOrErr returns the Creator value or an error if the edge
@@ -248,78 +242,6 @@ func (w *Word) String() string {
 	builder.WriteString(w.Description)
 	builder.WriteByte(')')
 	return builder.String()
-}
-
-// NamedDefinitions returns the Definitions named value or an error if the edge was not
-// loaded in eager-loading with this name.
-func (w *Word) NamedDefinitions(name string) ([]*Definition, error) {
-	if w.Edges.namedDefinitions == nil {
-		return nil, &NotLoadedError{edge: name}
-	}
-	nodes, ok := w.Edges.namedDefinitions[name]
-	if !ok {
-		return nil, &NotLoadedError{edge: name}
-	}
-	return nodes, nil
-}
-
-func (w *Word) appendNamedDefinitions(name string, edges ...*Definition) {
-	if w.Edges.namedDefinitions == nil {
-		w.Edges.namedDefinitions = make(map[string][]*Definition)
-	}
-	if len(edges) == 0 {
-		w.Edges.namedDefinitions[name] = []*Definition{}
-	} else {
-		w.Edges.namedDefinitions[name] = append(w.Edges.namedDefinitions[name], edges...)
-	}
-}
-
-// NamedParents returns the Parents named value or an error if the edge was not
-// loaded in eager-loading with this name.
-func (w *Word) NamedParents(name string) ([]*Word, error) {
-	if w.Edges.namedParents == nil {
-		return nil, &NotLoadedError{edge: name}
-	}
-	nodes, ok := w.Edges.namedParents[name]
-	if !ok {
-		return nil, &NotLoadedError{edge: name}
-	}
-	return nodes, nil
-}
-
-func (w *Word) appendNamedParents(name string, edges ...*Word) {
-	if w.Edges.namedParents == nil {
-		w.Edges.namedParents = make(map[string][]*Word)
-	}
-	if len(edges) == 0 {
-		w.Edges.namedParents[name] = []*Word{}
-	} else {
-		w.Edges.namedParents[name] = append(w.Edges.namedParents[name], edges...)
-	}
-}
-
-// NamedDescendants returns the Descendants named value or an error if the edge was not
-// loaded in eager-loading with this name.
-func (w *Word) NamedDescendants(name string) ([]*Word, error) {
-	if w.Edges.namedDescendants == nil {
-		return nil, &NotLoadedError{edge: name}
-	}
-	nodes, ok := w.Edges.namedDescendants[name]
-	if !ok {
-		return nil, &NotLoadedError{edge: name}
-	}
-	return nodes, nil
-}
-
-func (w *Word) appendNamedDescendants(name string, edges ...*Word) {
-	if w.Edges.namedDescendants == nil {
-		w.Edges.namedDescendants = make(map[string][]*Word)
-	}
-	if len(edges) == 0 {
-		w.Edges.namedDescendants[name] = []*Word{}
-	} else {
-		w.Edges.namedDescendants[name] = append(w.Edges.namedDescendants[name], edges...)
-	}
 }
 
 // Words is a parsable slice of Word.
