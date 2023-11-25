@@ -34,8 +34,6 @@ type Client struct {
 	User *UserClient
 	// Word is the client for interacting with the Word builders.
 	Word *WordClient
-	// additional fields for node api
-	tables tables
 }
 
 // NewClient creates a new client configured with the given options.
