@@ -3,7 +3,7 @@ services:
   graphql:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: graphql.Dockerfile
     ports:
       - '8080:8080'
     volumes:
