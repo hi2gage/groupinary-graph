@@ -3,12 +3,12 @@ package middleware
 import (
 	"context"
 	"fmt"
+	"groupionary/ent"
+	"groupionary/ent/user"
+	"groupionary/utils"
 	"log"
 	"net/http"
 	"net/url"
-	"shrektionary_api/ent"
-	"shrektionary_api/ent/user"
-	"shrektionary_api/utils"
 	"time"
 
 	jwtmiddleware "github.com/auth0/go-jwt-middleware/v2"

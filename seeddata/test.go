@@ -2,8 +2,8 @@ package seeddata
 
 import (
 	"context"
-	"shrektionary_api/ent"
-	"shrektionary_api/ent/migrate"
+	"groupionary/ent"
+	"groupionary/ent/migrate"
 )
 
 func Test(ctx context.Context, client *ent.Client) error {

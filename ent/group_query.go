@@ -6,11 +6,11 @@ import (
 	"context"
 	"database/sql/driver"
 	"fmt"
+	"groupionary/ent/group"
+	"groupionary/ent/predicate"
+	"groupionary/ent/user"
+	"groupionary/ent/word"
 	"math"
-	"shrektionary_api/ent/group"
-	"shrektionary_api/ent/predicate"
-	"shrektionary_api/ent/user"
-	"shrektionary_api/ent/word"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -20,12 +20,16 @@ import (
 // GroupQuery is the builder for querying Group entities.
 type GroupQuery struct {
 	config
-	ctx           *QueryContext
-	order         []group.OrderOption
-	inters        []Interceptor
-	predicates    []predicate.Group
-	withRootWords *WordQuery
-	withUsers     *UserQuery
+	ctx                *QueryContext
+	order              []group.OrderOption
+	inters             []Interceptor
+	predicates         []predicate.Group
+	withRootWords      *WordQuery
+	withUsers          *UserQuery
+	modifiers          []func(*sql.Selector)
+	loadTotal          []func(context.Context, []*Group) error
+	withNamedRootWords map[string]*WordQuery
+	withNamedUsers     map[string]*UserQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -420,6 +424,9 @@ func (gq *GroupQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Group,
 		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
 	}
+	if len(gq.modifiers) > 0 {
+		_spec.Modifiers = gq.modifiers
+	}
 	for i := range hooks {
 		hooks[i](ctx, _spec)
 	}
@@ -440,6 +447,25 @@ func (gq *GroupQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Group,
 		if err := gq.loadUsers(ctx, query, nodes,
 			func(n *Group) { n.Edges.Users = []*User{} },
 			func(n *Group, e *User) { n.Edges.Users = append(n.Edges.Users, e) }); err != nil {
+			return nil, err
+		}
+	}
+	for name, query := range gq.withNamedRootWords {
+		if err := gq.loadRootWords(ctx, query, nodes,
+			func(n *Group) { n.appendNamedRootWords(name) },
+			func(n *Group, e *Word) { n.appendNamedRootWords(name, e) }); err != nil {
+			return nil, err
+		}
+	}
+	for name, query := range gq.withNamedUsers {
+		if err := gq.loadUsers(ctx, query, nodes,
+			func(n *Group) { n.appendNamedUsers(name) },
+			func(n *Group, e *User) { n.appendNamedUsers(name, e) }); err != nil {
+			return nil, err
+		}
+	}
+	for i := range gq.loadTotal {
+		if err := gq.loadTotal[i](ctx, nodes); err != nil {
 			return nil, err
 		}
 	}
@@ -541,6 +567,9 @@ func (gq *GroupQuery) loadUsers(ctx context.Context, query *UserQuery, nodes []*
 
 func (gq *GroupQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := gq.querySpec()
+	if len(gq.modifiers) > 0 {
+		_spec.Modifiers = gq.modifiers
+	}
 	_spec.Node.Columns = gq.ctx.Fields
 	if len(gq.ctx.Fields) > 0 {
 		_spec.Unique = gq.ctx.Unique != nil && *gq.ctx.Unique
@@ -618,6 +647,34 @@ func (gq *GroupQuery) sqlQuery(ctx context.Context) *sql.Selector {
 		selector.Limit(*limit)
 	}
 	return selector
+}
+
+// WithNamedRootWords tells the query-builder to eager-load the nodes that are connected to the "rootWords"
+// edge with the given name. The optional arguments are used to configure the query builder of the edge.
+func (gq *GroupQuery) WithNamedRootWords(name string, opts ...func(*WordQuery)) *GroupQuery {
+	query := (&WordClient{config: gq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	if gq.withNamedRootWords == nil {
+		gq.withNamedRootWords = make(map[string]*WordQuery)
+	}
+	gq.withNamedRootWords[name] = query
+	return gq
+}
+
+// WithNamedUsers tells the query-builder to eager-load the nodes that are connected to the "users"
+// edge with the given name. The optional arguments are used to configure the query builder of the edge.
+func (gq *GroupQuery) WithNamedUsers(name string, opts ...func(*UserQuery)) *GroupQuery {
+	query := (&UserClient{config: gq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	if gq.withNamedUsers == nil {
+		gq.withNamedUsers = make(map[string]*UserQuery)
+	}
+	gq.withNamedUsers[name] = query
+	return gq
 }
 
 // GroupGroupBy is the group-by builder for Group entities.

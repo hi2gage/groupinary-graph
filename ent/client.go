@@ -8,12 +8,12 @@ import (
 	"fmt"
 	"log"
 
-	"shrektionary_api/ent/migrate"
+	"groupionary/ent/migrate"
 
-	"shrektionary_api/ent/definition"
-	"shrektionary_api/ent/group"
-	"shrektionary_api/ent/user"
-	"shrektionary_api/ent/word"
+	"groupionary/ent/definition"
+	"groupionary/ent/group"
+	"groupionary/ent/user"
+	"groupionary/ent/word"
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect"
@@ -34,6 +34,8 @@ type Client struct {
 	User *UserClient
 	// Word is the client for interacting with the Word builders.
 	Word *WordClient
+	// additional fields for node api
+	tables tables
 }
 
 // NewClient creates a new client configured with the given options.

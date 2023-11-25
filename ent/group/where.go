@@ -3,7 +3,7 @@
 package group
 
 import (
-	"shrektionary_api/ent/predicate"
+	"groupionary/ent/predicate"
 	"time"
 
 	"entgo.io/ent/dialect/sql"

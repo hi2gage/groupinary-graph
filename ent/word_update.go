@@ -6,9 +6,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"shrektionary_api/ent/group"
-	"shrektionary_api/ent/predicate"
-	"shrektionary_api/ent/word"
+	"groupionary/ent/group"
+	"groupionary/ent/predicate"
+	"groupionary/ent/word"
 	"time"
 
 	"entgo.io/ent/dialect/sql"
