@@ -1,3 +1,3 @@
 FROM arigaio/atlas:latest
 
-COPY migrations /migrations
+COPY ent/migrate/migrations /migrations
