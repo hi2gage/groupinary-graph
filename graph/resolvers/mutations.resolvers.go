@@ -6,9 +6,9 @@ package resolvers
 
 import (
 	"context"
-	"shrektionary_api/ent"
-	"shrektionary_api/graph"
-	"shrektionary_api/utils"
+	"groupionary/ent"
+	"groupionary/graph"
+	"groupionary/utils"
 )
 
 // CreateGroup is the resolver for the createGroup field.

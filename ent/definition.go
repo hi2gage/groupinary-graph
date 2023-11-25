@@ -4,9 +4,9 @@ package ent
 
 import (
 	"fmt"
-	"shrektionary_api/ent/definition"
-	"shrektionary_api/ent/user"
-	"shrektionary_api/ent/word"
+	"groupionary/ent/definition"
+	"groupionary/ent/user"
+	"groupionary/ent/word"
 	"strings"
 	"time"
 
@@ -42,6 +42,8 @@ type DefinitionEdges struct {
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
 	loadedTypes [2]bool
+	// totalCount holds the count of the edges above.
+	totalCount [2]map[string]int
 }
 
 // CreatorOrErr returns the Creator value or an error if the edge

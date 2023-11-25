@@ -4,7 +4,7 @@ package ent
 
 import (
 	"fmt"
-	"shrektionary_api/ent/group"
+	"groupionary/ent/group"
 	"strings"
 	"time"
 
@@ -38,6 +38,11 @@ type GroupEdges struct {
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
 	loadedTypes [2]bool
+	// totalCount holds the count of the edges above.
+	totalCount [2]map[string]int
+
+	namedRootWords map[string][]*Word
+	namedUsers     map[string][]*User
 }
 
 // RootWordsOrErr returns the RootWords value or an error if the edge
@@ -164,6 +169,54 @@ func (gr *Group) String() string {
 	builder.WriteString(gr.Description)
 	builder.WriteByte(')')
 	return builder.String()
+}
+
+// NamedRootWords returns the RootWords named value or an error if the edge was not
+// loaded in eager-loading with this name.
+func (gr *Group) NamedRootWords(name string) ([]*Word, error) {
+	if gr.Edges.namedRootWords == nil {
+		return nil, &NotLoadedError{edge: name}
+	}
+	nodes, ok := gr.Edges.namedRootWords[name]
+	if !ok {
+		return nil, &NotLoadedError{edge: name}
+	}
+	return nodes, nil
+}
+
+func (gr *Group) appendNamedRootWords(name string, edges ...*Word) {
+	if gr.Edges.namedRootWords == nil {
+		gr.Edges.namedRootWords = make(map[string][]*Word)
+	}
+	if len(edges) == 0 {
+		gr.Edges.namedRootWords[name] = []*Word{}
+	} else {
+		gr.Edges.namedRootWords[name] = append(gr.Edges.namedRootWords[name], edges...)
+	}
+}
+
+// NamedUsers returns the Users named value or an error if the edge was not
+// loaded in eager-loading with this name.
+func (gr *Group) NamedUsers(name string) ([]*User, error) {
+	if gr.Edges.namedUsers == nil {
+		return nil, &NotLoadedError{edge: name}
+	}
+	nodes, ok := gr.Edges.namedUsers[name]
+	if !ok {
+		return nil, &NotLoadedError{edge: name}
+	}
+	return nodes, nil
+}
+
+func (gr *Group) appendNamedUsers(name string, edges ...*User) {
+	if gr.Edges.namedUsers == nil {
+		gr.Edges.namedUsers = make(map[string][]*User)
+	}
+	if len(edges) == 0 {
+		gr.Edges.namedUsers[name] = []*User{}
+	} else {
+		gr.Edges.namedUsers[name] = append(gr.Edges.namedUsers[name], edges...)
+	}
 }
 
 // Groups is a parsable slice of Group.

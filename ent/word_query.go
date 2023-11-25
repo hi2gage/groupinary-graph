@@ -6,12 +6,12 @@ import (
 	"context"
 	"database/sql/driver"
 	"fmt"
+	"groupionary/ent/definition"
+	"groupionary/ent/group"
+	"groupionary/ent/predicate"
+	"groupionary/ent/user"
+	"groupionary/ent/word"
 	"math"
-	"shrektionary_api/ent/definition"
-	"shrektionary_api/ent/group"
-	"shrektionary_api/ent/predicate"
-	"shrektionary_api/ent/user"
-	"shrektionary_api/ent/word"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -21,16 +21,21 @@ import (
 // WordQuery is the builder for querying Word entities.
 type WordQuery struct {
 	config
-	ctx             *QueryContext
-	order           []word.OrderOption
-	inters          []Interceptor
-	predicates      []predicate.Word
-	withCreator     *UserQuery
-	withGroup       *GroupQuery
-	withDefinitions *DefinitionQuery
-	withParents     *WordQuery
-	withDescendants *WordQuery
-	withFKs         bool
+	ctx                  *QueryContext
+	order                []word.OrderOption
+	inters               []Interceptor
+	predicates           []predicate.Word
+	withCreator          *UserQuery
+	withGroup            *GroupQuery
+	withDefinitions      *DefinitionQuery
+	withParents          *WordQuery
+	withDescendants      *WordQuery
+	withFKs              bool
+	modifiers            []func(*sql.Selector)
+	loadTotal            []func(context.Context, []*Word) error
+	withNamedDefinitions map[string]*DefinitionQuery
+	withNamedParents     map[string]*WordQuery
+	withNamedDescendants map[string]*WordQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -537,6 +542,9 @@ func (wq *WordQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Word, e
 		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
 	}
+	if len(wq.modifiers) > 0 {
+		_spec.Modifiers = wq.modifiers
+	}
 	for i := range hooks {
 		hooks[i](ctx, _spec)
 	}
@@ -576,6 +584,32 @@ func (wq *WordQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Word, e
 		if err := wq.loadDescendants(ctx, query, nodes,
 			func(n *Word) { n.Edges.Descendants = []*Word{} },
 			func(n *Word, e *Word) { n.Edges.Descendants = append(n.Edges.Descendants, e) }); err != nil {
+			return nil, err
+		}
+	}
+	for name, query := range wq.withNamedDefinitions {
+		if err := wq.loadDefinitions(ctx, query, nodes,
+			func(n *Word) { n.appendNamedDefinitions(name) },
+			func(n *Word, e *Definition) { n.appendNamedDefinitions(name, e) }); err != nil {
+			return nil, err
+		}
+	}
+	for name, query := range wq.withNamedParents {
+		if err := wq.loadParents(ctx, query, nodes,
+			func(n *Word) { n.appendNamedParents(name) },
+			func(n *Word, e *Word) { n.appendNamedParents(name, e) }); err != nil {
+			return nil, err
+		}
+	}
+	for name, query := range wq.withNamedDescendants {
+		if err := wq.loadDescendants(ctx, query, nodes,
+			func(n *Word) { n.appendNamedDescendants(name) },
+			func(n *Word, e *Word) { n.appendNamedDescendants(name, e) }); err != nil {
+			return nil, err
+		}
+	}
+	for i := range wq.loadTotal {
+		if err := wq.loadTotal[i](ctx, nodes); err != nil {
 			return nil, err
 		}
 	}
@@ -802,6 +836,9 @@ func (wq *WordQuery) loadDescendants(ctx context.Context, query *WordQuery, node
 
 func (wq *WordQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := wq.querySpec()
+	if len(wq.modifiers) > 0 {
+		_spec.Modifiers = wq.modifiers
+	}
 	_spec.Node.Columns = wq.ctx.Fields
 	if len(wq.ctx.Fields) > 0 {
 		_spec.Unique = wq.ctx.Unique != nil && *wq.ctx.Unique
@@ -879,6 +916,48 @@ func (wq *WordQuery) sqlQuery(ctx context.Context) *sql.Selector {
 		selector.Limit(*limit)
 	}
 	return selector
+}
+
+// WithNamedDefinitions tells the query-builder to eager-load the nodes that are connected to the "definitions"
+// edge with the given name. The optional arguments are used to configure the query builder of the edge.
+func (wq *WordQuery) WithNamedDefinitions(name string, opts ...func(*DefinitionQuery)) *WordQuery {
+	query := (&DefinitionClient{config: wq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	if wq.withNamedDefinitions == nil {
+		wq.withNamedDefinitions = make(map[string]*DefinitionQuery)
+	}
+	wq.withNamedDefinitions[name] = query
+	return wq
+}
+
+// WithNamedParents tells the query-builder to eager-load the nodes that are connected to the "parents"
+// edge with the given name. The optional arguments are used to configure the query builder of the edge.
+func (wq *WordQuery) WithNamedParents(name string, opts ...func(*WordQuery)) *WordQuery {
+	query := (&WordClient{config: wq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	if wq.withNamedParents == nil {
+		wq.withNamedParents = make(map[string]*WordQuery)
+	}
+	wq.withNamedParents[name] = query
+	return wq
+}
+
+// WithNamedDescendants tells the query-builder to eager-load the nodes that are connected to the "descendants"
+// edge with the given name. The optional arguments are used to configure the query builder of the edge.
+func (wq *WordQuery) WithNamedDescendants(name string, opts ...func(*WordQuery)) *WordQuery {
+	query := (&WordClient{config: wq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	if wq.withNamedDescendants == nil {
+		wq.withNamedDescendants = make(map[string]*WordQuery)
+	}
+	wq.withNamedDescendants[name] = query
+	return wq
 }
 
 // WordGroupBy is the group-by builder for Word entities.

@@ -63,9 +63,9 @@ resolver:
 # gqlgen will search for any type names in the schema in these go packages
 # if they match it will use them, otherwise it will generate them.
 autobind:
- - "shrektionary_api/ent"
- - "shrektionary_api/ent/definition"
- - "shrektionary_api/ent/word"
+ - "groupionary/ent"
+ - "groupionary/ent/definition"
+ - "groupionary/ent/word"
 
 # This section declares type mapping between the GraphQL and go type systems
 #
@@ -83,4 +83,4 @@ models:
       - github.com/99designs/gqlgen/graphql.Int32
   Node:
       model:
-        - shrektionary_api/ent.Noder
+        - groupionary/ent.Noder

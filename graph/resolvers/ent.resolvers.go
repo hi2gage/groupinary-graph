@@ -6,8 +6,8 @@ package resolvers
 
 import (
 	"context"
-	"shrektionary_api/ent"
-	"shrektionary_api/graph"
+	"groupionary/ent"
+	"groupionary/graph"
 
 	"entgo.io/contrib/entgql"
 )
