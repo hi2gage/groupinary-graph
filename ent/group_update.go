@@ -36,9 +36,29 @@ func (gu *GroupUpdate) SetUpdateTime(t time.Time) *GroupUpdate {
 	return gu
 }
 
+// SetName sets the "name" field.
+func (gu *GroupUpdate) SetName(s string) *GroupUpdate {
+	gu.mutation.SetName(s)
+	return gu
+}
+
 // SetDescription sets the "description" field.
 func (gu *GroupUpdate) SetDescription(s string) *GroupUpdate {
 	gu.mutation.SetDescription(s)
+	return gu
+}
+
+// SetNillableDescription sets the "description" field if the given value is not nil.
+func (gu *GroupUpdate) SetNillableDescription(s *string) *GroupUpdate {
+	if s != nil {
+		gu.SetDescription(*s)
+	}
+	return gu
+}
+
+// ClearDescription clears the value of the "description" field.
+func (gu *GroupUpdate) ClearDescription() *GroupUpdate {
+	gu.mutation.ClearDescription()
 	return gu
 }
 
@@ -157,9 +177,9 @@ func (gu *GroupUpdate) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (gu *GroupUpdate) check() error {
-	if v, ok := gu.mutation.Description(); ok {
-		if err := group.DescriptionValidator(v); err != nil {
-			return &ValidationError{Name: "description", err: fmt.Errorf(`ent: validator failed for field "Group.description": %w`, err)}
+	if v, ok := gu.mutation.Name(); ok {
+		if err := group.NameValidator(v); err != nil {
+			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "Group.name": %w`, err)}
 		}
 	}
 	return nil
@@ -180,8 +200,14 @@ func (gu *GroupUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := gu.mutation.UpdateTime(); ok {
 		_spec.SetField(group.FieldUpdateTime, field.TypeTime, value)
 	}
+	if value, ok := gu.mutation.Name(); ok {
+		_spec.SetField(group.FieldName, field.TypeString, value)
+	}
 	if value, ok := gu.mutation.Description(); ok {
 		_spec.SetField(group.FieldDescription, field.TypeString, value)
+	}
+	if gu.mutation.DescriptionCleared() {
+		_spec.ClearField(group.FieldDescription, field.TypeString)
 	}
 	if gu.mutation.WordsCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -299,9 +325,29 @@ func (guo *GroupUpdateOne) SetUpdateTime(t time.Time) *GroupUpdateOne {
 	return guo
 }
 
+// SetName sets the "name" field.
+func (guo *GroupUpdateOne) SetName(s string) *GroupUpdateOne {
+	guo.mutation.SetName(s)
+	return guo
+}
+
 // SetDescription sets the "description" field.
 func (guo *GroupUpdateOne) SetDescription(s string) *GroupUpdateOne {
 	guo.mutation.SetDescription(s)
+	return guo
+}
+
+// SetNillableDescription sets the "description" field if the given value is not nil.
+func (guo *GroupUpdateOne) SetNillableDescription(s *string) *GroupUpdateOne {
+	if s != nil {
+		guo.SetDescription(*s)
+	}
+	return guo
+}
+
+// ClearDescription clears the value of the "description" field.
+func (guo *GroupUpdateOne) ClearDescription() *GroupUpdateOne {
+	guo.mutation.ClearDescription()
 	return guo
 }
 
@@ -433,9 +479,9 @@ func (guo *GroupUpdateOne) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (guo *GroupUpdateOne) check() error {
-	if v, ok := guo.mutation.Description(); ok {
-		if err := group.DescriptionValidator(v); err != nil {
-			return &ValidationError{Name: "description", err: fmt.Errorf(`ent: validator failed for field "Group.description": %w`, err)}
+	if v, ok := guo.mutation.Name(); ok {
+		if err := group.NameValidator(v); err != nil {
+			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "Group.name": %w`, err)}
 		}
 	}
 	return nil
@@ -473,8 +519,14 @@ func (guo *GroupUpdateOne) sqlSave(ctx context.Context) (_node *Group, err error
 	if value, ok := guo.mutation.UpdateTime(); ok {
 		_spec.SetField(group.FieldUpdateTime, field.TypeTime, value)
 	}
+	if value, ok := guo.mutation.Name(); ok {
+		_spec.SetField(group.FieldName, field.TypeString, value)
+	}
 	if value, ok := guo.mutation.Description(); ok {
 		_spec.SetField(group.FieldDescription, field.TypeString, value)
+	}
+	if guo.mutation.DescriptionCleared() {
+		_spec.ClearField(group.FieldDescription, field.TypeString)
 	}
 	if guo.mutation.WordsCleared() {
 		edge := &sqlgraph.EdgeSpec{

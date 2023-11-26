@@ -262,6 +262,11 @@ func (gr *GroupQuery) collectField(ctx context.Context, opCtx *graphql.Operation
 				selectedFields = append(selectedFields, group.FieldUpdateTime)
 				fieldSeen[group.FieldUpdateTime] = struct{}{}
 			}
+		case "name":
+			if _, ok := fieldSeen[group.FieldName]; !ok {
+				selectedFields = append(selectedFields, group.FieldName)
+				fieldSeen[group.FieldName] = struct{}{}
+			}
 		case "description":
 			if _, ok := fieldSeen[group.FieldDescription]; !ok {
 				selectedFields = append(selectedFields, group.FieldDescription)

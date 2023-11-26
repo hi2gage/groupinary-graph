@@ -50,9 +50,23 @@ func (gc *GroupCreate) SetNillableUpdateTime(t *time.Time) *GroupCreate {
 	return gc
 }
 
+// SetName sets the "name" field.
+func (gc *GroupCreate) SetName(s string) *GroupCreate {
+	gc.mutation.SetName(s)
+	return gc
+}
+
 // SetDescription sets the "description" field.
 func (gc *GroupCreate) SetDescription(s string) *GroupCreate {
 	gc.mutation.SetDescription(s)
+	return gc
+}
+
+// SetNillableDescription sets the "description" field if the given value is not nil.
+func (gc *GroupCreate) SetNillableDescription(s *string) *GroupCreate {
+	if s != nil {
+		gc.SetDescription(*s)
+	}
 	return gc
 }
 
@@ -139,12 +153,12 @@ func (gc *GroupCreate) check() error {
 	if _, ok := gc.mutation.UpdateTime(); !ok {
 		return &ValidationError{Name: "update_time", err: errors.New(`ent: missing required field "Group.update_time"`)}
 	}
-	if _, ok := gc.mutation.Description(); !ok {
-		return &ValidationError{Name: "description", err: errors.New(`ent: missing required field "Group.description"`)}
+	if _, ok := gc.mutation.Name(); !ok {
+		return &ValidationError{Name: "name", err: errors.New(`ent: missing required field "Group.name"`)}
 	}
-	if v, ok := gc.mutation.Description(); ok {
-		if err := group.DescriptionValidator(v); err != nil {
-			return &ValidationError{Name: "description", err: fmt.Errorf(`ent: validator failed for field "Group.description": %w`, err)}
+	if v, ok := gc.mutation.Name(); ok {
+		if err := group.NameValidator(v); err != nil {
+			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "Group.name": %w`, err)}
 		}
 	}
 	return nil
@@ -180,6 +194,10 @@ func (gc *GroupCreate) createSpec() (*Group, *sqlgraph.CreateSpec) {
 	if value, ok := gc.mutation.UpdateTime(); ok {
 		_spec.SetField(group.FieldUpdateTime, field.TypeTime, value)
 		_node.UpdateTime = value
+	}
+	if value, ok := gc.mutation.Name(); ok {
+		_spec.SetField(group.FieldName, field.TypeString, value)
+		_node.Name = value
 	}
 	if value, ok := gc.mutation.Description(); ok {
 		_spec.SetField(group.FieldDescription, field.TypeString, value)

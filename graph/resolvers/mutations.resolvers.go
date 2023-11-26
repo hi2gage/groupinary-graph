@@ -12,8 +12,15 @@ import (
 )
 
 // CreateGroup is the resolver for the createGroup field.
-func (r *mutationResolver) CreateGroup(ctx context.Context, name string) (*ent.Group, error) {
-	return r.client.Group.Create().SetDescription(name).Save(ctx)
+func (r *mutationResolver) CreateGroup(ctx context.Context, name string, description *string) (*ent.Group, error) {
+	group := r.client.Group.Create()
+	group.SetName(name)
+
+	if description != nil {
+		group.SetDescription(*description)
+	}
+
+	return group.Save(ctx)
 }
 
 // UpdateGroupName is the resolver for the updateGroupName field.

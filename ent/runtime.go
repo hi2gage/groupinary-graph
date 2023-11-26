@@ -49,10 +49,10 @@ func init() {
 	group.DefaultUpdateTime = groupDescUpdateTime.Default.(func() time.Time)
 	// group.UpdateDefaultUpdateTime holds the default value on update for the update_time field.
 	group.UpdateDefaultUpdateTime = groupDescUpdateTime.UpdateDefault.(func() time.Time)
-	// groupDescDescription is the schema descriptor for description field.
-	groupDescDescription := groupFields[0].Descriptor()
-	// group.DescriptionValidator is a validator for the "description" field. It is called by the builders before save.
-	group.DescriptionValidator = groupDescDescription.Validators[0].(func(string) error)
+	// groupDescName is the schema descriptor for name field.
+	groupDescName := groupFields[0].Descriptor()
+	// group.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	group.NameValidator = groupDescName.Validators[0].(func(string) error)
 	userMixin := schema.User{}.Mixin()
 	userMixinFields0 := userMixin[0].Fields()
 	_ = userMixinFields0

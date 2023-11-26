@@ -70,7 +70,8 @@ func (c *DefinitionUpdateOne) SetInput(i UpdateDefinitionInput) *DefinitionUpdat
 type CreateGroupInput struct {
 	CreateTime  *time.Time
 	UpdateTime  *time.Time
-	Description string
+	Name        string
+	Description *string
 	WordIDs     []int
 	UserIDs     []int
 }
@@ -83,7 +84,10 @@ func (i *CreateGroupInput) Mutate(m *GroupMutation) {
 	if v := i.UpdateTime; v != nil {
 		m.SetUpdateTime(*v)
 	}
-	m.SetDescription(i.Description)
+	m.SetName(i.Name)
+	if v := i.Description; v != nil {
+		m.SetDescription(*v)
+	}
 	if v := i.WordIDs; len(v) > 0 {
 		m.AddWordIDs(v...)
 	}
@@ -100,20 +104,28 @@ func (c *GroupCreate) SetInput(i CreateGroupInput) *GroupCreate {
 
 // UpdateGroupInput represents a mutation input for updating groups.
 type UpdateGroupInput struct {
-	UpdateTime    *time.Time
-	Description   *string
-	ClearWords    bool
-	AddWordIDs    []int
-	RemoveWordIDs []int
-	ClearUsers    bool
-	AddUserIDs    []int
-	RemoveUserIDs []int
+	UpdateTime       *time.Time
+	Name             *string
+	ClearDescription bool
+	Description      *string
+	ClearWords       bool
+	AddWordIDs       []int
+	RemoveWordIDs    []int
+	ClearUsers       bool
+	AddUserIDs       []int
+	RemoveUserIDs    []int
 }
 
 // Mutate applies the UpdateGroupInput on the GroupMutation builder.
 func (i *UpdateGroupInput) Mutate(m *GroupMutation) {
 	if v := i.UpdateTime; v != nil {
 		m.SetUpdateTime(*v)
+	}
+	if v := i.Name; v != nil {
+		m.SetName(*v)
+	}
+	if i.ClearDescription {
+		m.ClearDescription()
 	}
 	if v := i.Description; v != nil {
 		m.SetDescription(*v)

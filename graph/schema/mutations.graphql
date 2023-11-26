@@ -1,6 +1,6 @@
 type Mutation {
     # Group
-    createGroup(name: String!): Group!
+    createGroup(name: String!, description: String): Group!
     updateGroupName(id: ID!, name: String!): Group!
 
 
