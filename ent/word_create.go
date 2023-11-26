@@ -322,11 +322,15 @@ func (wc *WordCreate) createSpec() (*Word, *sqlgraph.CreateSpec) {
 // WordCreateBulk is the builder for creating many Word entities in bulk.
 type WordCreateBulk struct {
 	config
+	err      error
 	builders []*WordCreate
 }
 
 // Save creates the Word entities in the database.
 func (wcb *WordCreateBulk) Save(ctx context.Context) ([]*Word, error) {
+	if wcb.err != nil {
+		return nil, wcb.err
+	}
 	specs := make([]*sqlgraph.CreateSpec, len(wcb.builders))
 	nodes := make([]*Word, len(wcb.builders))
 	mutators := make([]Mutator, len(wcb.builders))

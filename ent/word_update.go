@@ -41,6 +41,14 @@ func (wu *WordUpdate) SetDescription(s string) *WordUpdate {
 	return wu
 }
 
+// SetNillableDescription sets the "description" field if the given value is not nil.
+func (wu *WordUpdate) SetNillableDescription(s *string) *WordUpdate {
+	if s != nil {
+		wu.SetDescription(*s)
+	}
+	return wu
+}
+
 // SetGroupID sets the "group" edge to the Group entity by ID.
 func (wu *WordUpdate) SetGroupID(id int) *WordUpdate {
 	wu.mutation.SetGroupID(id)
@@ -269,6 +277,14 @@ func (wuo *WordUpdateOne) SetUpdateTime(t time.Time) *WordUpdateOne {
 // SetDescription sets the "description" field.
 func (wuo *WordUpdateOne) SetDescription(s string) *WordUpdateOne {
 	wuo.mutation.SetDescription(s)
+	return wuo
+}
+
+// SetNillableDescription sets the "description" field if the given value is not nil.
+func (wuo *WordUpdateOne) SetNillableDescription(s *string) *WordUpdateOne {
+	if s != nil {
+		wuo.SetDescription(*s)
+	}
 	return wuo
 }
 
