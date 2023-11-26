@@ -464,15 +464,15 @@ func (c *GroupClient) GetX(ctx context.Context, id int) *Group {
 	return obj
 }
 
-// QueryRootWords queries the rootWords edge of a Group.
-func (c *GroupClient) QueryRootWords(gr *Group) *WordQuery {
+// QueryWords queries the words edge of a Group.
+func (c *GroupClient) QueryWords(gr *Group) *WordQuery {
 	query := (&WordClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := gr.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(group.Table, group.FieldID, id),
 			sqlgraph.To(word.Table, word.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, group.RootWordsTable, group.RootWordsColumn),
+			sqlgraph.Edge(sqlgraph.O2M, false, group.WordsTable, group.WordsColumn),
 		)
 		fromV = sqlgraph.Neighbors(gr.driver.Dialect(), step)
 		return fromV, nil

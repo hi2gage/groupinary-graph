@@ -20,19 +20,19 @@ const (
 	FieldUpdateTime = "update_time"
 	// FieldDescription holds the string denoting the description field in the database.
 	FieldDescription = "description"
-	// EdgeRootWords holds the string denoting the rootwords edge name in mutations.
-	EdgeRootWords = "rootWords"
+	// EdgeWords holds the string denoting the words edge name in mutations.
+	EdgeWords = "words"
 	// EdgeUsers holds the string denoting the users edge name in mutations.
 	EdgeUsers = "users"
 	// Table holds the table name of the group in the database.
 	Table = "groups"
-	// RootWordsTable is the table that holds the rootWords relation/edge.
-	RootWordsTable = "words"
-	// RootWordsInverseTable is the table name for the Word entity.
+	// WordsTable is the table that holds the words relation/edge.
+	WordsTable = "words"
+	// WordsInverseTable is the table name for the Word entity.
 	// It exists in this package in order to avoid circular dependency with the "word" package.
-	RootWordsInverseTable = "words"
-	// RootWordsColumn is the table column denoting the rootWords relation/edge.
-	RootWordsColumn = "group_root_words"
+	WordsInverseTable = "words"
+	// WordsColumn is the table column denoting the words relation/edge.
+	WordsColumn = "group_words"
 	// UsersTable is the table that holds the users relation/edge. The primary key declared below.
 	UsersTable = "user_groups"
 	// UsersInverseTable is the table name for the User entity.
@@ -98,17 +98,17 @@ func ByDescription(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldDescription, opts...).ToFunc()
 }
 
-// ByRootWordsCount orders the results by rootWords count.
-func ByRootWordsCount(opts ...sql.OrderTermOption) OrderOption {
+// ByWordsCount orders the results by words count.
+func ByWordsCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborsCount(s, newRootWordsStep(), opts...)
+		sqlgraph.OrderByNeighborsCount(s, newWordsStep(), opts...)
 	}
 }
 
-// ByRootWords orders the results by rootWords terms.
-func ByRootWords(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+// ByWords orders the results by words terms.
+func ByWords(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newRootWordsStep(), append([]sql.OrderTerm{term}, terms...)...)
+		sqlgraph.OrderByNeighborTerms(s, newWordsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
 
@@ -125,11 +125,11 @@ func ByUsers(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newUsersStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
-func newRootWordsStep() *sqlgraph.Step {
+func newWordsStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(RootWordsInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, RootWordsTable, RootWordsColumn),
+		sqlgraph.To(WordsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, WordsTable, WordsColumn),
 	)
 }
 func newUsersStep() *sqlgraph.Step {

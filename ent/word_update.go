@@ -47,14 +47,6 @@ func (wu *WordUpdate) SetGroupID(id int) *WordUpdate {
 	return wu
 }
 
-// SetNillableGroupID sets the "group" edge to the Group entity by ID if the given value is not nil.
-func (wu *WordUpdate) SetNillableGroupID(id *int) *WordUpdate {
-	if id != nil {
-		wu = wu.SetGroupID(*id)
-	}
-	return wu
-}
-
 // SetGroup sets the "group" edge to the Group entity.
 func (wu *WordUpdate) SetGroup(g *Group) *WordUpdate {
 	return wu.SetGroupID(g.ID)
@@ -149,6 +141,9 @@ func (wu *WordUpdate) check() error {
 		if err := word.DescriptionValidator(v); err != nil {
 			return &ValidationError{Name: "description", err: fmt.Errorf(`ent: validator failed for field "Word.description": %w`, err)}
 		}
+	}
+	if _, ok := wu.mutation.GroupID(); wu.mutation.GroupCleared() && !ok {
+		return errors.New(`ent: clearing a required unique edge "Word.group"`)
 	}
 	return nil
 }
@@ -283,14 +278,6 @@ func (wuo *WordUpdateOne) SetGroupID(id int) *WordUpdateOne {
 	return wuo
 }
 
-// SetNillableGroupID sets the "group" edge to the Group entity by ID if the given value is not nil.
-func (wuo *WordUpdateOne) SetNillableGroupID(id *int) *WordUpdateOne {
-	if id != nil {
-		wuo = wuo.SetGroupID(*id)
-	}
-	return wuo
-}
-
 // SetGroup sets the "group" edge to the Group entity.
 func (wuo *WordUpdateOne) SetGroup(g *Group) *WordUpdateOne {
 	return wuo.SetGroupID(g.ID)
@@ -398,6 +385,9 @@ func (wuo *WordUpdateOne) check() error {
 		if err := word.DescriptionValidator(v); err != nil {
 			return &ValidationError{Name: "description", err: fmt.Errorf(`ent: validator failed for field "Word.description": %w`, err)}
 		}
+	}
+	if _, ok := wuo.mutation.GroupID(); wuo.mutation.GroupCleared() && !ok {
+		return errors.New(`ent: clearing a required unique edge "Word.group"`)
 	}
 	return nil
 }

@@ -21,6 +21,15 @@ services:
       - POSTGRES_USER=yourusername
       - POSTGRES_PASSWORD=yourpassword
       - POSTGRES_DB=yourdatabase
+  db-migration:
+    image: postgres
+    restart: always
+    ports:
+      - '5431:5432'
+    environment:
+      - POSTGRES_USER=yourusername
+      - POSTGRES_PASSWORD=yourpassword
+      - POSTGRES_DB=migration
   pgadmin:
     image: dpage/pgadmin4
     restart: unless-stopped

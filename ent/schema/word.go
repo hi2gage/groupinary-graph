@@ -32,7 +32,8 @@ func (Word) Edges() []ent.Edge {
 			Immutable().
 			Unique(),
 		edge.From("group", Group.Type).
-			Ref("rootWords").
+			Ref("words").
+			Required().
 			Unique(),
 		edge.To("definitions", Definition.Type).
 			Immutable().
