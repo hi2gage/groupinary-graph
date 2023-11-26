@@ -349,6 +349,8 @@ input UpdateUserInput {
   clearFirstName: Boolean
   lastname: String
   clearLastName: Boolean
+  nickname: String
+  clearNickName: Boolean
   addGroupIDs: [ID!]
   removeGroupIDs: [ID!]
   clearGroups: Boolean
@@ -372,6 +374,7 @@ type User implements Node {
   authid: String! @goField(name: "AuthID", forceResolver: false)
   firstname: String @goField(name: "FirstName", forceResolver: false)
   lastname: String @goField(name: "LastName", forceResolver: false)
+  nickname: String @goField(name: "NickName", forceResolver: false)
   groups: [Group!]
   definitions(
     """Returns the elements in the list that come after the specified cursor."""
@@ -493,6 +496,22 @@ input UserWhereInput {
   lastnameNotNil: Boolean
   lastnameEqualFold: String
   lastnameContainsFold: String
+  """nickName field predicates"""
+  nickname: String
+  nicknameNEQ: String
+  nicknameIn: [String!]
+  nicknameNotIn: [String!]
+  nicknameGT: String
+  nicknameGTE: String
+  nicknameLT: String
+  nicknameLTE: String
+  nicknameContains: String
+  nicknameHasPrefix: String
+  nicknameHasSuffix: String
+  nicknameIsNil: Boolean
+  nicknameNotNil: Boolean
+  nicknameEqualFold: String
+  nicknameContainsFold: String
   """groups edge predicates"""
   hasGroups: Boolean
   hasGroupsWith: [GroupWhereInput!]

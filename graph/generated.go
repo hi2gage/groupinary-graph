@@ -118,6 +118,7 @@ type ComplexityRoot struct {
 		Groups      func(childComplexity int) int
 		ID          func(childComplexity int) int
 		LastName    func(childComplexity int) int
+		NickName    func(childComplexity int) int
 		UpdateTime  func(childComplexity int) int
 		Words       func(childComplexity int, after *entgql.Cursor[int], first *int, before *entgql.Cursor[int], last *int, orderBy *ent.WordOrder, where *ent.WordWhereInput) int
 	}
@@ -628,6 +629,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.User.LastName(childComplexity), true
+
+	case "User.nickname":
+		if e.complexity.User.NickName == nil {
+			break
+		}
+
+		return e.complexity.User.NickName(childComplexity), true
 
 	case "User.updateTime":
 		if e.complexity.User.UpdateTime == nil {
@@ -1939,6 +1947,8 @@ func (ec *executionContext) fieldContext_Definition_creator(ctx context.Context,
 				return ec.fieldContext_User_firstname(ctx, field)
 			case "lastname":
 				return ec.fieldContext_User_lastname(ctx, field)
+			case "nickname":
+				return ec.fieldContext_User_nickname(ctx, field)
 			case "groups":
 				return ec.fieldContext_User_groups(ctx, field)
 			case "definitions":
@@ -2585,6 +2595,8 @@ func (ec *executionContext) fieldContext_Group_users(ctx context.Context, field 
 				return ec.fieldContext_User_firstname(ctx, field)
 			case "lastname":
 				return ec.fieldContext_User_lastname(ctx, field)
+			case "nickname":
+				return ec.fieldContext_User_nickname(ctx, field)
 			case "groups":
 				return ec.fieldContext_User_groups(ctx, field)
 			case "definitions":
@@ -2956,6 +2968,8 @@ func (ec *executionContext) fieldContext_Mutation_updateUserName(ctx context.Con
 				return ec.fieldContext_User_firstname(ctx, field)
 			case "lastname":
 				return ec.fieldContext_User_lastname(ctx, field)
+			case "nickname":
+				return ec.fieldContext_User_nickname(ctx, field)
 			case "groups":
 				return ec.fieldContext_User_groups(ctx, field)
 			case "definitions":
@@ -3869,6 +3883,8 @@ func (ec *executionContext) fieldContext_Query_users(ctx context.Context, field 
 				return ec.fieldContext_User_firstname(ctx, field)
 			case "lastname":
 				return ec.fieldContext_User_lastname(ctx, field)
+			case "nickname":
+				return ec.fieldContext_User_nickname(ctx, field)
 			case "groups":
 				return ec.fieldContext_User_groups(ctx, field)
 			case "definitions":
@@ -3996,6 +4012,8 @@ func (ec *executionContext) fieldContext_Query_currentUser(ctx context.Context, 
 				return ec.fieldContext_User_firstname(ctx, field)
 			case "lastname":
 				return ec.fieldContext_User_lastname(ctx, field)
+			case "nickname":
+				return ec.fieldContext_User_nickname(ctx, field)
 			case "groups":
 				return ec.fieldContext_User_groups(ctx, field)
 			case "definitions":
@@ -4470,6 +4488,47 @@ func (ec *executionContext) fieldContext_User_lastname(ctx context.Context, fiel
 	return fc, nil
 }
 
+func (ec *executionContext) _User_nickname(ctx context.Context, field graphql.CollectedField, obj *ent.User) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_User_nickname(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.NickName, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalOString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_User_nickname(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "User",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _User_groups(ctx context.Context, field graphql.CollectedField, obj *ent.User) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_User_groups(ctx, field)
 	if err != nil {
@@ -4877,6 +4936,8 @@ func (ec *executionContext) fieldContext_Word_creator(ctx context.Context, field
 				return ec.fieldContext_User_firstname(ctx, field)
 			case "lastname":
 				return ec.fieldContext_User_lastname(ctx, field)
+			case "nickname":
+				return ec.fieldContext_User_nickname(ctx, field)
 			case "groups":
 				return ec.fieldContext_User_groups(ctx, field)
 			case "definitions":
@@ -8555,7 +8616,7 @@ func (ec *executionContext) unmarshalInputUpdateUserInput(ctx context.Context, o
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"updateTime", "firstname", "clearFirstName", "lastname", "clearLastName", "addGroupIDs", "removeGroupIDs", "clearGroups"}
+	fieldsInOrder := [...]string{"updateTime", "firstname", "clearFirstName", "lastname", "clearLastName", "nickname", "clearNickName", "addGroupIDs", "removeGroupIDs", "clearGroups"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -8607,6 +8668,24 @@ func (ec *executionContext) unmarshalInputUpdateUserInput(ctx context.Context, o
 				return it, err
 			}
 			it.ClearLastName = data
+		case "nickname":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nickname"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.NickName = data
+		case "clearNickName":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("clearNickName"))
+			data, err := ec.unmarshalOBoolean2bool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ClearNickName = data
 		case "addGroupIDs":
 			var err error
 
@@ -8721,7 +8800,7 @@ func (ec *executionContext) unmarshalInputUserWhereInput(ctx context.Context, ob
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"not", "and", "or", "id", "idNEQ", "idIn", "idNotIn", "idGT", "idGTE", "idLT", "idLTE", "createTime", "createTimeNEQ", "createTimeIn", "createTimeNotIn", "createTimeGT", "createTimeGTE", "createTimeLT", "createTimeLTE", "updateTime", "updateTimeNEQ", "updateTimeIn", "updateTimeNotIn", "updateTimeGT", "updateTimeGTE", "updateTimeLT", "updateTimeLTE", "authid", "authidNEQ", "authidIn", "authidNotIn", "authidGT", "authidGTE", "authidLT", "authidLTE", "authidContains", "authidHasPrefix", "authidHasSuffix", "authidEqualFold", "authidContainsFold", "firstname", "firstnameNEQ", "firstnameIn", "firstnameNotIn", "firstnameGT", "firstnameGTE", "firstnameLT", "firstnameLTE", "firstnameContains", "firstnameHasPrefix", "firstnameHasSuffix", "firstnameIsNil", "firstnameNotNil", "firstnameEqualFold", "firstnameContainsFold", "lastname", "lastnameNEQ", "lastnameIn", "lastnameNotIn", "lastnameGT", "lastnameGTE", "lastnameLT", "lastnameLTE", "lastnameContains", "lastnameHasPrefix", "lastnameHasSuffix", "lastnameIsNil", "lastnameNotNil", "lastnameEqualFold", "lastnameContainsFold", "hasGroups", "hasGroupsWith", "hasDefinitions", "hasDefinitionsWith", "hasWords", "hasWordsWith"}
+	fieldsInOrder := [...]string{"not", "and", "or", "id", "idNEQ", "idIn", "idNotIn", "idGT", "idGTE", "idLT", "idLTE", "createTime", "createTimeNEQ", "createTimeIn", "createTimeNotIn", "createTimeGT", "createTimeGTE", "createTimeLT", "createTimeLTE", "updateTime", "updateTimeNEQ", "updateTimeIn", "updateTimeNotIn", "updateTimeGT", "updateTimeGTE", "updateTimeLT", "updateTimeLTE", "authid", "authidNEQ", "authidIn", "authidNotIn", "authidGT", "authidGTE", "authidLT", "authidLTE", "authidContains", "authidHasPrefix", "authidHasSuffix", "authidEqualFold", "authidContainsFold", "firstname", "firstnameNEQ", "firstnameIn", "firstnameNotIn", "firstnameGT", "firstnameGTE", "firstnameLT", "firstnameLTE", "firstnameContains", "firstnameHasPrefix", "firstnameHasSuffix", "firstnameIsNil", "firstnameNotNil", "firstnameEqualFold", "firstnameContainsFold", "lastname", "lastnameNEQ", "lastnameIn", "lastnameNotIn", "lastnameGT", "lastnameGTE", "lastnameLT", "lastnameLTE", "lastnameContains", "lastnameHasPrefix", "lastnameHasSuffix", "lastnameIsNil", "lastnameNotNil", "lastnameEqualFold", "lastnameContainsFold", "nickname", "nicknameNEQ", "nicknameIn", "nicknameNotIn", "nicknameGT", "nicknameGTE", "nicknameLT", "nicknameLTE", "nicknameContains", "nicknameHasPrefix", "nicknameHasSuffix", "nicknameIsNil", "nicknameNotNil", "nicknameEqualFold", "nicknameContainsFold", "hasGroups", "hasGroupsWith", "hasDefinitions", "hasDefinitionsWith", "hasWords", "hasWordsWith"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -9358,6 +9437,141 @@ func (ec *executionContext) unmarshalInputUserWhereInput(ctx context.Context, ob
 				return it, err
 			}
 			it.LastNameContainsFold = data
+		case "nickname":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nickname"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.NickName = data
+		case "nicknameNEQ":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nicknameNEQ"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.NickNameNEQ = data
+		case "nicknameIn":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nicknameIn"))
+			data, err := ec.unmarshalOString2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.NickNameIn = data
+		case "nicknameNotIn":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nicknameNotIn"))
+			data, err := ec.unmarshalOString2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.NickNameNotIn = data
+		case "nicknameGT":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nicknameGT"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.NickNameGT = data
+		case "nicknameGTE":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nicknameGTE"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.NickNameGTE = data
+		case "nicknameLT":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nicknameLT"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.NickNameLT = data
+		case "nicknameLTE":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nicknameLTE"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.NickNameLTE = data
+		case "nicknameContains":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nicknameContains"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.NickNameContains = data
+		case "nicknameHasPrefix":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nicknameHasPrefix"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.NickNameHasPrefix = data
+		case "nicknameHasSuffix":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nicknameHasSuffix"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.NickNameHasSuffix = data
+		case "nicknameIsNil":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nicknameIsNil"))
+			data, err := ec.unmarshalOBoolean2bool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.NickNameIsNil = data
+		case "nicknameNotNil":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nicknameNotNil"))
+			data, err := ec.unmarshalOBoolean2bool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.NickNameNotNil = data
+		case "nicknameEqualFold":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nicknameEqualFold"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.NickNameEqualFold = data
+		case "nicknameContainsFold":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nicknameContainsFold"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.NickNameContainsFold = data
 		case "hasGroups":
 			var err error
 
@@ -10660,6 +10874,10 @@ func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj
 		case "lastname":
 
 			out.Values[i] = ec._User_lastname(ctx, field, obj)
+
+		case "nickname":
+
+			out.Values[i] = ec._User_nickname(ctx, field, obj)
 
 		case "groups":
 			field := field
