@@ -236,7 +236,7 @@ input GroupWhereInput {
 An object with an ID.
 Follows the [Relay Global Object Identification Specification](https://relay.dev/graphql/objectidentification.htm)
 """
-interface Node @goModel(model: "groupionary/ent.Noder") {
+interface Node @goModel(model: "groupinary/ent.Noder") {
   """The id of the object."""
   id: ID!
 }

@@ -3,11 +3,11 @@
 package ent
 
 import (
-	"groupionary/ent/definition"
-	"groupionary/ent/group"
-	"groupionary/ent/schema"
-	"groupionary/ent/user"
-	"groupionary/ent/word"
+	"groupinary/ent/definition"
+	"groupinary/ent/group"
+	"groupinary/ent/schema"
+	"groupinary/ent/user"
+	"groupinary/ent/word"
 	"time"
 )
 

@@ -6,9 +6,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"groupionary/ent/definition"
-	"groupionary/ent/user"
-	"groupionary/ent/word"
+	"groupinary/ent/definition"
+	"groupinary/ent/user"
+	"groupinary/ent/word"
 	"time"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"

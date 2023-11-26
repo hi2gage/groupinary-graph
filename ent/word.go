@@ -4,9 +4,9 @@ package ent
 
 import (
 	"fmt"
-	"groupionary/ent/group"
-	"groupionary/ent/user"
-	"groupionary/ent/word"
+	"groupinary/ent/group"
+	"groupinary/ent/user"
+	"groupinary/ent/word"
 	"strings"
 	"time"
 

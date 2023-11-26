@@ -1,9 +1,9 @@
 package resolvers
 
 import (
-	"groupionary/ent"
+	"groupinary/ent"
 
-	"groupionary/graph"
+	"groupinary/graph"
 
 	"github.com/99designs/gqlgen/graphql"
 )

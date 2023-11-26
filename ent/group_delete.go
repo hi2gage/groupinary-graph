@@ -4,8 +4,8 @@ package ent
 
 import (
 	"context"
-	"groupionary/ent/group"
-	"groupionary/ent/predicate"
+	"groupinary/ent/group"
+	"groupinary/ent/predicate"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"

@@ -3,7 +3,7 @@
 package word
 
 import (
-	"groupionary/ent/predicate"
+	"groupinary/ent/predicate"
 	"time"
 
 	"entgo.io/ent/dialect/sql"

@@ -6,9 +6,9 @@ package resolvers
 
 import (
 	"context"
-	"groupionary/ent"
-	"groupionary/graph"
-	"groupionary/utils"
+	"groupinary/ent"
+	"groupinary/graph"
+	"groupinary/utils"
 )
 
 // CreateGroup is the resolver for the createGroup field.

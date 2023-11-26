@@ -3,9 +3,9 @@ package middleware
 import (
 	"context"
 	"fmt"
-	"groupionary/ent"
-	"groupionary/ent/user"
-	"groupionary/utils"
+	"groupinary/ent"
+	"groupinary/ent/user"
+	"groupinary/utils"
 	"log"
 	"net/http"
 	"net/url"
