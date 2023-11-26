@@ -95,6 +95,26 @@ func (uu *UserUpdate) ClearNickName() *UserUpdate {
 	return uu
 }
 
+// SetName sets the "name" field.
+func (uu *UserUpdate) SetName(s string) *UserUpdate {
+	uu.mutation.SetName(s)
+	return uu
+}
+
+// SetNillableName sets the "name" field if the given value is not nil.
+func (uu *UserUpdate) SetNillableName(s *string) *UserUpdate {
+	if s != nil {
+		uu.SetName(*s)
+	}
+	return uu
+}
+
+// ClearName clears the value of the "name" field.
+func (uu *UserUpdate) ClearName() *UserUpdate {
+	uu.mutation.ClearName()
+	return uu
+}
+
 // AddGroupIDs adds the "groups" edge to the Group entity by IDs.
 func (uu *UserUpdate) AddGroupIDs(ids ...int) *UserUpdate {
 	uu.mutation.AddGroupIDs(ids...)
@@ -201,6 +221,12 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if uu.mutation.NickNameCleared() {
 		_spec.ClearField(user.FieldNickName, field.TypeString)
+	}
+	if value, ok := uu.mutation.Name(); ok {
+		_spec.SetField(user.FieldName, field.TypeString, value)
+	}
+	if uu.mutation.NameCleared() {
+		_spec.ClearField(user.FieldName, field.TypeString)
 	}
 	if uu.mutation.GroupsCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -330,6 +356,26 @@ func (uuo *UserUpdateOne) SetNillableNickName(s *string) *UserUpdateOne {
 // ClearNickName clears the value of the "nickName" field.
 func (uuo *UserUpdateOne) ClearNickName() *UserUpdateOne {
 	uuo.mutation.ClearNickName()
+	return uuo
+}
+
+// SetName sets the "name" field.
+func (uuo *UserUpdateOne) SetName(s string) *UserUpdateOne {
+	uuo.mutation.SetName(s)
+	return uuo
+}
+
+// SetNillableName sets the "name" field if the given value is not nil.
+func (uuo *UserUpdateOne) SetNillableName(s *string) *UserUpdateOne {
+	if s != nil {
+		uuo.SetName(*s)
+	}
+	return uuo
+}
+
+// ClearName clears the value of the "name" field.
+func (uuo *UserUpdateOne) ClearName() *UserUpdateOne {
+	uuo.mutation.ClearName()
 	return uuo
 }
 
@@ -469,6 +515,12 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 	}
 	if uuo.mutation.NickNameCleared() {
 		_spec.ClearField(user.FieldNickName, field.TypeString)
+	}
+	if value, ok := uuo.mutation.Name(); ok {
+		_spec.SetField(user.FieldName, field.TypeString, value)
+	}
+	if uuo.mutation.NameCleared() {
+		_spec.ClearField(user.FieldName, field.TypeString)
 	}
 	if uuo.mutation.GroupsCleared() {
 		edge := &sqlgraph.EdgeSpec{
