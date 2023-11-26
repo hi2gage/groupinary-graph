@@ -57,7 +57,7 @@ func (r *mutationResolver) DeleteDefinition(ctx context.Context, id int) (bool, 
 }
 
 // UpdateUserName is the resolver for the updateUserName field.
-func (r *mutationResolver) UpdateUserName(ctx context.Context, firstName string, lastName *string) (*ent.User, error) {
+func (r *mutationResolver) UpdateUserName(ctx context.Context, firstName string, lastName *string, nickName *string) (*ent.User, error) {
 	creatorID, err := utils.GetCreatorIDFromContext(ctx)
 	if err != nil {
 		return nil, err
@@ -69,6 +69,10 @@ func (r *mutationResolver) UpdateUserName(ctx context.Context, firstName string,
 
 	if lastName != nil {
 		u = u.SetLastName(*lastName)
+	}
+
+	if nickName != nil {
+		u = u.SetLastName(*nickName)
 	}
 
 	return u.Save(ctx)
