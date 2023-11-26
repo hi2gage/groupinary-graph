@@ -4,7 +4,7 @@ package main
 
 import (
 	"context"
-	"groupionary/ent/migrate"
+	"groupinary/ent/migrate"
 	"log"
 	"os"
 

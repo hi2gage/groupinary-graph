@@ -8,7 +8,7 @@ import (
 	"embed"
 	"errors"
 	"fmt"
-	"groupionary/ent"
+	"groupinary/ent"
 	"strconv"
 	"sync"
 	"sync/atomic"
@@ -900,7 +900,7 @@ func (ec *executionContext) field_Group_words_args(ctx context.Context, rawArgs 
 	var arg4 *ent.WordOrder
 	if tmp, ok := rawArgs["orderBy"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("orderBy"))
-		arg4, err = ec.unmarshalOWordOrder2ᚖgroupionaryᚋentᚐWordOrder(ctx, tmp)
+		arg4, err = ec.unmarshalOWordOrder2ᚖgroupinaryᚋentᚐWordOrder(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -909,7 +909,7 @@ func (ec *executionContext) field_Group_words_args(ctx context.Context, rawArgs 
 	var arg5 *ent.WordWhereInput
 	if tmp, ok := rawArgs["where"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("where"))
-		arg5, err = ec.unmarshalOWordWhereInput2ᚖgroupionaryᚋentᚐWordWhereInput(ctx, tmp)
+		arg5, err = ec.unmarshalOWordWhereInput2ᚖgroupinaryᚋentᚐWordWhereInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -1269,7 +1269,7 @@ func (ec *executionContext) field_Query_definitionsConnections_args(ctx context.
 	var arg5 *ent.DefinitionOrder
 	if tmp, ok := rawArgs["orderBy"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("orderBy"))
-		arg5, err = ec.unmarshalODefinitionOrder2ᚖgroupionaryᚋentᚐDefinitionOrder(ctx, tmp)
+		arg5, err = ec.unmarshalODefinitionOrder2ᚖgroupinaryᚋentᚐDefinitionOrder(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -1278,7 +1278,7 @@ func (ec *executionContext) field_Query_definitionsConnections_args(ctx context.
 	var arg6 *ent.DefinitionWhereInput
 	if tmp, ok := rawArgs["where"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("where"))
-		arg6, err = ec.unmarshalODefinitionWhereInput2ᚖgroupionaryᚋentᚐDefinitionWhereInput(ctx, tmp)
+		arg6, err = ec.unmarshalODefinitionWhereInput2ᚖgroupinaryᚋentᚐDefinitionWhereInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -1329,7 +1329,7 @@ func (ec *executionContext) field_Query_definitions_args(ctx context.Context, ra
 	var arg4 *ent.DefinitionOrder
 	if tmp, ok := rawArgs["orderBy"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("orderBy"))
-		arg4, err = ec.unmarshalODefinitionOrder2ᚖgroupionaryᚋentᚐDefinitionOrder(ctx, tmp)
+		arg4, err = ec.unmarshalODefinitionOrder2ᚖgroupinaryᚋentᚐDefinitionOrder(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -1338,7 +1338,7 @@ func (ec *executionContext) field_Query_definitions_args(ctx context.Context, ra
 	var arg5 *ent.DefinitionWhereInput
 	if tmp, ok := rawArgs["where"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("where"))
-		arg5, err = ec.unmarshalODefinitionWhereInput2ᚖgroupionaryᚋentᚐDefinitionWhereInput(ctx, tmp)
+		arg5, err = ec.unmarshalODefinitionWhereInput2ᚖgroupinaryᚋentᚐDefinitionWhereInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -1419,7 +1419,7 @@ func (ec *executionContext) field_Query_words_args(ctx context.Context, rawArgs 
 	var arg4 *ent.WordOrder
 	if tmp, ok := rawArgs["orderBy"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("orderBy"))
-		arg4, err = ec.unmarshalOWordOrder2ᚖgroupionaryᚋentᚐWordOrder(ctx, tmp)
+		arg4, err = ec.unmarshalOWordOrder2ᚖgroupinaryᚋentᚐWordOrder(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -1428,7 +1428,7 @@ func (ec *executionContext) field_Query_words_args(ctx context.Context, rawArgs 
 	var arg5 *ent.WordWhereInput
 	if tmp, ok := rawArgs["where"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("where"))
-		arg5, err = ec.unmarshalOWordWhereInput2ᚖgroupionaryᚋentᚐWordWhereInput(ctx, tmp)
+		arg5, err = ec.unmarshalOWordWhereInput2ᚖgroupinaryᚋentᚐWordWhereInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -1479,7 +1479,7 @@ func (ec *executionContext) field_User_definitions_args(ctx context.Context, raw
 	var arg4 *ent.DefinitionOrder
 	if tmp, ok := rawArgs["orderBy"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("orderBy"))
-		arg4, err = ec.unmarshalODefinitionOrder2ᚖgroupionaryᚋentᚐDefinitionOrder(ctx, tmp)
+		arg4, err = ec.unmarshalODefinitionOrder2ᚖgroupinaryᚋentᚐDefinitionOrder(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -1488,7 +1488,7 @@ func (ec *executionContext) field_User_definitions_args(ctx context.Context, raw
 	var arg5 *ent.DefinitionWhereInput
 	if tmp, ok := rawArgs["where"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("where"))
-		arg5, err = ec.unmarshalODefinitionWhereInput2ᚖgroupionaryᚋentᚐDefinitionWhereInput(ctx, tmp)
+		arg5, err = ec.unmarshalODefinitionWhereInput2ᚖgroupinaryᚋentᚐDefinitionWhereInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -1539,7 +1539,7 @@ func (ec *executionContext) field_User_words_args(ctx context.Context, rawArgs m
 	var arg4 *ent.WordOrder
 	if tmp, ok := rawArgs["orderBy"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("orderBy"))
-		arg4, err = ec.unmarshalOWordOrder2ᚖgroupionaryᚋentᚐWordOrder(ctx, tmp)
+		arg4, err = ec.unmarshalOWordOrder2ᚖgroupinaryᚋentᚐWordOrder(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -1548,7 +1548,7 @@ func (ec *executionContext) field_User_words_args(ctx context.Context, rawArgs m
 	var arg5 *ent.WordWhereInput
 	if tmp, ok := rawArgs["where"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("where"))
-		arg5, err = ec.unmarshalOWordWhereInput2ᚖgroupionaryᚋentᚐWordWhereInput(ctx, tmp)
+		arg5, err = ec.unmarshalOWordWhereInput2ᚖgroupinaryᚋentᚐWordWhereInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -1599,7 +1599,7 @@ func (ec *executionContext) field_Word_definitions_args(ctx context.Context, raw
 	var arg4 *ent.DefinitionOrder
 	if tmp, ok := rawArgs["orderBy"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("orderBy"))
-		arg4, err = ec.unmarshalODefinitionOrder2ᚖgroupionaryᚋentᚐDefinitionOrder(ctx, tmp)
+		arg4, err = ec.unmarshalODefinitionOrder2ᚖgroupinaryᚋentᚐDefinitionOrder(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -1608,7 +1608,7 @@ func (ec *executionContext) field_Word_definitions_args(ctx context.Context, raw
 	var arg5 *ent.DefinitionWhereInput
 	if tmp, ok := rawArgs["where"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("where"))
-		arg5, err = ec.unmarshalODefinitionWhereInput2ᚖgroupionaryᚋentᚐDefinitionWhereInput(ctx, tmp)
+		arg5, err = ec.unmarshalODefinitionWhereInput2ᚖgroupinaryᚋentᚐDefinitionWhereInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -1659,7 +1659,7 @@ func (ec *executionContext) field_Word_descendants_args(ctx context.Context, raw
 	var arg4 *ent.WordOrder
 	if tmp, ok := rawArgs["orderBy"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("orderBy"))
-		arg4, err = ec.unmarshalOWordOrder2ᚖgroupionaryᚋentᚐWordOrder(ctx, tmp)
+		arg4, err = ec.unmarshalOWordOrder2ᚖgroupinaryᚋentᚐWordOrder(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -1668,7 +1668,7 @@ func (ec *executionContext) field_Word_descendants_args(ctx context.Context, raw
 	var arg5 *ent.WordWhereInput
 	if tmp, ok := rawArgs["where"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("where"))
-		arg5, err = ec.unmarshalOWordWhereInput2ᚖgroupionaryᚋentᚐWordWhereInput(ctx, tmp)
+		arg5, err = ec.unmarshalOWordWhereInput2ᚖgroupinaryᚋentᚐWordWhereInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -1916,7 +1916,7 @@ func (ec *executionContext) _Definition_creator(ctx context.Context, field graph
 	}
 	res := resTmp.(*ent.User)
 	fc.Result = res
-	return ec.marshalOUser2ᚖgroupionaryᚋentᚐUser(ctx, field.Selections, res)
+	return ec.marshalOUser2ᚖgroupinaryᚋentᚐUser(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Definition_creator(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -1977,7 +1977,7 @@ func (ec *executionContext) _Definition_word(ctx context.Context, field graphql.
 	}
 	res := resTmp.(*ent.Word)
 	fc.Result = res
-	return ec.marshalOWord2ᚖgroupionaryᚋentᚐWord(ctx, field.Selections, res)
+	return ec.marshalOWord2ᚖgroupinaryᚋentᚐWord(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Definition_word(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -2038,7 +2038,7 @@ func (ec *executionContext) _DefinitionConnection_edges(ctx context.Context, fie
 	}
 	res := resTmp.([]*ent.DefinitionEdge)
 	fc.Result = res
-	return ec.marshalODefinitionEdge2ᚕᚖgroupionaryᚋentᚐDefinitionEdge(ctx, field.Selections, res)
+	return ec.marshalODefinitionEdge2ᚕᚖgroupinaryᚋentᚐDefinitionEdge(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_DefinitionConnection_edges(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -2183,7 +2183,7 @@ func (ec *executionContext) _DefinitionEdge_node(ctx context.Context, field grap
 	}
 	res := resTmp.(*ent.Definition)
 	fc.Result = res
-	return ec.marshalODefinition2ᚖgroupionaryᚋentᚐDefinition(ctx, field.Selections, res)
+	return ec.marshalODefinition2ᚖgroupinaryᚋentᚐDefinition(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_DefinitionEdge_node(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -2502,7 +2502,7 @@ func (ec *executionContext) _Group_words(ctx context.Context, field graphql.Coll
 	}
 	res := resTmp.(*ent.WordConnection)
 	fc.Result = res
-	return ec.marshalNWordConnection2ᚖgroupionaryᚋentᚐWordConnection(ctx, field.Selections, res)
+	return ec.marshalNWordConnection2ᚖgroupinaryᚋentᚐWordConnection(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Group_words(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -2562,7 +2562,7 @@ func (ec *executionContext) _Group_users(ctx context.Context, field graphql.Coll
 	}
 	res := resTmp.([]*ent.User)
 	fc.Result = res
-	return ec.marshalOUser2ᚕᚖgroupionaryᚋentᚐUserᚄ(ctx, field.Selections, res)
+	return ec.marshalOUser2ᚕᚖgroupinaryᚋentᚐUserᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Group_users(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -2626,7 +2626,7 @@ func (ec *executionContext) _Mutation_createGroup(ctx context.Context, field gra
 	}
 	res := resTmp.(*ent.Group)
 	fc.Result = res
-	return ec.marshalNGroup2ᚖgroupionaryᚋentᚐGroup(ctx, field.Selections, res)
+	return ec.marshalNGroup2ᚖgroupinaryᚋentᚐGroup(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_createGroup(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -2697,7 +2697,7 @@ func (ec *executionContext) _Mutation_updateGroupName(ctx context.Context, field
 	}
 	res := resTmp.(*ent.Group)
 	fc.Result = res
-	return ec.marshalNGroup2ᚖgroupionaryᚋentᚐGroup(ctx, field.Selections, res)
+	return ec.marshalNGroup2ᚖgroupinaryᚋentᚐGroup(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_updateGroupName(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -2933,7 +2933,7 @@ func (ec *executionContext) _Mutation_updateUserName(ctx context.Context, field 
 	}
 	res := resTmp.(*ent.User)
 	fc.Result = res
-	return ec.marshalNUser2ᚖgroupionaryᚋentᚐUser(ctx, field.Selections, res)
+	return ec.marshalNUser2ᚖgroupinaryᚋentᚐUser(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_updateUserName(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -3008,7 +3008,7 @@ func (ec *executionContext) _Mutation_addRootWord(ctx context.Context, field gra
 	}
 	res := resTmp.(*ent.Word)
 	fc.Result = res
-	return ec.marshalNWord2ᚖgroupionaryᚋentᚐWord(ctx, field.Selections, res)
+	return ec.marshalNWord2ᚖgroupinaryᚋentᚐWord(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_addRootWord(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -3083,7 +3083,7 @@ func (ec *executionContext) _Mutation_addChildWord(ctx context.Context, field gr
 	}
 	res := resTmp.(*ent.Word)
 	fc.Result = res
-	return ec.marshalNWord2ᚖgroupionaryᚋentᚐWord(ctx, field.Selections, res)
+	return ec.marshalNWord2ᚖgroupinaryᚋentᚐWord(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_addChildWord(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -3158,7 +3158,7 @@ func (ec *executionContext) _Mutation_addDefinition(ctx context.Context, field g
 	}
 	res := resTmp.(*ent.Definition)
 	fc.Result = res
-	return ec.marshalNDefinition2ᚖgroupionaryᚋentᚐDefinition(ctx, field.Selections, res)
+	return ec.marshalNDefinition2ᚖgroupinaryᚋentᚐDefinition(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_addDefinition(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -3227,7 +3227,7 @@ func (ec *executionContext) _Mutation_connectWords(ctx context.Context, field gr
 	}
 	res := resTmp.(*ent.Word)
 	fc.Result = res
-	return ec.marshalNWord2ᚖgroupionaryᚋentᚐWord(ctx, field.Selections, res)
+	return ec.marshalNWord2ᚖgroupinaryᚋentᚐWord(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_connectWords(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -3302,7 +3302,7 @@ func (ec *executionContext) _Mutation_updateWord(ctx context.Context, field grap
 	}
 	res := resTmp.(*ent.Word)
 	fc.Result = res
-	return ec.marshalNWord2ᚖgroupionaryᚋentᚐWord(ctx, field.Selections, res)
+	return ec.marshalNWord2ᚖgroupinaryᚋentᚐWord(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_updateWord(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -3377,7 +3377,7 @@ func (ec *executionContext) _Mutation_updateDefinition(ctx context.Context, fiel
 	}
 	res := resTmp.(*ent.Definition)
 	fc.Result = res
-	return ec.marshalNDefinition2ᚖgroupionaryᚋentᚐDefinition(ctx, field.Selections, res)
+	return ec.marshalNDefinition2ᚖgroupinaryᚋentᚐDefinition(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_updateDefinition(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -3613,7 +3613,7 @@ func (ec *executionContext) _Query_node(ctx context.Context, field graphql.Colle
 	}
 	res := resTmp.(ent.Noder)
 	fc.Result = res
-	return ec.marshalONode2groupionaryᚋentᚐNoder(ctx, field.Selections, res)
+	return ec.marshalONode2groupinaryᚋentᚐNoder(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_node(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -3668,7 +3668,7 @@ func (ec *executionContext) _Query_nodes(ctx context.Context, field graphql.Coll
 	}
 	res := resTmp.([]ent.Noder)
 	fc.Result = res
-	return ec.marshalNNode2ᚕgroupionaryᚋentᚐNoder(ctx, field.Selections, res)
+	return ec.marshalNNode2ᚕgroupinaryᚋentᚐNoder(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_nodes(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -3723,7 +3723,7 @@ func (ec *executionContext) _Query_definitions(ctx context.Context, field graphq
 	}
 	res := resTmp.(*ent.DefinitionConnection)
 	fc.Result = res
-	return ec.marshalNDefinitionConnection2ᚖgroupionaryᚋentᚐDefinitionConnection(ctx, field.Selections, res)
+	return ec.marshalNDefinitionConnection2ᚖgroupinaryᚋentᚐDefinitionConnection(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_definitions(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -3786,7 +3786,7 @@ func (ec *executionContext) _Query_groups(ctx context.Context, field graphql.Col
 	}
 	res := resTmp.([]*ent.Group)
 	fc.Result = res
-	return ec.marshalNGroup2ᚕᚖgroupionaryᚋentᚐGroupᚄ(ctx, field.Selections, res)
+	return ec.marshalNGroup2ᚕᚖgroupinaryᚋentᚐGroupᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_groups(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -3846,7 +3846,7 @@ func (ec *executionContext) _Query_users(ctx context.Context, field graphql.Coll
 	}
 	res := resTmp.([]*ent.User)
 	fc.Result = res
-	return ec.marshalNUser2ᚕᚖgroupionaryᚋentᚐUserᚄ(ctx, field.Selections, res)
+	return ec.marshalNUser2ᚕᚖgroupinaryᚋentᚐUserᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_users(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -3910,7 +3910,7 @@ func (ec *executionContext) _Query_words(ctx context.Context, field graphql.Coll
 	}
 	res := resTmp.(*ent.WordConnection)
 	fc.Result = res
-	return ec.marshalNWordConnection2ᚖgroupionaryᚋentᚐWordConnection(ctx, field.Selections, res)
+	return ec.marshalNWordConnection2ᚖgroupinaryᚋentᚐWordConnection(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_words(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -3973,7 +3973,7 @@ func (ec *executionContext) _Query_currentUser(ctx context.Context, field graphq
 	}
 	res := resTmp.(*ent.User)
 	fc.Result = res
-	return ec.marshalNUser2ᚖgroupionaryᚋentᚐUser(ctx, field.Selections, res)
+	return ec.marshalNUser2ᚖgroupinaryᚋentᚐUser(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_currentUser(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -4048,7 +4048,7 @@ func (ec *executionContext) _Query_definitionsConnections(ctx context.Context, f
 	}
 	res := resTmp.(*ent.DefinitionConnection)
 	fc.Result = res
-	return ec.marshalNDefinitionConnection2ᚖgroupionaryᚋentᚐDefinitionConnection(ctx, field.Selections, res)
+	return ec.marshalNDefinitionConnection2ᚖgroupinaryᚋentᚐDefinitionConnection(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_definitionsConnections(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -4495,7 +4495,7 @@ func (ec *executionContext) _User_groups(ctx context.Context, field graphql.Coll
 	}
 	res := resTmp.([]*ent.Group)
 	fc.Result = res
-	return ec.marshalOGroup2ᚕᚖgroupionaryᚋentᚐGroupᚄ(ctx, field.Selections, res)
+	return ec.marshalOGroup2ᚕᚖgroupinaryᚋentᚐGroupᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_User_groups(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -4555,7 +4555,7 @@ func (ec *executionContext) _User_definitions(ctx context.Context, field graphql
 	}
 	res := resTmp.(*ent.DefinitionConnection)
 	fc.Result = res
-	return ec.marshalNDefinitionConnection2ᚖgroupionaryᚋentᚐDefinitionConnection(ctx, field.Selections, res)
+	return ec.marshalNDefinitionConnection2ᚖgroupinaryᚋentᚐDefinitionConnection(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_User_definitions(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -4618,7 +4618,7 @@ func (ec *executionContext) _User_words(ctx context.Context, field graphql.Colle
 	}
 	res := resTmp.(*ent.WordConnection)
 	fc.Result = res
-	return ec.marshalNWordConnection2ᚖgroupionaryᚋentᚐWordConnection(ctx, field.Selections, res)
+	return ec.marshalNWordConnection2ᚖgroupinaryᚋentᚐWordConnection(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_User_words(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -4854,7 +4854,7 @@ func (ec *executionContext) _Word_creator(ctx context.Context, field graphql.Col
 	}
 	res := resTmp.(*ent.User)
 	fc.Result = res
-	return ec.marshalOUser2ᚖgroupionaryᚋentᚐUser(ctx, field.Selections, res)
+	return ec.marshalOUser2ᚖgroupinaryᚋentᚐUser(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Word_creator(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -4918,7 +4918,7 @@ func (ec *executionContext) _Word_group(ctx context.Context, field graphql.Colle
 	}
 	res := resTmp.(*ent.Group)
 	fc.Result = res
-	return ec.marshalNGroup2ᚖgroupionaryᚋentᚐGroup(ctx, field.Selections, res)
+	return ec.marshalNGroup2ᚖgroupinaryᚋentᚐGroup(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Word_group(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -4978,7 +4978,7 @@ func (ec *executionContext) _Word_definitions(ctx context.Context, field graphql
 	}
 	res := resTmp.(*ent.DefinitionConnection)
 	fc.Result = res
-	return ec.marshalNDefinitionConnection2ᚖgroupionaryᚋentᚐDefinitionConnection(ctx, field.Selections, res)
+	return ec.marshalNDefinitionConnection2ᚖgroupinaryᚋentᚐDefinitionConnection(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Word_definitions(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -5038,7 +5038,7 @@ func (ec *executionContext) _Word_parents(ctx context.Context, field graphql.Col
 	}
 	res := resTmp.([]*ent.Word)
 	fc.Result = res
-	return ec.marshalOWord2ᚕᚖgroupionaryᚋentᚐWordᚄ(ctx, field.Selections, res)
+	return ec.marshalOWord2ᚕᚖgroupinaryᚋentᚐWordᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Word_parents(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -5102,7 +5102,7 @@ func (ec *executionContext) _Word_descendants(ctx context.Context, field graphql
 	}
 	res := resTmp.(*ent.WordConnection)
 	fc.Result = res
-	return ec.marshalNWordConnection2ᚖgroupionaryᚋentᚐWordConnection(ctx, field.Selections, res)
+	return ec.marshalNWordConnection2ᚖgroupinaryᚋentᚐWordConnection(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Word_descendants(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -5162,7 +5162,7 @@ func (ec *executionContext) _WordConnection_edges(ctx context.Context, field gra
 	}
 	res := resTmp.([]*ent.WordEdge)
 	fc.Result = res
-	return ec.marshalOWordEdge2ᚕᚖgroupionaryᚋentᚐWordEdge(ctx, field.Selections, res)
+	return ec.marshalOWordEdge2ᚕᚖgroupinaryᚋentᚐWordEdge(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_WordConnection_edges(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -5307,7 +5307,7 @@ func (ec *executionContext) _WordEdge_node(ctx context.Context, field graphql.Co
 	}
 	res := resTmp.(*ent.Word)
 	fc.Result = res
-	return ec.marshalOWord2ᚖgroupionaryᚋentᚐWord(ctx, field.Selections, res)
+	return ec.marshalOWord2ᚖgroupinaryᚋentᚐWord(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_WordEdge_node(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -7422,7 +7422,7 @@ func (ec *executionContext) unmarshalInputDefinitionOrder(ctx context.Context, o
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("field"))
-			data, err := ec.unmarshalNDefinitionOrderField2ᚖgroupionaryᚋentᚐDefinitionOrderField(ctx, v)
+			data, err := ec.unmarshalNDefinitionOrderField2ᚖgroupinaryᚋentᚐDefinitionOrderField(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -7451,7 +7451,7 @@ func (ec *executionContext) unmarshalInputDefinitionWhereInput(ctx context.Conte
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("not"))
-			data, err := ec.unmarshalODefinitionWhereInput2ᚖgroupionaryᚋentᚐDefinitionWhereInput(ctx, v)
+			data, err := ec.unmarshalODefinitionWhereInput2ᚖgroupinaryᚋentᚐDefinitionWhereInput(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -7460,7 +7460,7 @@ func (ec *executionContext) unmarshalInputDefinitionWhereInput(ctx context.Conte
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("and"))
-			data, err := ec.unmarshalODefinitionWhereInput2ᚕᚖgroupionaryᚋentᚐDefinitionWhereInputᚄ(ctx, v)
+			data, err := ec.unmarshalODefinitionWhereInput2ᚕᚖgroupinaryᚋentᚐDefinitionWhereInputᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -7469,7 +7469,7 @@ func (ec *executionContext) unmarshalInputDefinitionWhereInput(ctx context.Conte
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("or"))
-			data, err := ec.unmarshalODefinitionWhereInput2ᚕᚖgroupionaryᚋentᚐDefinitionWhereInputᚄ(ctx, v)
+			data, err := ec.unmarshalODefinitionWhereInput2ᚕᚖgroupinaryᚋentᚐDefinitionWhereInputᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -7820,7 +7820,7 @@ func (ec *executionContext) unmarshalInputDefinitionWhereInput(ctx context.Conte
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hasCreatorWith"))
-			data, err := ec.unmarshalOUserWhereInput2ᚕᚖgroupionaryᚋentᚐUserWhereInputᚄ(ctx, v)
+			data, err := ec.unmarshalOUserWhereInput2ᚕᚖgroupinaryᚋentᚐUserWhereInputᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -7838,7 +7838,7 @@ func (ec *executionContext) unmarshalInputDefinitionWhereInput(ctx context.Conte
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hasWordWith"))
-			data, err := ec.unmarshalOWordWhereInput2ᚕᚖgroupionaryᚋentᚐWordWhereInputᚄ(ctx, v)
+			data, err := ec.unmarshalOWordWhereInput2ᚕᚖgroupinaryᚋentᚐWordWhereInputᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -7867,7 +7867,7 @@ func (ec *executionContext) unmarshalInputGroupWhereInput(ctx context.Context, o
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("not"))
-			data, err := ec.unmarshalOGroupWhereInput2ᚖgroupionaryᚋentᚐGroupWhereInput(ctx, v)
+			data, err := ec.unmarshalOGroupWhereInput2ᚖgroupinaryᚋentᚐGroupWhereInput(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -7876,7 +7876,7 @@ func (ec *executionContext) unmarshalInputGroupWhereInput(ctx context.Context, o
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("and"))
-			data, err := ec.unmarshalOGroupWhereInput2ᚕᚖgroupionaryᚋentᚐGroupWhereInputᚄ(ctx, v)
+			data, err := ec.unmarshalOGroupWhereInput2ᚕᚖgroupinaryᚋentᚐGroupWhereInputᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -7885,7 +7885,7 @@ func (ec *executionContext) unmarshalInputGroupWhereInput(ctx context.Context, o
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("or"))
-			data, err := ec.unmarshalOGroupWhereInput2ᚕᚖgroupionaryᚋentᚐGroupWhereInputᚄ(ctx, v)
+			data, err := ec.unmarshalOGroupWhereInput2ᚕᚖgroupinaryᚋentᚐGroupWhereInputᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -8371,7 +8371,7 @@ func (ec *executionContext) unmarshalInputGroupWhereInput(ctx context.Context, o
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hasWordsWith"))
-			data, err := ec.unmarshalOWordWhereInput2ᚕᚖgroupionaryᚋentᚐWordWhereInputᚄ(ctx, v)
+			data, err := ec.unmarshalOWordWhereInput2ᚕᚖgroupinaryᚋentᚐWordWhereInputᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -8389,7 +8389,7 @@ func (ec *executionContext) unmarshalInputGroupWhereInput(ctx context.Context, o
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hasUsersWith"))
-			data, err := ec.unmarshalOUserWhereInput2ᚕᚖgroupionaryᚋentᚐUserWhereInputᚄ(ctx, v)
+			data, err := ec.unmarshalOUserWhereInput2ᚕᚖgroupinaryᚋentᚐUserWhereInputᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -8732,7 +8732,7 @@ func (ec *executionContext) unmarshalInputUserWhereInput(ctx context.Context, ob
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("not"))
-			data, err := ec.unmarshalOUserWhereInput2ᚖgroupionaryᚋentᚐUserWhereInput(ctx, v)
+			data, err := ec.unmarshalOUserWhereInput2ᚖgroupinaryᚋentᚐUserWhereInput(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -8741,7 +8741,7 @@ func (ec *executionContext) unmarshalInputUserWhereInput(ctx context.Context, ob
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("and"))
-			data, err := ec.unmarshalOUserWhereInput2ᚕᚖgroupionaryᚋentᚐUserWhereInputᚄ(ctx, v)
+			data, err := ec.unmarshalOUserWhereInput2ᚕᚖgroupinaryᚋentᚐUserWhereInputᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -8750,7 +8750,7 @@ func (ec *executionContext) unmarshalInputUserWhereInput(ctx context.Context, ob
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("or"))
-			data, err := ec.unmarshalOUserWhereInput2ᚕᚖgroupionaryᚋentᚐUserWhereInputᚄ(ctx, v)
+			data, err := ec.unmarshalOUserWhereInput2ᚕᚖgroupinaryᚋentᚐUserWhereInputᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -9371,7 +9371,7 @@ func (ec *executionContext) unmarshalInputUserWhereInput(ctx context.Context, ob
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hasGroupsWith"))
-			data, err := ec.unmarshalOGroupWhereInput2ᚕᚖgroupionaryᚋentᚐGroupWhereInputᚄ(ctx, v)
+			data, err := ec.unmarshalOGroupWhereInput2ᚕᚖgroupinaryᚋentᚐGroupWhereInputᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -9389,7 +9389,7 @@ func (ec *executionContext) unmarshalInputUserWhereInput(ctx context.Context, ob
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hasDefinitionsWith"))
-			data, err := ec.unmarshalODefinitionWhereInput2ᚕᚖgroupionaryᚋentᚐDefinitionWhereInputᚄ(ctx, v)
+			data, err := ec.unmarshalODefinitionWhereInput2ᚕᚖgroupinaryᚋentᚐDefinitionWhereInputᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -9407,7 +9407,7 @@ func (ec *executionContext) unmarshalInputUserWhereInput(ctx context.Context, ob
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hasWordsWith"))
-			data, err := ec.unmarshalOWordWhereInput2ᚕᚖgroupionaryᚋentᚐWordWhereInputᚄ(ctx, v)
+			data, err := ec.unmarshalOWordWhereInput2ᚕᚖgroupinaryᚋentᚐWordWhereInputᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -9449,7 +9449,7 @@ func (ec *executionContext) unmarshalInputWordOrder(ctx context.Context, obj int
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("field"))
-			data, err := ec.unmarshalNWordOrderField2ᚖgroupionaryᚋentᚐWordOrderField(ctx, v)
+			data, err := ec.unmarshalNWordOrderField2ᚖgroupinaryᚋentᚐWordOrderField(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -9478,7 +9478,7 @@ func (ec *executionContext) unmarshalInputWordWhereInput(ctx context.Context, ob
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("not"))
-			data, err := ec.unmarshalOWordWhereInput2ᚖgroupionaryᚋentᚐWordWhereInput(ctx, v)
+			data, err := ec.unmarshalOWordWhereInput2ᚖgroupinaryᚋentᚐWordWhereInput(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -9487,7 +9487,7 @@ func (ec *executionContext) unmarshalInputWordWhereInput(ctx context.Context, ob
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("and"))
-			data, err := ec.unmarshalOWordWhereInput2ᚕᚖgroupionaryᚋentᚐWordWhereInputᚄ(ctx, v)
+			data, err := ec.unmarshalOWordWhereInput2ᚕᚖgroupinaryᚋentᚐWordWhereInputᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -9496,7 +9496,7 @@ func (ec *executionContext) unmarshalInputWordWhereInput(ctx context.Context, ob
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("or"))
-			data, err := ec.unmarshalOWordWhereInput2ᚕᚖgroupionaryᚋentᚐWordWhereInputᚄ(ctx, v)
+			data, err := ec.unmarshalOWordWhereInput2ᚕᚖgroupinaryᚋentᚐWordWhereInputᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -9847,7 +9847,7 @@ func (ec *executionContext) unmarshalInputWordWhereInput(ctx context.Context, ob
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hasCreatorWith"))
-			data, err := ec.unmarshalOUserWhereInput2ᚕᚖgroupionaryᚋentᚐUserWhereInputᚄ(ctx, v)
+			data, err := ec.unmarshalOUserWhereInput2ᚕᚖgroupinaryᚋentᚐUserWhereInputᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -9865,7 +9865,7 @@ func (ec *executionContext) unmarshalInputWordWhereInput(ctx context.Context, ob
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hasGroupWith"))
-			data, err := ec.unmarshalOGroupWhereInput2ᚕᚖgroupionaryᚋentᚐGroupWhereInputᚄ(ctx, v)
+			data, err := ec.unmarshalOGroupWhereInput2ᚕᚖgroupinaryᚋentᚐGroupWhereInputᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -9883,7 +9883,7 @@ func (ec *executionContext) unmarshalInputWordWhereInput(ctx context.Context, ob
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hasDefinitionsWith"))
-			data, err := ec.unmarshalODefinitionWhereInput2ᚕᚖgroupionaryᚋentᚐDefinitionWhereInputᚄ(ctx, v)
+			data, err := ec.unmarshalODefinitionWhereInput2ᚕᚖgroupinaryᚋentᚐDefinitionWhereInputᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -9901,7 +9901,7 @@ func (ec *executionContext) unmarshalInputWordWhereInput(ctx context.Context, ob
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hasParentsWith"))
-			data, err := ec.unmarshalOWordWhereInput2ᚕᚖgroupionaryᚋentᚐWordWhereInputᚄ(ctx, v)
+			data, err := ec.unmarshalOWordWhereInput2ᚕᚖgroupinaryᚋentᚐWordWhereInputᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -9919,7 +9919,7 @@ func (ec *executionContext) unmarshalInputWordWhereInput(ctx context.Context, ob
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hasDescendantsWith"))
-			data, err := ec.unmarshalOWordWhereInput2ᚕᚖgroupionaryᚋentᚐWordWhereInputᚄ(ctx, v)
+			data, err := ec.unmarshalOWordWhereInput2ᚕᚖgroupinaryᚋentᚐWordWhereInputᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -11286,11 +11286,11 @@ func (ec *executionContext) marshalNCursor2entgoᚗioᚋcontribᚋentgqlᚐCurso
 	return v
 }
 
-func (ec *executionContext) marshalNDefinition2groupionaryᚋentᚐDefinition(ctx context.Context, sel ast.SelectionSet, v ent.Definition) graphql.Marshaler {
+func (ec *executionContext) marshalNDefinition2groupinaryᚋentᚐDefinition(ctx context.Context, sel ast.SelectionSet, v ent.Definition) graphql.Marshaler {
 	return ec._Definition(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNDefinition2ᚖgroupionaryᚋentᚐDefinition(ctx context.Context, sel ast.SelectionSet, v *ent.Definition) graphql.Marshaler {
+func (ec *executionContext) marshalNDefinition2ᚖgroupinaryᚋentᚐDefinition(ctx context.Context, sel ast.SelectionSet, v *ent.Definition) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -11300,11 +11300,11 @@ func (ec *executionContext) marshalNDefinition2ᚖgroupionaryᚋentᚐDefinition
 	return ec._Definition(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNDefinitionConnection2groupionaryᚋentᚐDefinitionConnection(ctx context.Context, sel ast.SelectionSet, v ent.DefinitionConnection) graphql.Marshaler {
+func (ec *executionContext) marshalNDefinitionConnection2groupinaryᚋentᚐDefinitionConnection(ctx context.Context, sel ast.SelectionSet, v ent.DefinitionConnection) graphql.Marshaler {
 	return ec._DefinitionConnection(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNDefinitionConnection2ᚖgroupionaryᚋentᚐDefinitionConnection(ctx context.Context, sel ast.SelectionSet, v *ent.DefinitionConnection) graphql.Marshaler {
+func (ec *executionContext) marshalNDefinitionConnection2ᚖgroupinaryᚋentᚐDefinitionConnection(ctx context.Context, sel ast.SelectionSet, v *ent.DefinitionConnection) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -11314,13 +11314,13 @@ func (ec *executionContext) marshalNDefinitionConnection2ᚖgroupionaryᚋentᚐ
 	return ec._DefinitionConnection(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNDefinitionOrderField2ᚖgroupionaryᚋentᚐDefinitionOrderField(ctx context.Context, v interface{}) (*ent.DefinitionOrderField, error) {
+func (ec *executionContext) unmarshalNDefinitionOrderField2ᚖgroupinaryᚋentᚐDefinitionOrderField(ctx context.Context, v interface{}) (*ent.DefinitionOrderField, error) {
 	var res = new(ent.DefinitionOrderField)
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNDefinitionOrderField2ᚖgroupionaryᚋentᚐDefinitionOrderField(ctx context.Context, sel ast.SelectionSet, v *ent.DefinitionOrderField) graphql.Marshaler {
+func (ec *executionContext) marshalNDefinitionOrderField2ᚖgroupinaryᚋentᚐDefinitionOrderField(ctx context.Context, sel ast.SelectionSet, v *ent.DefinitionOrderField) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -11330,16 +11330,16 @@ func (ec *executionContext) marshalNDefinitionOrderField2ᚖgroupionaryᚋentᚐ
 	return v
 }
 
-func (ec *executionContext) unmarshalNDefinitionWhereInput2ᚖgroupionaryᚋentᚐDefinitionWhereInput(ctx context.Context, v interface{}) (*ent.DefinitionWhereInput, error) {
+func (ec *executionContext) unmarshalNDefinitionWhereInput2ᚖgroupinaryᚋentᚐDefinitionWhereInput(ctx context.Context, v interface{}) (*ent.DefinitionWhereInput, error) {
 	res, err := ec.unmarshalInputDefinitionWhereInput(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNGroup2groupionaryᚋentᚐGroup(ctx context.Context, sel ast.SelectionSet, v ent.Group) graphql.Marshaler {
+func (ec *executionContext) marshalNGroup2groupinaryᚋentᚐGroup(ctx context.Context, sel ast.SelectionSet, v ent.Group) graphql.Marshaler {
 	return ec._Group(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNGroup2ᚕᚖgroupionaryᚋentᚐGroupᚄ(ctx context.Context, sel ast.SelectionSet, v []*ent.Group) graphql.Marshaler {
+func (ec *executionContext) marshalNGroup2ᚕᚖgroupinaryᚋentᚐGroupᚄ(ctx context.Context, sel ast.SelectionSet, v []*ent.Group) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -11363,7 +11363,7 @@ func (ec *executionContext) marshalNGroup2ᚕᚖgroupionaryᚋentᚐGroupᚄ(ctx
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNGroup2ᚖgroupionaryᚋentᚐGroup(ctx, sel, v[i])
+			ret[i] = ec.marshalNGroup2ᚖgroupinaryᚋentᚐGroup(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -11383,7 +11383,7 @@ func (ec *executionContext) marshalNGroup2ᚕᚖgroupionaryᚋentᚐGroupᚄ(ctx
 	return ret
 }
 
-func (ec *executionContext) marshalNGroup2ᚖgroupionaryᚋentᚐGroup(ctx context.Context, sel ast.SelectionSet, v *ent.Group) graphql.Marshaler {
+func (ec *executionContext) marshalNGroup2ᚖgroupinaryᚋentᚐGroup(ctx context.Context, sel ast.SelectionSet, v *ent.Group) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -11393,7 +11393,7 @@ func (ec *executionContext) marshalNGroup2ᚖgroupionaryᚋentᚐGroup(ctx conte
 	return ec._Group(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNGroupWhereInput2ᚖgroupionaryᚋentᚐGroupWhereInput(ctx context.Context, v interface{}) (*ent.GroupWhereInput, error) {
+func (ec *executionContext) unmarshalNGroupWhereInput2ᚖgroupinaryᚋentᚐGroupWhereInput(ctx context.Context, v interface{}) (*ent.GroupWhereInput, error) {
 	res, err := ec.unmarshalInputGroupWhereInput(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
@@ -11460,7 +11460,7 @@ func (ec *executionContext) marshalNInt2int(ctx context.Context, sel ast.Selecti
 	return res
 }
 
-func (ec *executionContext) marshalNNode2ᚕgroupionaryᚋentᚐNoder(ctx context.Context, sel ast.SelectionSet, v []ent.Noder) graphql.Marshaler {
+func (ec *executionContext) marshalNNode2ᚕgroupinaryᚋentᚐNoder(ctx context.Context, sel ast.SelectionSet, v []ent.Noder) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -11484,7 +11484,7 @@ func (ec *executionContext) marshalNNode2ᚕgroupionaryᚋentᚐNoder(ctx contex
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalONode2groupionaryᚋentᚐNoder(ctx, sel, v[i])
+			ret[i] = ec.marshalONode2groupinaryᚋentᚐNoder(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -11542,11 +11542,11 @@ func (ec *executionContext) marshalNTime2timeᚐTime(ctx context.Context, sel as
 	return res
 }
 
-func (ec *executionContext) marshalNUser2groupionaryᚋentᚐUser(ctx context.Context, sel ast.SelectionSet, v ent.User) graphql.Marshaler {
+func (ec *executionContext) marshalNUser2groupinaryᚋentᚐUser(ctx context.Context, sel ast.SelectionSet, v ent.User) graphql.Marshaler {
 	return ec._User(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNUser2ᚕᚖgroupionaryᚋentᚐUserᚄ(ctx context.Context, sel ast.SelectionSet, v []*ent.User) graphql.Marshaler {
+func (ec *executionContext) marshalNUser2ᚕᚖgroupinaryᚋentᚐUserᚄ(ctx context.Context, sel ast.SelectionSet, v []*ent.User) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -11570,7 +11570,7 @@ func (ec *executionContext) marshalNUser2ᚕᚖgroupionaryᚋentᚐUserᚄ(ctx c
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNUser2ᚖgroupionaryᚋentᚐUser(ctx, sel, v[i])
+			ret[i] = ec.marshalNUser2ᚖgroupinaryᚋentᚐUser(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -11590,7 +11590,7 @@ func (ec *executionContext) marshalNUser2ᚕᚖgroupionaryᚋentᚐUserᚄ(ctx c
 	return ret
 }
 
-func (ec *executionContext) marshalNUser2ᚖgroupionaryᚋentᚐUser(ctx context.Context, sel ast.SelectionSet, v *ent.User) graphql.Marshaler {
+func (ec *executionContext) marshalNUser2ᚖgroupinaryᚋentᚐUser(ctx context.Context, sel ast.SelectionSet, v *ent.User) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -11600,16 +11600,16 @@ func (ec *executionContext) marshalNUser2ᚖgroupionaryᚋentᚐUser(ctx context
 	return ec._User(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNUserWhereInput2ᚖgroupionaryᚋentᚐUserWhereInput(ctx context.Context, v interface{}) (*ent.UserWhereInput, error) {
+func (ec *executionContext) unmarshalNUserWhereInput2ᚖgroupinaryᚋentᚐUserWhereInput(ctx context.Context, v interface{}) (*ent.UserWhereInput, error) {
 	res, err := ec.unmarshalInputUserWhereInput(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNWord2groupionaryᚋentᚐWord(ctx context.Context, sel ast.SelectionSet, v ent.Word) graphql.Marshaler {
+func (ec *executionContext) marshalNWord2groupinaryᚋentᚐWord(ctx context.Context, sel ast.SelectionSet, v ent.Word) graphql.Marshaler {
 	return ec._Word(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNWord2ᚖgroupionaryᚋentᚐWord(ctx context.Context, sel ast.SelectionSet, v *ent.Word) graphql.Marshaler {
+func (ec *executionContext) marshalNWord2ᚖgroupinaryᚋentᚐWord(ctx context.Context, sel ast.SelectionSet, v *ent.Word) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -11619,11 +11619,11 @@ func (ec *executionContext) marshalNWord2ᚖgroupionaryᚋentᚐWord(ctx context
 	return ec._Word(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNWordConnection2groupionaryᚋentᚐWordConnection(ctx context.Context, sel ast.SelectionSet, v ent.WordConnection) graphql.Marshaler {
+func (ec *executionContext) marshalNWordConnection2groupinaryᚋentᚐWordConnection(ctx context.Context, sel ast.SelectionSet, v ent.WordConnection) graphql.Marshaler {
 	return ec._WordConnection(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNWordConnection2ᚖgroupionaryᚋentᚐWordConnection(ctx context.Context, sel ast.SelectionSet, v *ent.WordConnection) graphql.Marshaler {
+func (ec *executionContext) marshalNWordConnection2ᚖgroupinaryᚋentᚐWordConnection(ctx context.Context, sel ast.SelectionSet, v *ent.WordConnection) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -11633,13 +11633,13 @@ func (ec *executionContext) marshalNWordConnection2ᚖgroupionaryᚋentᚐWordCo
 	return ec._WordConnection(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNWordOrderField2ᚖgroupionaryᚋentᚐWordOrderField(ctx context.Context, v interface{}) (*ent.WordOrderField, error) {
+func (ec *executionContext) unmarshalNWordOrderField2ᚖgroupinaryᚋentᚐWordOrderField(ctx context.Context, v interface{}) (*ent.WordOrderField, error) {
 	var res = new(ent.WordOrderField)
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNWordOrderField2ᚖgroupionaryᚋentᚐWordOrderField(ctx context.Context, sel ast.SelectionSet, v *ent.WordOrderField) graphql.Marshaler {
+func (ec *executionContext) marshalNWordOrderField2ᚖgroupinaryᚋentᚐWordOrderField(ctx context.Context, sel ast.SelectionSet, v *ent.WordOrderField) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -11649,7 +11649,7 @@ func (ec *executionContext) marshalNWordOrderField2ᚖgroupionaryᚋentᚐWordOr
 	return v
 }
 
-func (ec *executionContext) unmarshalNWordWhereInput2ᚖgroupionaryᚋentᚐWordWhereInput(ctx context.Context, v interface{}) (*ent.WordWhereInput, error) {
+func (ec *executionContext) unmarshalNWordWhereInput2ᚖgroupinaryᚋentᚐWordWhereInput(ctx context.Context, v interface{}) (*ent.WordWhereInput, error) {
 	res, err := ec.unmarshalInputWordWhereInput(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
@@ -11949,14 +11949,14 @@ func (ec *executionContext) marshalOCursor2ᚖentgoᚗioᚋcontribᚋentgqlᚐCu
 	return v
 }
 
-func (ec *executionContext) marshalODefinition2ᚖgroupionaryᚋentᚐDefinition(ctx context.Context, sel ast.SelectionSet, v *ent.Definition) graphql.Marshaler {
+func (ec *executionContext) marshalODefinition2ᚖgroupinaryᚋentᚐDefinition(ctx context.Context, sel ast.SelectionSet, v *ent.Definition) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	return ec._Definition(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalODefinitionEdge2ᚕᚖgroupionaryᚋentᚐDefinitionEdge(ctx context.Context, sel ast.SelectionSet, v []*ent.DefinitionEdge) graphql.Marshaler {
+func (ec *executionContext) marshalODefinitionEdge2ᚕᚖgroupinaryᚋentᚐDefinitionEdge(ctx context.Context, sel ast.SelectionSet, v []*ent.DefinitionEdge) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -11983,7 +11983,7 @@ func (ec *executionContext) marshalODefinitionEdge2ᚕᚖgroupionaryᚋentᚐDef
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalODefinitionEdge2ᚖgroupionaryᚋentᚐDefinitionEdge(ctx, sel, v[i])
+			ret[i] = ec.marshalODefinitionEdge2ᚖgroupinaryᚋentᚐDefinitionEdge(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -11997,14 +11997,14 @@ func (ec *executionContext) marshalODefinitionEdge2ᚕᚖgroupionaryᚋentᚐDef
 	return ret
 }
 
-func (ec *executionContext) marshalODefinitionEdge2ᚖgroupionaryᚋentᚐDefinitionEdge(ctx context.Context, sel ast.SelectionSet, v *ent.DefinitionEdge) graphql.Marshaler {
+func (ec *executionContext) marshalODefinitionEdge2ᚖgroupinaryᚋentᚐDefinitionEdge(ctx context.Context, sel ast.SelectionSet, v *ent.DefinitionEdge) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	return ec._DefinitionEdge(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalODefinitionOrder2ᚖgroupionaryᚋentᚐDefinitionOrder(ctx context.Context, v interface{}) (*ent.DefinitionOrder, error) {
+func (ec *executionContext) unmarshalODefinitionOrder2ᚖgroupinaryᚋentᚐDefinitionOrder(ctx context.Context, v interface{}) (*ent.DefinitionOrder, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -12012,7 +12012,7 @@ func (ec *executionContext) unmarshalODefinitionOrder2ᚖgroupionaryᚋentᚐDef
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalODefinitionWhereInput2ᚕᚖgroupionaryᚋentᚐDefinitionWhereInputᚄ(ctx context.Context, v interface{}) ([]*ent.DefinitionWhereInput, error) {
+func (ec *executionContext) unmarshalODefinitionWhereInput2ᚕᚖgroupinaryᚋentᚐDefinitionWhereInputᚄ(ctx context.Context, v interface{}) ([]*ent.DefinitionWhereInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -12024,7 +12024,7 @@ func (ec *executionContext) unmarshalODefinitionWhereInput2ᚕᚖgroupionaryᚋe
 	res := make([]*ent.DefinitionWhereInput, len(vSlice))
 	for i := range vSlice {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
-		res[i], err = ec.unmarshalNDefinitionWhereInput2ᚖgroupionaryᚋentᚐDefinitionWhereInput(ctx, vSlice[i])
+		res[i], err = ec.unmarshalNDefinitionWhereInput2ᚖgroupinaryᚋentᚐDefinitionWhereInput(ctx, vSlice[i])
 		if err != nil {
 			return nil, err
 		}
@@ -12032,7 +12032,7 @@ func (ec *executionContext) unmarshalODefinitionWhereInput2ᚕᚖgroupionaryᚋe
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalODefinitionWhereInput2ᚖgroupionaryᚋentᚐDefinitionWhereInput(ctx context.Context, v interface{}) (*ent.DefinitionWhereInput, error) {
+func (ec *executionContext) unmarshalODefinitionWhereInput2ᚖgroupinaryᚋentᚐDefinitionWhereInput(ctx context.Context, v interface{}) (*ent.DefinitionWhereInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -12040,7 +12040,7 @@ func (ec *executionContext) unmarshalODefinitionWhereInput2ᚖgroupionaryᚋent�
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalOGroup2ᚕᚖgroupionaryᚋentᚐGroupᚄ(ctx context.Context, sel ast.SelectionSet, v []*ent.Group) graphql.Marshaler {
+func (ec *executionContext) marshalOGroup2ᚕᚖgroupinaryᚋentᚐGroupᚄ(ctx context.Context, sel ast.SelectionSet, v []*ent.Group) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -12067,7 +12067,7 @@ func (ec *executionContext) marshalOGroup2ᚕᚖgroupionaryᚋentᚐGroupᚄ(ctx
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNGroup2ᚖgroupionaryᚋentᚐGroup(ctx, sel, v[i])
+			ret[i] = ec.marshalNGroup2ᚖgroupinaryᚋentᚐGroup(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -12087,7 +12087,7 @@ func (ec *executionContext) marshalOGroup2ᚕᚖgroupionaryᚋentᚐGroupᚄ(ctx
 	return ret
 }
 
-func (ec *executionContext) unmarshalOGroupWhereInput2ᚕᚖgroupionaryᚋentᚐGroupWhereInputᚄ(ctx context.Context, v interface{}) ([]*ent.GroupWhereInput, error) {
+func (ec *executionContext) unmarshalOGroupWhereInput2ᚕᚖgroupinaryᚋentᚐGroupWhereInputᚄ(ctx context.Context, v interface{}) ([]*ent.GroupWhereInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -12099,7 +12099,7 @@ func (ec *executionContext) unmarshalOGroupWhereInput2ᚕᚖgroupionaryᚋentᚐ
 	res := make([]*ent.GroupWhereInput, len(vSlice))
 	for i := range vSlice {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
-		res[i], err = ec.unmarshalNGroupWhereInput2ᚖgroupionaryᚋentᚐGroupWhereInput(ctx, vSlice[i])
+		res[i], err = ec.unmarshalNGroupWhereInput2ᚖgroupinaryᚋentᚐGroupWhereInput(ctx, vSlice[i])
 		if err != nil {
 			return nil, err
 		}
@@ -12107,7 +12107,7 @@ func (ec *executionContext) unmarshalOGroupWhereInput2ᚕᚖgroupionaryᚋentᚐ
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalOGroupWhereInput2ᚖgroupionaryᚋentᚐGroupWhereInput(ctx context.Context, v interface{}) (*ent.GroupWhereInput, error) {
+func (ec *executionContext) unmarshalOGroupWhereInput2ᚖgroupinaryᚋentᚐGroupWhereInput(ctx context.Context, v interface{}) (*ent.GroupWhereInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -12185,7 +12185,7 @@ func (ec *executionContext) marshalOInt2ᚖint(ctx context.Context, sel ast.Sele
 	return res
 }
 
-func (ec *executionContext) marshalONode2groupionaryᚋentᚐNoder(ctx context.Context, sel ast.SelectionSet, v ent.Noder) graphql.Marshaler {
+func (ec *executionContext) marshalONode2groupinaryᚋentᚐNoder(ctx context.Context, sel ast.SelectionSet, v ent.Noder) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -12310,7 +12310,7 @@ func (ec *executionContext) marshalOTime2ᚖtimeᚐTime(ctx context.Context, sel
 	return res
 }
 
-func (ec *executionContext) marshalOUser2ᚕᚖgroupionaryᚋentᚐUserᚄ(ctx context.Context, sel ast.SelectionSet, v []*ent.User) graphql.Marshaler {
+func (ec *executionContext) marshalOUser2ᚕᚖgroupinaryᚋentᚐUserᚄ(ctx context.Context, sel ast.SelectionSet, v []*ent.User) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -12337,7 +12337,7 @@ func (ec *executionContext) marshalOUser2ᚕᚖgroupionaryᚋentᚐUserᚄ(ctx c
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNUser2ᚖgroupionaryᚋentᚐUser(ctx, sel, v[i])
+			ret[i] = ec.marshalNUser2ᚖgroupinaryᚋentᚐUser(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -12357,14 +12357,14 @@ func (ec *executionContext) marshalOUser2ᚕᚖgroupionaryᚋentᚐUserᚄ(ctx c
 	return ret
 }
 
-func (ec *executionContext) marshalOUser2ᚖgroupionaryᚋentᚐUser(ctx context.Context, sel ast.SelectionSet, v *ent.User) graphql.Marshaler {
+func (ec *executionContext) marshalOUser2ᚖgroupinaryᚋentᚐUser(ctx context.Context, sel ast.SelectionSet, v *ent.User) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	return ec._User(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalOUserWhereInput2ᚕᚖgroupionaryᚋentᚐUserWhereInputᚄ(ctx context.Context, v interface{}) ([]*ent.UserWhereInput, error) {
+func (ec *executionContext) unmarshalOUserWhereInput2ᚕᚖgroupinaryᚋentᚐUserWhereInputᚄ(ctx context.Context, v interface{}) ([]*ent.UserWhereInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -12376,7 +12376,7 @@ func (ec *executionContext) unmarshalOUserWhereInput2ᚕᚖgroupionaryᚋentᚐU
 	res := make([]*ent.UserWhereInput, len(vSlice))
 	for i := range vSlice {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
-		res[i], err = ec.unmarshalNUserWhereInput2ᚖgroupionaryᚋentᚐUserWhereInput(ctx, vSlice[i])
+		res[i], err = ec.unmarshalNUserWhereInput2ᚖgroupinaryᚋentᚐUserWhereInput(ctx, vSlice[i])
 		if err != nil {
 			return nil, err
 		}
@@ -12384,7 +12384,7 @@ func (ec *executionContext) unmarshalOUserWhereInput2ᚕᚖgroupionaryᚋentᚐU
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalOUserWhereInput2ᚖgroupionaryᚋentᚐUserWhereInput(ctx context.Context, v interface{}) (*ent.UserWhereInput, error) {
+func (ec *executionContext) unmarshalOUserWhereInput2ᚖgroupinaryᚋentᚐUserWhereInput(ctx context.Context, v interface{}) (*ent.UserWhereInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -12392,7 +12392,7 @@ func (ec *executionContext) unmarshalOUserWhereInput2ᚖgroupionaryᚋentᚐUser
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalOWord2ᚕᚖgroupionaryᚋentᚐWordᚄ(ctx context.Context, sel ast.SelectionSet, v []*ent.Word) graphql.Marshaler {
+func (ec *executionContext) marshalOWord2ᚕᚖgroupinaryᚋentᚐWordᚄ(ctx context.Context, sel ast.SelectionSet, v []*ent.Word) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -12419,7 +12419,7 @@ func (ec *executionContext) marshalOWord2ᚕᚖgroupionaryᚋentᚐWordᚄ(ctx c
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNWord2ᚖgroupionaryᚋentᚐWord(ctx, sel, v[i])
+			ret[i] = ec.marshalNWord2ᚖgroupinaryᚋentᚐWord(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -12439,14 +12439,14 @@ func (ec *executionContext) marshalOWord2ᚕᚖgroupionaryᚋentᚐWordᚄ(ctx c
 	return ret
 }
 
-func (ec *executionContext) marshalOWord2ᚖgroupionaryᚋentᚐWord(ctx context.Context, sel ast.SelectionSet, v *ent.Word) graphql.Marshaler {
+func (ec *executionContext) marshalOWord2ᚖgroupinaryᚋentᚐWord(ctx context.Context, sel ast.SelectionSet, v *ent.Word) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	return ec._Word(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalOWordEdge2ᚕᚖgroupionaryᚋentᚐWordEdge(ctx context.Context, sel ast.SelectionSet, v []*ent.WordEdge) graphql.Marshaler {
+func (ec *executionContext) marshalOWordEdge2ᚕᚖgroupinaryᚋentᚐWordEdge(ctx context.Context, sel ast.SelectionSet, v []*ent.WordEdge) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -12473,7 +12473,7 @@ func (ec *executionContext) marshalOWordEdge2ᚕᚖgroupionaryᚋentᚐWordEdge(
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalOWordEdge2ᚖgroupionaryᚋentᚐWordEdge(ctx, sel, v[i])
+			ret[i] = ec.marshalOWordEdge2ᚖgroupinaryᚋentᚐWordEdge(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -12487,14 +12487,14 @@ func (ec *executionContext) marshalOWordEdge2ᚕᚖgroupionaryᚋentᚐWordEdge(
 	return ret
 }
 
-func (ec *executionContext) marshalOWordEdge2ᚖgroupionaryᚋentᚐWordEdge(ctx context.Context, sel ast.SelectionSet, v *ent.WordEdge) graphql.Marshaler {
+func (ec *executionContext) marshalOWordEdge2ᚖgroupinaryᚋentᚐWordEdge(ctx context.Context, sel ast.SelectionSet, v *ent.WordEdge) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	return ec._WordEdge(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalOWordOrder2ᚖgroupionaryᚋentᚐWordOrder(ctx context.Context, v interface{}) (*ent.WordOrder, error) {
+func (ec *executionContext) unmarshalOWordOrder2ᚖgroupinaryᚋentᚐWordOrder(ctx context.Context, v interface{}) (*ent.WordOrder, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -12502,7 +12502,7 @@ func (ec *executionContext) unmarshalOWordOrder2ᚖgroupionaryᚋentᚐWordOrder
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOWordWhereInput2ᚕᚖgroupionaryᚋentᚐWordWhereInputᚄ(ctx context.Context, v interface{}) ([]*ent.WordWhereInput, error) {
+func (ec *executionContext) unmarshalOWordWhereInput2ᚕᚖgroupinaryᚋentᚐWordWhereInputᚄ(ctx context.Context, v interface{}) ([]*ent.WordWhereInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -12514,7 +12514,7 @@ func (ec *executionContext) unmarshalOWordWhereInput2ᚕᚖgroupionaryᚋentᚐW
 	res := make([]*ent.WordWhereInput, len(vSlice))
 	for i := range vSlice {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
-		res[i], err = ec.unmarshalNWordWhereInput2ᚖgroupionaryᚋentᚐWordWhereInput(ctx, vSlice[i])
+		res[i], err = ec.unmarshalNWordWhereInput2ᚖgroupinaryᚋentᚐWordWhereInput(ctx, vSlice[i])
 		if err != nil {
 			return nil, err
 		}
@@ -12522,7 +12522,7 @@ func (ec *executionContext) unmarshalOWordWhereInput2ᚕᚖgroupionaryᚋentᚐW
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalOWordWhereInput2ᚖgroupionaryᚋentᚐWordWhereInput(ctx context.Context, v interface{}) (*ent.WordWhereInput, error) {
+func (ec *executionContext) unmarshalOWordWhereInput2ᚖgroupinaryᚋentᚐWordWhereInput(ctx context.Context, v interface{}) (*ent.WordWhereInput, error) {
 	if v == nil {
 		return nil, nil
 	}

@@ -2,8 +2,8 @@ package seeddata
 
 import (
 	"context"
-	"groupionary/ent"
-	"groupionary/ent/migrate"
+	"groupinary/ent"
+	"groupinary/ent/migrate"
 )
 
 func Test(ctx context.Context, client *ent.Client) error {
