@@ -23,6 +23,7 @@ func (User) Fields() []ent.Field {
 		field.String("firstName").Optional(),
 		field.String("lastName").Optional(),
 		field.String("nickName").Optional(),
+		field.String("name").Optional(),
 	}
 }
 

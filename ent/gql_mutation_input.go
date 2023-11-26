@@ -171,6 +171,8 @@ type UpdateUserInput struct {
 	LastName       *string
 	ClearNickName  bool
 	NickName       *string
+	ClearName      bool
+	Name           *string
 	ClearGroups    bool
 	AddGroupIDs    []int
 	RemoveGroupIDs []int
@@ -198,6 +200,12 @@ func (i *UpdateUserInput) Mutate(m *UserMutation) {
 	}
 	if v := i.NickName; v != nil {
 		m.SetNickName(*v)
+	}
+	if i.ClearName {
+		m.ClearName()
+	}
+	if v := i.Name; v != nil {
+		m.SetName(*v)
 	}
 	if i.ClearGroups {
 		m.ClearGroups()
