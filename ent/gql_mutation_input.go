@@ -71,7 +71,7 @@ type CreateGroupInput struct {
 	CreateTime  *time.Time
 	UpdateTime  *time.Time
 	Description string
-	RootWordIDs []int
+	WordIDs     []int
 	UserIDs     []int
 }
 
@@ -84,8 +84,8 @@ func (i *CreateGroupInput) Mutate(m *GroupMutation) {
 		m.SetUpdateTime(*v)
 	}
 	m.SetDescription(i.Description)
-	if v := i.RootWordIDs; len(v) > 0 {
-		m.AddRootWordIDs(v...)
+	if v := i.WordIDs; len(v) > 0 {
+		m.AddWordIDs(v...)
 	}
 	if v := i.UserIDs; len(v) > 0 {
 		m.AddUserIDs(v...)
@@ -100,14 +100,14 @@ func (c *GroupCreate) SetInput(i CreateGroupInput) *GroupCreate {
 
 // UpdateGroupInput represents a mutation input for updating groups.
 type UpdateGroupInput struct {
-	UpdateTime        *time.Time
-	Description       *string
-	ClearRootWords    bool
-	AddRootWordIDs    []int
-	RemoveRootWordIDs []int
-	ClearUsers        bool
-	AddUserIDs        []int
-	RemoveUserIDs     []int
+	UpdateTime    *time.Time
+	Description   *string
+	ClearWords    bool
+	AddWordIDs    []int
+	RemoveWordIDs []int
+	ClearUsers    bool
+	AddUserIDs    []int
+	RemoveUserIDs []int
 }
 
 // Mutate applies the UpdateGroupInput on the GroupMutation builder.
@@ -118,14 +118,14 @@ func (i *UpdateGroupInput) Mutate(m *GroupMutation) {
 	if v := i.Description; v != nil {
 		m.SetDescription(*v)
 	}
-	if i.ClearRootWords {
-		m.ClearRootWords()
+	if i.ClearWords {
+		m.ClearWords()
 	}
-	if v := i.AddRootWordIDs; len(v) > 0 {
-		m.AddRootWordIDs(v...)
+	if v := i.AddWordIDs; len(v) > 0 {
+		m.AddWordIDs(v...)
 	}
-	if v := i.RemoveRootWordIDs; len(v) > 0 {
-		m.RemoveRootWordIDs(v...)
+	if v := i.RemoveWordIDs; len(v) > 0 {
+		m.RemoveWordIDs(v...)
 	}
 	if i.ClearUsers {
 		m.ClearUsers()
@@ -208,7 +208,7 @@ type CreateWordInput struct {
 	UpdateTime    *time.Time
 	Description   string
 	CreatorID     *int
-	GroupID       *int
+	GroupID       int
 	DefinitionIDs []int
 	ParentIDs     []int
 	DescendantIDs []int
@@ -226,9 +226,7 @@ func (i *CreateWordInput) Mutate(m *WordMutation) {
 	if v := i.CreatorID; v != nil {
 		m.SetCreatorID(*v)
 	}
-	if v := i.GroupID; v != nil {
-		m.SetGroupID(*v)
-	}
+	m.SetGroupID(i.GroupID)
 	if v := i.DefinitionIDs; len(v) > 0 {
 		m.AddDefinitionIDs(v...)
 	}
@@ -250,7 +248,6 @@ func (c *WordCreate) SetInput(i CreateWordInput) *WordCreate {
 type UpdateWordInput struct {
 	UpdateTime      *time.Time
 	Description     *string
-	ClearGroup      bool
 	GroupID         *int
 	ClearParents    bool
 	AddParentIDs    []int
@@ -264,9 +261,6 @@ func (i *UpdateWordInput) Mutate(m *WordMutation) {
 	}
 	if v := i.Description; v != nil {
 		m.SetDescription(*v)
-	}
-	if i.ClearGroup {
-		m.ClearGroup()
 	}
 	if v := i.GroupID; v != nil {
 		m.SetGroupID(*v)

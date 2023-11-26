@@ -45,7 +45,7 @@ const (
 	// It exists in this package in order to avoid circular dependency with the "group" package.
 	GroupInverseTable = "groups"
 	// GroupColumn is the table column denoting the group relation/edge.
-	GroupColumn = "group_root_words"
+	GroupColumn = "group_words"
 	// DefinitionsTable is the table that holds the definitions relation/edge.
 	DefinitionsTable = "definitions"
 	// DefinitionsInverseTable is the table name for the Definition entity.
@@ -70,7 +70,7 @@ var Columns = []string{
 // ForeignKeys holds the SQL foreign-keys that are owned by the "words"
 // table and are not defined as standalone fields in the schema.
 var ForeignKeys = []string{
-	"group_root_words",
+	"group_words",
 	"user_words",
 }
 

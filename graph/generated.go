@@ -71,9 +71,9 @@ type ComplexityRoot struct {
 		CreateTime  func(childComplexity int) int
 		Description func(childComplexity int) int
 		ID          func(childComplexity int) int
-		RootWords   func(childComplexity int, after *entgql.Cursor[int], first *int, before *entgql.Cursor[int], last *int, orderBy *ent.WordOrder, where *ent.WordWhereInput) int
 		UpdateTime  func(childComplexity int) int
 		Users       func(childComplexity int) int
+		Words       func(childComplexity int, after *entgql.Cursor[int], first *int, before *entgql.Cursor[int], last *int, orderBy *ent.WordOrder, where *ent.WordWhereInput) int
 	}
 
 	Mutation struct {
@@ -283,18 +283,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Group.ID(childComplexity), true
 
-	case "Group.rootwords":
-		if e.complexity.Group.RootWords == nil {
-			break
-		}
-
-		args, err := ec.field_Group_rootwords_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Group.RootWords(childComplexity, args["after"].(*entgql.Cursor[int]), args["first"].(*int), args["before"].(*entgql.Cursor[int]), args["last"].(*int), args["orderBy"].(*ent.WordOrder), args["where"].(*ent.WordWhereInput)), true
-
 	case "Group.updateTime":
 		if e.complexity.Group.UpdateTime == nil {
 			break
@@ -308,6 +296,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Group.Users(childComplexity), true
+
+	case "Group.words":
+		if e.complexity.Group.Words == nil {
+			break
+		}
+
+		args, err := ec.field_Group_words_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Group.Words(childComplexity, args["after"].(*entgql.Cursor[int]), args["first"].(*int), args["before"].(*entgql.Cursor[int]), args["last"].(*int), args["orderBy"].(*ent.WordOrder), args["where"].(*ent.WordWhereInput)), true
 
 	case "Mutation.addChildWord":
 		if e.complexity.Mutation.AddChildWord == nil {
@@ -850,7 +850,7 @@ var parsedSchema = gqlparser.MustLoadSchema(sources...)
 
 // region    ***************************** args.gotpl *****************************
 
-func (ec *executionContext) field_Group_rootwords_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_Group_words_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 *entgql.Cursor[int]
@@ -2416,8 +2416,8 @@ func (ec *executionContext) fieldContext_Group_description(ctx context.Context, 
 	return fc, nil
 }
 
-func (ec *executionContext) _Group_rootwords(ctx context.Context, field graphql.CollectedField, obj *ent.Group) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Group_rootwords(ctx, field)
+func (ec *executionContext) _Group_words(ctx context.Context, field graphql.CollectedField, obj *ent.Group) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Group_words(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -2430,7 +2430,7 @@ func (ec *executionContext) _Group_rootwords(ctx context.Context, field graphql.
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.RootWords(ctx, fc.Args["after"].(*entgql.Cursor[int]), fc.Args["first"].(*int), fc.Args["before"].(*entgql.Cursor[int]), fc.Args["last"].(*int), fc.Args["orderBy"].(*ent.WordOrder), fc.Args["where"].(*ent.WordWhereInput))
+		return obj.Words(ctx, fc.Args["after"].(*entgql.Cursor[int]), fc.Args["first"].(*int), fc.Args["before"].(*entgql.Cursor[int]), fc.Args["last"].(*int), fc.Args["orderBy"].(*ent.WordOrder), fc.Args["where"].(*ent.WordWhereInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2447,7 +2447,7 @@ func (ec *executionContext) _Group_rootwords(ctx context.Context, field graphql.
 	return ec.marshalNWordConnection2ᚖgroupionaryᚋentᚐWordConnection(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Group_rootwords(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Group_words(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Group",
 		Field:      field,
@@ -2472,7 +2472,7 @@ func (ec *executionContext) fieldContext_Group_rootwords(ctx context.Context, fi
 		}
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Group_rootwords_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+	if fc.Args, err = ec.field_Group_words_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -2587,8 +2587,8 @@ func (ec *executionContext) fieldContext_Mutation_createGroup(ctx context.Contex
 				return ec.fieldContext_Group_updateTime(ctx, field)
 			case "description":
 				return ec.fieldContext_Group_description(ctx, field)
-			case "rootwords":
-				return ec.fieldContext_Group_rootwords(ctx, field)
+			case "words":
+				return ec.fieldContext_Group_words(ctx, field)
 			case "users":
 				return ec.fieldContext_Group_users(ctx, field)
 			}
@@ -2656,8 +2656,8 @@ func (ec *executionContext) fieldContext_Mutation_updateGroupName(ctx context.Co
 				return ec.fieldContext_Group_updateTime(ctx, field)
 			case "description":
 				return ec.fieldContext_Group_description(ctx, field)
-			case "rootwords":
-				return ec.fieldContext_Group_rootwords(ctx, field)
+			case "words":
+				return ec.fieldContext_Group_words(ctx, field)
 			case "users":
 				return ec.fieldContext_Group_users(ctx, field)
 			}
@@ -3743,8 +3743,8 @@ func (ec *executionContext) fieldContext_Query_groups(ctx context.Context, field
 				return ec.fieldContext_Group_updateTime(ctx, field)
 			case "description":
 				return ec.fieldContext_Group_description(ctx, field)
-			case "rootwords":
-				return ec.fieldContext_Group_rootwords(ctx, field)
+			case "words":
+				return ec.fieldContext_Group_words(ctx, field)
 			case "users":
 				return ec.fieldContext_Group_users(ctx, field)
 			}
@@ -4450,8 +4450,8 @@ func (ec *executionContext) fieldContext_User_groups(ctx context.Context, field 
 				return ec.fieldContext_Group_updateTime(ctx, field)
 			case "description":
 				return ec.fieldContext_Group_description(ctx, field)
-			case "rootwords":
-				return ec.fieldContext_Group_rootwords(ctx, field)
+			case "words":
+				return ec.fieldContext_Group_words(ctx, field)
 			case "users":
 				return ec.fieldContext_Group_users(ctx, field)
 			}
@@ -4845,11 +4845,14 @@ func (ec *executionContext) _Word_group(ctx context.Context, field graphql.Colle
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
 	res := resTmp.(*ent.Group)
 	fc.Result = res
-	return ec.marshalOGroup2ᚖgroupionaryᚋentᚐGroup(ctx, field.Selections, res)
+	return ec.marshalNGroup2ᚖgroupionaryᚋentᚐGroup(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Word_group(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -4868,8 +4871,8 @@ func (ec *executionContext) fieldContext_Word_group(ctx context.Context, field g
 				return ec.fieldContext_Group_updateTime(ctx, field)
 			case "description":
 				return ec.fieldContext_Group_description(ctx, field)
-			case "rootwords":
-				return ec.fieldContext_Group_rootwords(ctx, field)
+			case "words":
+				return ec.fieldContext_Group_words(ctx, field)
 			case "users":
 				return ec.fieldContext_Group_users(ctx, field)
 			}
@@ -7161,7 +7164,7 @@ func (ec *executionContext) unmarshalInputCreateGroupInput(ctx context.Context, 
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"createTime", "updateTime", "description", "rootwordIDs", "userIDs"}
+	fieldsInOrder := [...]string{"createTime", "updateTime", "description", "wordIDs", "userIDs"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -7195,15 +7198,15 @@ func (ec *executionContext) unmarshalInputCreateGroupInput(ctx context.Context, 
 				return it, err
 			}
 			it.Description = data
-		case "rootwordIDs":
+		case "wordIDs":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("rootwordIDs"))
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("wordIDs"))
 			data, err := ec.unmarshalOID2ᚕintᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
-			it.RootWordIDs = data
+			it.WordIDs = data
 		case "userIDs":
 			var err error
 
@@ -7273,7 +7276,7 @@ func (ec *executionContext) unmarshalInputCreateWordInput(ctx context.Context, o
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("groupID"))
-			data, err := ec.unmarshalOID2ᚖint(ctx, v)
+			data, err := ec.unmarshalNID2int(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -7776,7 +7779,7 @@ func (ec *executionContext) unmarshalInputGroupWhereInput(ctx context.Context, o
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"not", "and", "or", "id", "idNEQ", "idIn", "idNotIn", "idGT", "idGTE", "idLT", "idLTE", "createTime", "createTimeNEQ", "createTimeIn", "createTimeNotIn", "createTimeGT", "createTimeGTE", "createTimeLT", "createTimeLTE", "updateTime", "updateTimeNEQ", "updateTimeIn", "updateTimeNotIn", "updateTimeGT", "updateTimeGTE", "updateTimeLT", "updateTimeLTE", "description", "descriptionNEQ", "descriptionIn", "descriptionNotIn", "descriptionGT", "descriptionGTE", "descriptionLT", "descriptionLTE", "descriptionContains", "descriptionHasPrefix", "descriptionHasSuffix", "descriptionEqualFold", "descriptionContainsFold", "hasRootWords", "hasRootWordsWith", "hasUsers", "hasUsersWith"}
+	fieldsInOrder := [...]string{"not", "and", "or", "id", "idNEQ", "idIn", "idNotIn", "idGT", "idGTE", "idLT", "idLTE", "createTime", "createTimeNEQ", "createTimeIn", "createTimeNotIn", "createTimeGT", "createTimeGTE", "createTimeLT", "createTimeLTE", "updateTime", "updateTimeNEQ", "updateTimeIn", "updateTimeNotIn", "updateTimeGT", "updateTimeGTE", "updateTimeLT", "updateTimeLTE", "description", "descriptionNEQ", "descriptionIn", "descriptionNotIn", "descriptionGT", "descriptionGTE", "descriptionLT", "descriptionLTE", "descriptionContains", "descriptionHasPrefix", "descriptionHasSuffix", "descriptionEqualFold", "descriptionContainsFold", "hasWords", "hasWordsWith", "hasUsers", "hasUsersWith"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -8143,24 +8146,24 @@ func (ec *executionContext) unmarshalInputGroupWhereInput(ctx context.Context, o
 				return it, err
 			}
 			it.DescriptionContainsFold = data
-		case "hasRootWords":
+		case "hasWords":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hasRootWords"))
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hasWords"))
 			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
 			if err != nil {
 				return it, err
 			}
-			it.HasRootWords = data
-		case "hasRootWordsWith":
+			it.HasWords = data
+		case "hasWordsWith":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hasRootWordsWith"))
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hasWordsWith"))
 			data, err := ec.unmarshalOWordWhereInput2ᚕᚖgroupionaryᚋentᚐWordWhereInputᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
-			it.HasRootWordsWith = data
+			it.HasWordsWith = data
 		case "hasUsers":
 			var err error
 
@@ -8230,7 +8233,7 @@ func (ec *executionContext) unmarshalInputUpdateGroupInput(ctx context.Context, 
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"updateTime", "description", "addRootWordIDs", "removeRootWordIDs", "clearRootWords", "addUserIDs", "removeUserIDs", "clearUsers"}
+	fieldsInOrder := [...]string{"updateTime", "description", "addWordIDs", "removeWordIDs", "clearWords", "addUserIDs", "removeUserIDs", "clearUsers"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -8255,33 +8258,33 @@ func (ec *executionContext) unmarshalInputUpdateGroupInput(ctx context.Context, 
 				return it, err
 			}
 			it.Description = data
-		case "addRootWordIDs":
+		case "addWordIDs":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("addRootWordIDs"))
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("addWordIDs"))
 			data, err := ec.unmarshalOID2ᚕintᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
-			it.AddRootWordIDs = data
-		case "removeRootWordIDs":
+			it.AddWordIDs = data
+		case "removeWordIDs":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("removeRootWordIDs"))
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("removeWordIDs"))
 			data, err := ec.unmarshalOID2ᚕintᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
-			it.RemoveRootWordIDs = data
-		case "clearRootWords":
+			it.RemoveWordIDs = data
+		case "clearWords":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("clearRootWords"))
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("clearWords"))
 			data, err := ec.unmarshalOBoolean2bool(ctx, v)
 			if err != nil {
 				return it, err
 			}
-			it.ClearRootWords = data
+			it.ClearWords = data
 		case "addUserIDs":
 			var err error
 
@@ -8414,7 +8417,7 @@ func (ec *executionContext) unmarshalInputUpdateWordInput(ctx context.Context, o
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"updateTime", "description", "groupID", "clearGroup", "addParentIDs", "removeParentIDs", "clearParents"}
+	fieldsInOrder := [...]string{"updateTime", "description", "groupID", "addParentIDs", "removeParentIDs", "clearParents"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -8448,15 +8451,6 @@ func (ec *executionContext) unmarshalInputUpdateWordInput(ctx context.Context, o
 				return it, err
 			}
 			it.GroupID = data
-		case "clearGroup":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("clearGroup"))
-			data, err := ec.unmarshalOBoolean2bool(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.ClearGroup = data
 		case "addParentIDs":
 			var err error
 
@@ -9935,7 +9929,7 @@ func (ec *executionContext) _Group(ctx context.Context, sel ast.SelectionSet, ob
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
-		case "rootwords":
+		case "words":
 			field := field
 
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
@@ -9944,7 +9938,7 @@ func (ec *executionContext) _Group(ctx context.Context, sel ast.SelectionSet, ob
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._Group_rootwords(ctx, field, obj)
+				res = ec._Group_words(ctx, field, obj)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
@@ -10566,6 +10560,9 @@ func (ec *executionContext) _Word(ctx context.Context, sel ast.SelectionSet, obj
 					}
 				}()
 				res = ec._Word_group(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
 				return res
 			}
 
@@ -11854,13 +11851,6 @@ func (ec *executionContext) marshalOGroup2ᚕᚖgroupionaryᚋentᚐGroupᚄ(ctx
 	}
 
 	return ret
-}
-
-func (ec *executionContext) marshalOGroup2ᚖgroupionaryᚋentᚐGroup(ctx context.Context, sel ast.SelectionSet, v *ent.Group) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	return ec._Group(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalOGroupWhereInput2ᚕᚖgroupionaryᚋentᚐGroupWhereInputᚄ(ctx context.Context, v interface{}) ([]*ent.GroupWhereInput, error) {

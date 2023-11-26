@@ -56,19 +56,19 @@ func (gc *GroupCreate) SetDescription(s string) *GroupCreate {
 	return gc
 }
 
-// AddRootWordIDs adds the "rootWords" edge to the Word entity by IDs.
-func (gc *GroupCreate) AddRootWordIDs(ids ...int) *GroupCreate {
-	gc.mutation.AddRootWordIDs(ids...)
+// AddWordIDs adds the "words" edge to the Word entity by IDs.
+func (gc *GroupCreate) AddWordIDs(ids ...int) *GroupCreate {
+	gc.mutation.AddWordIDs(ids...)
 	return gc
 }
 
-// AddRootWords adds the "rootWords" edges to the Word entity.
-func (gc *GroupCreate) AddRootWords(w ...*Word) *GroupCreate {
+// AddWords adds the "words" edges to the Word entity.
+func (gc *GroupCreate) AddWords(w ...*Word) *GroupCreate {
 	ids := make([]int, len(w))
 	for i := range w {
 		ids[i] = w[i].ID
 	}
-	return gc.AddRootWordIDs(ids...)
+	return gc.AddWordIDs(ids...)
 }
 
 // AddUserIDs adds the "users" edge to the User entity by IDs.
@@ -185,12 +185,12 @@ func (gc *GroupCreate) createSpec() (*Group, *sqlgraph.CreateSpec) {
 		_spec.SetField(group.FieldDescription, field.TypeString, value)
 		_node.Description = value
 	}
-	if nodes := gc.mutation.RootWordsIDs(); len(nodes) > 0 {
+	if nodes := gc.mutation.WordsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   group.RootWordsTable,
-			Columns: []string{group.RootWordsColumn},
+			Table:   group.WordsTable,
+			Columns: []string{group.WordsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(word.FieldID, field.TypeInt),

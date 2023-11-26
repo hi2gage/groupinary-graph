@@ -156,7 +156,7 @@ func (gr *GroupQuery) collectField(ctx context.Context, opCtx *graphql.Operation
 	)
 	for _, field := range graphql.CollectFields(opCtx, collected.Selections, satisfies) {
 		switch field.Name {
-		case "rootwords":
+		case "words":
 			var (
 				alias = field.Alias
 				path  = append(path, alias)
@@ -184,13 +184,13 @@ func (gr *GroupQuery) collectField(ctx context.Context, opCtx *graphql.Operation
 							ids[i] = nodes[i].ID
 						}
 						var v []struct {
-							NodeID int `sql:"group_root_words"`
+							NodeID int `sql:"group_words"`
 							Count  int `sql:"count"`
 						}
 						query.Where(func(s *sql.Selector) {
-							s.Where(sql.InValues(s.C(group.RootWordsColumn), ids...))
+							s.Where(sql.InValues(s.C(group.WordsColumn), ids...))
 						})
-						if err := query.GroupBy(group.RootWordsColumn).Aggregate(Count()).Scan(ctx, &v); err != nil {
+						if err := query.GroupBy(group.WordsColumn).Aggregate(Count()).Scan(ctx, &v); err != nil {
 							return err
 						}
 						m := make(map[int]int, len(v))
@@ -209,7 +209,7 @@ func (gr *GroupQuery) collectField(ctx context.Context, opCtx *graphql.Operation
 				} else {
 					gr.loadTotal = append(gr.loadTotal, func(_ context.Context, nodes []*Group) error {
 						for i := range nodes {
-							n := len(nodes[i].Edges.RootWords)
+							n := len(nodes[i].Edges.Words)
 							if nodes[i].Edges.totalCount[0] == nil {
 								nodes[i].Edges.totalCount[0] = make(map[string]int)
 							}
@@ -232,12 +232,12 @@ func (gr *GroupQuery) collectField(ctx context.Context, opCtx *graphql.Operation
 				}
 			}
 			if limit := paginateLimit(args.first, args.last); limit > 0 {
-				modify := limitRows(group.RootWordsColumn, limit, pager.orderExpr(query))
+				modify := limitRows(group.WordsColumn, limit, pager.orderExpr(query))
 				query.modifiers = append(query.modifiers, modify)
 			} else {
 				query = pager.applyOrder(query)
 			}
-			gr.WithNamedRootWords(alias, func(wq *WordQuery) {
+			gr.WithNamedWords(alias, func(wq *WordQuery) {
 				*wq = *query
 			})
 		case "users":

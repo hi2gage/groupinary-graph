@@ -31,8 +31,8 @@ type Group struct {
 
 // GroupEdges holds the relations/edges for other nodes in the graph.
 type GroupEdges struct {
-	// RootWords holds the value of the rootWords edge.
-	RootWords []*Word `json:"rootWords,omitempty"`
+	// Words holds the value of the words edge.
+	Words []*Word `json:"words,omitempty"`
 	// Users holds the value of the users edge.
 	Users []*User `json:"users,omitempty"`
 	// loadedTypes holds the information for reporting if a
@@ -41,17 +41,17 @@ type GroupEdges struct {
 	// totalCount holds the count of the edges above.
 	totalCount [2]map[string]int
 
-	namedRootWords map[string][]*Word
-	namedUsers     map[string][]*User
+	namedWords map[string][]*Word
+	namedUsers map[string][]*User
 }
 
-// RootWordsOrErr returns the RootWords value or an error if the edge
+// WordsOrErr returns the Words value or an error if the edge
 // was not loaded in eager-loading.
-func (e GroupEdges) RootWordsOrErr() ([]*Word, error) {
+func (e GroupEdges) WordsOrErr() ([]*Word, error) {
 	if e.loadedTypes[0] {
-		return e.RootWords, nil
+		return e.Words, nil
 	}
-	return nil, &NotLoadedError{edge: "rootWords"}
+	return nil, &NotLoadedError{edge: "words"}
 }
 
 // UsersOrErr returns the Users value or an error if the edge
@@ -126,9 +126,9 @@ func (gr *Group) Value(name string) (ent.Value, error) {
 	return gr.selectValues.Get(name)
 }
 
-// QueryRootWords queries the "rootWords" edge of the Group entity.
-func (gr *Group) QueryRootWords() *WordQuery {
-	return NewGroupClient(gr.config).QueryRootWords(gr)
+// QueryWords queries the "words" edge of the Group entity.
+func (gr *Group) QueryWords() *WordQuery {
+	return NewGroupClient(gr.config).QueryWords(gr)
 }
 
 // QueryUsers queries the "users" edge of the Group entity.
@@ -171,27 +171,27 @@ func (gr *Group) String() string {
 	return builder.String()
 }
 
-// NamedRootWords returns the RootWords named value or an error if the edge was not
+// NamedWords returns the Words named value or an error if the edge was not
 // loaded in eager-loading with this name.
-func (gr *Group) NamedRootWords(name string) ([]*Word, error) {
-	if gr.Edges.namedRootWords == nil {
+func (gr *Group) NamedWords(name string) ([]*Word, error) {
+	if gr.Edges.namedWords == nil {
 		return nil, &NotLoadedError{edge: name}
 	}
-	nodes, ok := gr.Edges.namedRootWords[name]
+	nodes, ok := gr.Edges.namedWords[name]
 	if !ok {
 		return nil, &NotLoadedError{edge: name}
 	}
 	return nodes, nil
 }
 
-func (gr *Group) appendNamedRootWords(name string, edges ...*Word) {
-	if gr.Edges.namedRootWords == nil {
-		gr.Edges.namedRootWords = make(map[string][]*Word)
+func (gr *Group) appendNamedWords(name string, edges ...*Word) {
+	if gr.Edges.namedWords == nil {
+		gr.Edges.namedWords = make(map[string][]*Word)
 	}
 	if len(edges) == 0 {
-		gr.Edges.namedRootWords[name] = []*Word{}
+		gr.Edges.namedWords[name] = []*Word{}
 	} else {
-		gr.Edges.namedRootWords[name] = append(gr.Edges.namedRootWords[name], edges...)
+		gr.Edges.namedWords[name] = append(gr.Edges.namedWords[name], edges...)
 	}
 }
 

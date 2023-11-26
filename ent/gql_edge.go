@@ -24,7 +24,7 @@ func (d *Definition) Word(ctx context.Context) (*Word, error) {
 	return result, MaskNotFound(err)
 }
 
-func (gr *Group) RootWords(
+func (gr *Group) Words(
 	ctx context.Context, after *Cursor, first *int, before *Cursor, last *int, orderBy *WordOrder, where *WordWhereInput,
 ) (*WordConnection, error) {
 	opts := []WordPaginateOption{
@@ -33,7 +33,7 @@ func (gr *Group) RootWords(
 	}
 	alias := graphql.GetFieldContext(ctx).Field.Alias
 	totalCount, hasTotalCount := gr.Edges.totalCount[0][alias]
-	if nodes, err := gr.NamedRootWords(alias); err == nil || hasTotalCount {
+	if nodes, err := gr.NamedWords(alias); err == nil || hasTotalCount {
 		pager, err := newWordPager(opts, last != nil)
 		if err != nil {
 			return nil, err
@@ -42,7 +42,7 @@ func (gr *Group) RootWords(
 		conn.build(nodes, pager, after, first, before, last)
 		return conn, nil
 	}
-	return gr.QueryRootWords().Paginate(ctx, after, first, before, last, opts...)
+	return gr.QueryWords().Paginate(ctx, after, first, before, last, opts...)
 }
 
 func (gr *Group) Users(ctx context.Context) (result []*User, err error) {
@@ -124,7 +124,7 @@ func (w *Word) Group(ctx context.Context) (*Group, error) {
 	if IsNotLoaded(err) {
 		result, err = w.QueryGroup().Only(ctx)
 	}
-	return result, MaskNotFound(err)
+	return result, err
 }
 
 func (w *Word) Definitions(
