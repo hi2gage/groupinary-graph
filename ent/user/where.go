@@ -80,6 +80,11 @@ func LastName(v string) predicate.User {
 	return predicate.User(sql.FieldEQ(FieldLastName, v))
 }
 
+// NickName applies equality check predicate on the "nickName" field. It's identical to NickNameEQ.
+func NickName(v string) predicate.User {
+	return predicate.User(sql.FieldEQ(FieldNickName, v))
+}
+
 // CreateTimeEQ applies the EQ predicate on the "create_time" field.
 func CreateTimeEQ(v time.Time) predicate.User {
 	return predicate.User(sql.FieldEQ(FieldCreateTime, v))
@@ -373,6 +378,81 @@ func LastNameEqualFold(v string) predicate.User {
 // LastNameContainsFold applies the ContainsFold predicate on the "lastName" field.
 func LastNameContainsFold(v string) predicate.User {
 	return predicate.User(sql.FieldContainsFold(FieldLastName, v))
+}
+
+// NickNameEQ applies the EQ predicate on the "nickName" field.
+func NickNameEQ(v string) predicate.User {
+	return predicate.User(sql.FieldEQ(FieldNickName, v))
+}
+
+// NickNameNEQ applies the NEQ predicate on the "nickName" field.
+func NickNameNEQ(v string) predicate.User {
+	return predicate.User(sql.FieldNEQ(FieldNickName, v))
+}
+
+// NickNameIn applies the In predicate on the "nickName" field.
+func NickNameIn(vs ...string) predicate.User {
+	return predicate.User(sql.FieldIn(FieldNickName, vs...))
+}
+
+// NickNameNotIn applies the NotIn predicate on the "nickName" field.
+func NickNameNotIn(vs ...string) predicate.User {
+	return predicate.User(sql.FieldNotIn(FieldNickName, vs...))
+}
+
+// NickNameGT applies the GT predicate on the "nickName" field.
+func NickNameGT(v string) predicate.User {
+	return predicate.User(sql.FieldGT(FieldNickName, v))
+}
+
+// NickNameGTE applies the GTE predicate on the "nickName" field.
+func NickNameGTE(v string) predicate.User {
+	return predicate.User(sql.FieldGTE(FieldNickName, v))
+}
+
+// NickNameLT applies the LT predicate on the "nickName" field.
+func NickNameLT(v string) predicate.User {
+	return predicate.User(sql.FieldLT(FieldNickName, v))
+}
+
+// NickNameLTE applies the LTE predicate on the "nickName" field.
+func NickNameLTE(v string) predicate.User {
+	return predicate.User(sql.FieldLTE(FieldNickName, v))
+}
+
+// NickNameContains applies the Contains predicate on the "nickName" field.
+func NickNameContains(v string) predicate.User {
+	return predicate.User(sql.FieldContains(FieldNickName, v))
+}
+
+// NickNameHasPrefix applies the HasPrefix predicate on the "nickName" field.
+func NickNameHasPrefix(v string) predicate.User {
+	return predicate.User(sql.FieldHasPrefix(FieldNickName, v))
+}
+
+// NickNameHasSuffix applies the HasSuffix predicate on the "nickName" field.
+func NickNameHasSuffix(v string) predicate.User {
+	return predicate.User(sql.FieldHasSuffix(FieldNickName, v))
+}
+
+// NickNameIsNil applies the IsNil predicate on the "nickName" field.
+func NickNameIsNil() predicate.User {
+	return predicate.User(sql.FieldIsNull(FieldNickName))
+}
+
+// NickNameNotNil applies the NotNil predicate on the "nickName" field.
+func NickNameNotNil() predicate.User {
+	return predicate.User(sql.FieldNotNull(FieldNickName))
+}
+
+// NickNameEqualFold applies the EqualFold predicate on the "nickName" field.
+func NickNameEqualFold(v string) predicate.User {
+	return predicate.User(sql.FieldEqualFold(FieldNickName, v))
+}
+
+// NickNameContainsFold applies the ContainsFold predicate on the "nickName" field.
+func NickNameContainsFold(v string) predicate.User {
+	return predicate.User(sql.FieldContainsFold(FieldNickName, v))
 }
 
 // HasGroups applies the HasEdge predicate on the "groups" edge.

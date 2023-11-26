@@ -85,6 +85,20 @@ func (uc *UserCreate) SetNillableLastName(s *string) *UserCreate {
 	return uc
 }
 
+// SetNickName sets the "nickName" field.
+func (uc *UserCreate) SetNickName(s string) *UserCreate {
+	uc.mutation.SetNickName(s)
+	return uc
+}
+
+// SetNillableNickName sets the "nickName" field if the given value is not nil.
+func (uc *UserCreate) SetNillableNickName(s *string) *UserCreate {
+	if s != nil {
+		uc.SetNickName(*s)
+	}
+	return uc
+}
+
 // AddGroupIDs adds the "groups" edge to the Group entity by IDs.
 func (uc *UserCreate) AddGroupIDs(ids ...int) *UserCreate {
 	uc.mutation.AddGroupIDs(ids...)
@@ -236,6 +250,10 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 	if value, ok := uc.mutation.LastName(); ok {
 		_spec.SetField(user.FieldLastName, field.TypeString, value)
 		_node.LastName = value
+	}
+	if value, ok := uc.mutation.NickName(); ok {
+		_spec.SetField(user.FieldNickName, field.TypeString, value)
+		_node.NickName = value
 	}
 	if nodes := uc.mutation.GroupsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
