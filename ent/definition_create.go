@@ -233,11 +233,15 @@ func (dc *DefinitionCreate) createSpec() (*Definition, *sqlgraph.CreateSpec) {
 // DefinitionCreateBulk is the builder for creating many Definition entities in bulk.
 type DefinitionCreateBulk struct {
 	config
+	err      error
 	builders []*DefinitionCreate
 }
 
 // Save creates the Definition entities in the database.
 func (dcb *DefinitionCreateBulk) Save(ctx context.Context) ([]*Definition, error) {
+	if dcb.err != nil {
+		return nil, dcb.err
+	}
 	specs := make([]*sqlgraph.CreateSpec, len(dcb.builders))
 	nodes := make([]*Definition, len(dcb.builders))
 	mutators := make([]Mutator, len(dcb.builders))
