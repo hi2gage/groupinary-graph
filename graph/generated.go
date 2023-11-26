@@ -71,6 +71,7 @@ type ComplexityRoot struct {
 		CreateTime  func(childComplexity int) int
 		Description func(childComplexity int) int
 		ID          func(childComplexity int) int
+		Name        func(childComplexity int) int
 		UpdateTime  func(childComplexity int) int
 		Users       func(childComplexity int) int
 		Words       func(childComplexity int, after *entgql.Cursor[int], first *int, before *entgql.Cursor[int], last *int, orderBy *ent.WordOrder, where *ent.WordWhereInput) int
@@ -81,7 +82,7 @@ type ComplexityRoot struct {
 		AddDefinition    func(childComplexity int, wordID int, definition string) int
 		AddRootWord      func(childComplexity int, rootWord string, rootDefinition *string) int
 		ConnectWords     func(childComplexity int, parentID int, childID int) int
-		CreateGroup      func(childComplexity int, name string) int
+		CreateGroup      func(childComplexity int, name string, description *string) int
 		DeleteDefinition func(childComplexity int, id int) int
 		DeleteGroup      func(childComplexity int, id int) int
 		DeleteWord       func(childComplexity int, id int) int
@@ -146,7 +147,7 @@ type ComplexityRoot struct {
 }
 
 type MutationResolver interface {
-	CreateGroup(ctx context.Context, name string) (*ent.Group, error)
+	CreateGroup(ctx context.Context, name string, description *string) (*ent.Group, error)
 	UpdateGroupName(ctx context.Context, id int, name string) (*ent.Group, error)
 	DeleteGroup(ctx context.Context, id int) (bool, error)
 	DeleteWord(ctx context.Context, id int) (bool, error)
@@ -283,6 +284,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Group.ID(childComplexity), true
 
+	case "Group.name":
+		if e.complexity.Group.Name == nil {
+			break
+		}
+
+		return e.complexity.Group.Name(childComplexity), true
+
 	case "Group.updateTime":
 		if e.complexity.Group.UpdateTime == nil {
 			break
@@ -367,7 +375,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.CreateGroup(childComplexity, args["name"].(string)), true
+		return e.complexity.Mutation.CreateGroup(childComplexity, args["name"].(string), args["description"].(*string)), true
 
 	case "Mutation.deleteDefinition":
 		if e.complexity.Mutation.DeleteDefinition == nil {
@@ -1027,6 +1035,15 @@ func (ec *executionContext) field_Mutation_createGroup_args(ctx context.Context,
 		}
 	}
 	args["name"] = arg0
+	var arg1 *string
+	if tmp, ok := rawArgs["description"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("description"))
+		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["description"] = arg1
 	return args, nil
 }
 
@@ -2372,6 +2389,50 @@ func (ec *executionContext) fieldContext_Group_updateTime(ctx context.Context, f
 	return fc, nil
 }
 
+func (ec *executionContext) _Group_name(ctx context.Context, field graphql.CollectedField, obj *ent.Group) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Group_name(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Name, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Group_name(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Group",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Group_description(ctx context.Context, field graphql.CollectedField, obj *ent.Group) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Group_description(ctx, field)
 	if err != nil {
@@ -2393,14 +2454,11 @@ func (ec *executionContext) _Group_description(ctx context.Context, field graphq
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
 	res := resTmp.(string)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalOString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Group_description(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -2554,7 +2612,7 @@ func (ec *executionContext) _Mutation_createGroup(ctx context.Context, field gra
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateGroup(rctx, fc.Args["name"].(string))
+		return ec.resolvers.Mutation().CreateGroup(rctx, fc.Args["name"].(string), fc.Args["description"].(*string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2585,6 +2643,8 @@ func (ec *executionContext) fieldContext_Mutation_createGroup(ctx context.Contex
 				return ec.fieldContext_Group_createTime(ctx, field)
 			case "updateTime":
 				return ec.fieldContext_Group_updateTime(ctx, field)
+			case "name":
+				return ec.fieldContext_Group_name(ctx, field)
 			case "description":
 				return ec.fieldContext_Group_description(ctx, field)
 			case "words":
@@ -2654,6 +2714,8 @@ func (ec *executionContext) fieldContext_Mutation_updateGroupName(ctx context.Co
 				return ec.fieldContext_Group_createTime(ctx, field)
 			case "updateTime":
 				return ec.fieldContext_Group_updateTime(ctx, field)
+			case "name":
+				return ec.fieldContext_Group_name(ctx, field)
 			case "description":
 				return ec.fieldContext_Group_description(ctx, field)
 			case "words":
@@ -3741,6 +3803,8 @@ func (ec *executionContext) fieldContext_Query_groups(ctx context.Context, field
 				return ec.fieldContext_Group_createTime(ctx, field)
 			case "updateTime":
 				return ec.fieldContext_Group_updateTime(ctx, field)
+			case "name":
+				return ec.fieldContext_Group_name(ctx, field)
 			case "description":
 				return ec.fieldContext_Group_description(ctx, field)
 			case "words":
@@ -4448,6 +4512,8 @@ func (ec *executionContext) fieldContext_User_groups(ctx context.Context, field 
 				return ec.fieldContext_Group_createTime(ctx, field)
 			case "updateTime":
 				return ec.fieldContext_Group_updateTime(ctx, field)
+			case "name":
+				return ec.fieldContext_Group_name(ctx, field)
 			case "description":
 				return ec.fieldContext_Group_description(ctx, field)
 			case "words":
@@ -4869,6 +4935,8 @@ func (ec *executionContext) fieldContext_Word_group(ctx context.Context, field g
 				return ec.fieldContext_Group_createTime(ctx, field)
 			case "updateTime":
 				return ec.fieldContext_Group_updateTime(ctx, field)
+			case "name":
+				return ec.fieldContext_Group_name(ctx, field)
 			case "description":
 				return ec.fieldContext_Group_description(ctx, field)
 			case "words":
@@ -7164,7 +7232,7 @@ func (ec *executionContext) unmarshalInputCreateGroupInput(ctx context.Context, 
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"createTime", "updateTime", "description", "wordIDs", "userIDs"}
+	fieldsInOrder := [...]string{"createTime", "updateTime", "name", "description", "wordIDs", "userIDs"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -7189,11 +7257,20 @@ func (ec *executionContext) unmarshalInputCreateGroupInput(ctx context.Context, 
 				return it, err
 			}
 			it.UpdateTime = data
+		case "name":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Name = data
 		case "description":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("description"))
-			data, err := ec.unmarshalNString2string(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -7779,7 +7856,7 @@ func (ec *executionContext) unmarshalInputGroupWhereInput(ctx context.Context, o
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"not", "and", "or", "id", "idNEQ", "idIn", "idNotIn", "idGT", "idGTE", "idLT", "idLTE", "createTime", "createTimeNEQ", "createTimeIn", "createTimeNotIn", "createTimeGT", "createTimeGTE", "createTimeLT", "createTimeLTE", "updateTime", "updateTimeNEQ", "updateTimeIn", "updateTimeNotIn", "updateTimeGT", "updateTimeGTE", "updateTimeLT", "updateTimeLTE", "description", "descriptionNEQ", "descriptionIn", "descriptionNotIn", "descriptionGT", "descriptionGTE", "descriptionLT", "descriptionLTE", "descriptionContains", "descriptionHasPrefix", "descriptionHasSuffix", "descriptionEqualFold", "descriptionContainsFold", "hasWords", "hasWordsWith", "hasUsers", "hasUsersWith"}
+	fieldsInOrder := [...]string{"not", "and", "or", "id", "idNEQ", "idIn", "idNotIn", "idGT", "idGTE", "idLT", "idLTE", "createTime", "createTimeNEQ", "createTimeIn", "createTimeNotIn", "createTimeGT", "createTimeGTE", "createTimeLT", "createTimeLTE", "updateTime", "updateTimeNEQ", "updateTimeIn", "updateTimeNotIn", "updateTimeGT", "updateTimeGTE", "updateTimeLT", "updateTimeLTE", "name", "nameNEQ", "nameIn", "nameNotIn", "nameGT", "nameGTE", "nameLT", "nameLTE", "nameContains", "nameHasPrefix", "nameHasSuffix", "nameEqualFold", "nameContainsFold", "description", "descriptionNEQ", "descriptionIn", "descriptionNotIn", "descriptionGT", "descriptionGTE", "descriptionLT", "descriptionLTE", "descriptionContains", "descriptionHasPrefix", "descriptionHasSuffix", "descriptionIsNil", "descriptionNotNil", "descriptionEqualFold", "descriptionContainsFold", "hasWords", "hasWordsWith", "hasUsers", "hasUsersWith"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -8029,6 +8106,123 @@ func (ec *executionContext) unmarshalInputGroupWhereInput(ctx context.Context, o
 				return it, err
 			}
 			it.UpdateTimeLTE = data
+		case "name":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Name = data
+		case "nameNEQ":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nameNEQ"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.NameNEQ = data
+		case "nameIn":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nameIn"))
+			data, err := ec.unmarshalOString2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.NameIn = data
+		case "nameNotIn":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nameNotIn"))
+			data, err := ec.unmarshalOString2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.NameNotIn = data
+		case "nameGT":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nameGT"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.NameGT = data
+		case "nameGTE":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nameGTE"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.NameGTE = data
+		case "nameLT":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nameLT"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.NameLT = data
+		case "nameLTE":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nameLTE"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.NameLTE = data
+		case "nameContains":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nameContains"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.NameContains = data
+		case "nameHasPrefix":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nameHasPrefix"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.NameHasPrefix = data
+		case "nameHasSuffix":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nameHasSuffix"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.NameHasSuffix = data
+		case "nameEqualFold":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nameEqualFold"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.NameEqualFold = data
+		case "nameContainsFold":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nameContainsFold"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.NameContainsFold = data
 		case "description":
 			var err error
 
@@ -8128,6 +8322,24 @@ func (ec *executionContext) unmarshalInputGroupWhereInput(ctx context.Context, o
 				return it, err
 			}
 			it.DescriptionHasSuffix = data
+		case "descriptionIsNil":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("descriptionIsNil"))
+			data, err := ec.unmarshalOBoolean2bool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.DescriptionIsNil = data
+		case "descriptionNotNil":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("descriptionNotNil"))
+			data, err := ec.unmarshalOBoolean2bool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.DescriptionNotNil = data
 		case "descriptionEqualFold":
 			var err error
 
@@ -8233,7 +8445,7 @@ func (ec *executionContext) unmarshalInputUpdateGroupInput(ctx context.Context, 
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"updateTime", "description", "addWordIDs", "removeWordIDs", "clearWords", "addUserIDs", "removeUserIDs", "clearUsers"}
+	fieldsInOrder := [...]string{"updateTime", "name", "description", "clearDescription", "addWordIDs", "removeWordIDs", "clearWords", "addUserIDs", "removeUserIDs", "clearUsers"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -8249,6 +8461,15 @@ func (ec *executionContext) unmarshalInputUpdateGroupInput(ctx context.Context, 
 				return it, err
 			}
 			it.UpdateTime = data
+		case "name":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Name = data
 		case "description":
 			var err error
 
@@ -8258,6 +8479,15 @@ func (ec *executionContext) unmarshalInputUpdateGroupInput(ctx context.Context, 
 				return it, err
 			}
 			it.Description = data
+		case "clearDescription":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("clearDescription"))
+			data, err := ec.unmarshalOBoolean2bool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ClearDescription = data
 		case "addWordIDs":
 			var err error
 
@@ -9922,13 +10152,17 @@ func (ec *executionContext) _Group(ctx context.Context, sel ast.SelectionSet, ob
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
-		case "description":
+		case "name":
 
-			out.Values[i] = ec._Group_description(ctx, field, obj)
+			out.Values[i] = ec._Group_name(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
+		case "description":
+
+			out.Values[i] = ec._Group_description(ctx, field, obj)
+
 		case "words":
 			field := field
 

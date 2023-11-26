@@ -21,6 +21,8 @@ type Group struct {
 	CreateTime time.Time `json:"create_time,omitempty"`
 	// UpdateTime holds the value of the "update_time" field.
 	UpdateTime time.Time `json:"update_time,omitempty"`
+	// Name holds the value of the "name" field.
+	Name string `json:"name,omitempty"`
 	// Description holds the value of the "description" field.
 	Description string `json:"description,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
@@ -70,7 +72,7 @@ func (*Group) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case group.FieldID:
 			values[i] = new(sql.NullInt64)
-		case group.FieldDescription:
+		case group.FieldName, group.FieldDescription:
 			values[i] = new(sql.NullString)
 		case group.FieldCreateTime, group.FieldUpdateTime:
 			values[i] = new(sql.NullTime)
@@ -106,6 +108,12 @@ func (gr *Group) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field update_time", values[i])
 			} else if value.Valid {
 				gr.UpdateTime = value.Time
+			}
+		case group.FieldName:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field name", values[i])
+			} else if value.Valid {
+				gr.Name = value.String
 			}
 		case group.FieldDescription:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -164,6 +172,9 @@ func (gr *Group) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("update_time=")
 	builder.WriteString(gr.UpdateTime.Format(time.ANSIC))
+	builder.WriteString(", ")
+	builder.WriteString("name=")
+	builder.WriteString(gr.Name)
 	builder.WriteString(", ")
 	builder.WriteString("description=")
 	builder.WriteString(gr.Description)
