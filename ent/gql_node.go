@@ -5,10 +5,10 @@ package ent
 import (
 	"context"
 	"fmt"
-	"groupionary/ent/definition"
-	"groupionary/ent/group"
-	"groupionary/ent/user"
-	"groupionary/ent/word"
+	"groupinary/ent/definition"
+	"groupinary/ent/group"
+	"groupinary/ent/user"
+	"groupinary/ent/word"
 	"sync"
 	"sync/atomic"
 

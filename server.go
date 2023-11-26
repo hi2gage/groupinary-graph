@@ -7,10 +7,10 @@ import (
 	"os"
 	"strings"
 
-	"groupionary/ent"
-	"groupionary/ent/migrate"
-	"groupionary/graph/resolvers"
-	"groupionary/middleware"
+	"groupinary/ent"
+	"groupinary/ent/migrate"
+	"groupinary/graph/resolvers"
+	"groupinary/middleware"
 
 	"entgo.io/ent/dialect"
 	"github.com/99designs/gqlgen/graphql/handler"

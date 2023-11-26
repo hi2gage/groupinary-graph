@@ -6,8 +6,8 @@ package resolvers
 
 import (
 	"context"
-	"groupionary/ent"
-	"groupionary/graph"
+	"groupinary/ent"
+	"groupinary/graph"
 
 	"entgo.io/contrib/entgql"
 )

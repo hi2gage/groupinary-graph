@@ -5,7 +5,7 @@ package hook
 import (
 	"context"
 	"fmt"
-	"groupionary/ent"
+	"groupinary/ent"
 )
 
 // The DefinitionFunc type is an adapter to allow the use of ordinary

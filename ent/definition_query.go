@@ -5,10 +5,10 @@ package ent
 import (
 	"context"
 	"fmt"
-	"groupionary/ent/definition"
-	"groupionary/ent/predicate"
-	"groupionary/ent/user"
-	"groupionary/ent/word"
+	"groupinary/ent/definition"
+	"groupinary/ent/predicate"
+	"groupinary/ent/user"
+	"groupinary/ent/word"
 	"math"
 
 	"entgo.io/ent/dialect/sql"

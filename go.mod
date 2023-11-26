@@ -1,4 +1,4 @@
-module groupionary
+module groupinary
 
 go 1.18
 

@@ -4,7 +4,7 @@ package ent
 
 import (
 	"fmt"
-	"groupionary/ent/group"
+	"groupinary/ent/group"
 	"strings"
 	"time"
 

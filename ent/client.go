@@ -8,12 +8,12 @@ import (
 	"fmt"
 	"log"
 
-	"groupionary/ent/migrate"
+	"groupinary/ent/migrate"
 
-	"groupionary/ent/definition"
-	"groupionary/ent/group"
-	"groupionary/ent/user"
-	"groupionary/ent/word"
+	"groupinary/ent/definition"
+	"groupinary/ent/group"
+	"groupinary/ent/user"
+	"groupinary/ent/word"
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect"
