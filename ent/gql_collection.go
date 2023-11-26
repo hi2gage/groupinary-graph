@@ -539,6 +539,11 @@ func (u *UserQuery) collectField(ctx context.Context, opCtx *graphql.OperationCo
 				selectedFields = append(selectedFields, user.FieldLastName)
 				fieldSeen[user.FieldLastName] = struct{}{}
 			}
+		case "nickname":
+			if _, ok := fieldSeen[user.FieldNickName]; !ok {
+				selectedFields = append(selectedFields, user.FieldNickName)
+				fieldSeen[user.FieldNickName] = struct{}{}
+			}
 		case "id":
 		case "__typename":
 		default:
