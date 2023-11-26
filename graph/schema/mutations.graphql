@@ -11,7 +11,7 @@ type Mutation {
 }
 
 extend type Mutation {
-    updateUserName(firstName: String!, lastName: String): User!
+    updateUserName(firstName: String!, lastName: String, nickName: String): User!
 }
 
 extend type Mutation {

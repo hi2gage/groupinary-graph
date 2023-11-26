@@ -88,7 +88,7 @@ type ComplexityRoot struct {
 		DeleteWord       func(childComplexity int, id int) int
 		UpdateDefinition func(childComplexity int, id int, definitionDescription string) int
 		UpdateGroupName  func(childComplexity int, id int, name string) int
-		UpdateUserName   func(childComplexity int, firstName string, lastName *string) int
+		UpdateUserName   func(childComplexity int, firstName string, lastName *string, nickName *string) int
 		UpdateWord       func(childComplexity int, id int, wordDescription string) int
 	}
 
@@ -153,7 +153,7 @@ type MutationResolver interface {
 	DeleteGroup(ctx context.Context, id int) (bool, error)
 	DeleteWord(ctx context.Context, id int) (bool, error)
 	DeleteDefinition(ctx context.Context, id int) (bool, error)
-	UpdateUserName(ctx context.Context, firstName string, lastName *string) (*ent.User, error)
+	UpdateUserName(ctx context.Context, firstName string, lastName *string, nickName *string) (*ent.User, error)
 	AddRootWord(ctx context.Context, rootWord string, rootDefinition *string) (*ent.Word, error)
 	AddChildWord(ctx context.Context, rootIds []int, childWord string, childDefinition *string) (*ent.Word, error)
 	AddDefinition(ctx context.Context, wordID int, definition string) (*ent.Definition, error)
@@ -448,7 +448,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.UpdateUserName(childComplexity, args["firstName"].(string), args["lastName"].(*string)), true
+		return e.complexity.Mutation.UpdateUserName(childComplexity, args["firstName"].(string), args["lastName"].(*string), args["nickName"].(*string)), true
 
 	case "Mutation.updateWord":
 		if e.complexity.Mutation.UpdateWord == nil {
@@ -1169,6 +1169,15 @@ func (ec *executionContext) field_Mutation_updateUserName_args(ctx context.Conte
 		}
 	}
 	args["lastName"] = arg1
+	var arg2 *string
+	if tmp, ok := rawArgs["nickName"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nickName"))
+		arg2, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["nickName"] = arg2
 	return args, nil
 }
 
@@ -2931,7 +2940,7 @@ func (ec *executionContext) _Mutation_updateUserName(ctx context.Context, field 
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().UpdateUserName(rctx, fc.Args["firstName"].(string), fc.Args["lastName"].(*string))
+		return ec.resolvers.Mutation().UpdateUserName(rctx, fc.Args["firstName"].(string), fc.Args["lastName"].(*string), fc.Args["nickName"].(*string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
