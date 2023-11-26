@@ -1291,7 +1291,6 @@ type UserMutation struct {
 	firstName          *string
 	lastName           *string
 	nickName           *string
-	name               *string
 	clearedFields      map[string]struct{}
 	groups             map[int]struct{}
 	removedgroups      map[int]struct{}
@@ -1660,55 +1659,6 @@ func (m *UserMutation) ResetNickName() {
 	delete(m.clearedFields, user.FieldNickName)
 }
 
-// SetName sets the "name" field.
-func (m *UserMutation) SetName(s string) {
-	m.name = &s
-}
-
-// Name returns the value of the "name" field in the mutation.
-func (m *UserMutation) Name() (r string, exists bool) {
-	v := m.name
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldName returns the old "name" field's value of the User entity.
-// If the User object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *UserMutation) OldName(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldName is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldName requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldName: %w", err)
-	}
-	return oldValue.Name, nil
-}
-
-// ClearName clears the value of the "name" field.
-func (m *UserMutation) ClearName() {
-	m.name = nil
-	m.clearedFields[user.FieldName] = struct{}{}
-}
-
-// NameCleared returns if the "name" field was cleared in this mutation.
-func (m *UserMutation) NameCleared() bool {
-	_, ok := m.clearedFields[user.FieldName]
-	return ok
-}
-
-// ResetName resets all changes to the "name" field.
-func (m *UserMutation) ResetName() {
-	m.name = nil
-	delete(m.clearedFields, user.FieldName)
-}
-
 // AddGroupIDs adds the "groups" edge to the Group entity by ids.
 func (m *UserMutation) AddGroupIDs(ids ...int) {
 	if m.groups == nil {
@@ -1905,7 +1855,7 @@ func (m *UserMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *UserMutation) Fields() []string {
-	fields := make([]string, 0, 7)
+	fields := make([]string, 0, 6)
 	if m.create_time != nil {
 		fields = append(fields, user.FieldCreateTime)
 	}
@@ -1923,9 +1873,6 @@ func (m *UserMutation) Fields() []string {
 	}
 	if m.nickName != nil {
 		fields = append(fields, user.FieldNickName)
-	}
-	if m.name != nil {
-		fields = append(fields, user.FieldName)
 	}
 	return fields
 }
@@ -1947,8 +1894,6 @@ func (m *UserMutation) Field(name string) (ent.Value, bool) {
 		return m.LastName()
 	case user.FieldNickName:
 		return m.NickName()
-	case user.FieldName:
-		return m.Name()
 	}
 	return nil, false
 }
@@ -1970,8 +1915,6 @@ func (m *UserMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldLastName(ctx)
 	case user.FieldNickName:
 		return m.OldNickName(ctx)
-	case user.FieldName:
-		return m.OldName(ctx)
 	}
 	return nil, fmt.Errorf("unknown User field %s", name)
 }
@@ -2023,13 +1966,6 @@ func (m *UserMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetNickName(v)
 		return nil
-	case user.FieldName:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetName(v)
-		return nil
 	}
 	return fmt.Errorf("unknown User field %s", name)
 }
@@ -2069,9 +2005,6 @@ func (m *UserMutation) ClearedFields() []string {
 	if m.FieldCleared(user.FieldNickName) {
 		fields = append(fields, user.FieldNickName)
 	}
-	if m.FieldCleared(user.FieldName) {
-		fields = append(fields, user.FieldName)
-	}
 	return fields
 }
 
@@ -2094,9 +2027,6 @@ func (m *UserMutation) ClearField(name string) error {
 		return nil
 	case user.FieldNickName:
 		m.ClearNickName()
-		return nil
-	case user.FieldName:
-		m.ClearName()
 		return nil
 	}
 	return fmt.Errorf("unknown User nullable field %s", name)
@@ -2123,9 +2053,6 @@ func (m *UserMutation) ResetField(name string) error {
 		return nil
 	case user.FieldNickName:
 		m.ResetNickName()
-		return nil
-	case user.FieldName:
-		m.ResetName()
 		return nil
 	}
 	return fmt.Errorf("unknown User field %s", name)

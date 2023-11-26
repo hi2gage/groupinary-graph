@@ -26,8 +26,6 @@ const (
 	FieldLastName = "last_name"
 	// FieldNickName holds the string denoting the nickname field in the database.
 	FieldNickName = "nick_name"
-	// FieldName holds the string denoting the name field in the database.
-	FieldName = "name"
 	// EdgeGroups holds the string denoting the groups edge name in mutations.
 	EdgeGroups = "groups"
 	// EdgeDefinitions holds the string denoting the definitions edge name in mutations.
@@ -66,7 +64,6 @@ var Columns = []string{
 	FieldFirstName,
 	FieldLastName,
 	FieldNickName,
-	FieldName,
 }
 
 var (
@@ -132,11 +129,6 @@ func ByLastName(opts ...sql.OrderTermOption) OrderOption {
 // ByNickName orders the results by the nickName field.
 func ByNickName(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldNickName, opts...).ToFunc()
-}
-
-// ByName orders the results by the name field.
-func ByName(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldName, opts...).ToFunc()
 }
 
 // ByGroupsCount orders the results by groups count.
