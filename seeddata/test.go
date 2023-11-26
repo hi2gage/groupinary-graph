@@ -111,7 +111,7 @@ func Test(ctx context.Context, client *ent.Client) error {
 	group := []*ent.GroupCreate{
 		client.Group.Create().
 			SetDescription("the Boys").
-			AddRootWords(
+			AddWords(
 				client.Word.
 					Create().
 					SetDescription("Shrek").

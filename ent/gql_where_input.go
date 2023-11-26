@@ -355,9 +355,9 @@ type GroupWhereInput struct {
 	DescriptionEqualFold    *string  `json:"descriptionEqualFold,omitempty"`
 	DescriptionContainsFold *string  `json:"descriptionContainsFold,omitempty"`
 
-	// "rootWords" edge predicates.
-	HasRootWords     *bool             `json:"hasRootWords,omitempty"`
-	HasRootWordsWith []*WordWhereInput `json:"hasRootWordsWith,omitempty"`
+	// "words" edge predicates.
+	HasWords     *bool             `json:"hasWords,omitempty"`
+	HasWordsWith []*WordWhereInput `json:"hasWordsWith,omitempty"`
 
 	// "users" edge predicates.
 	HasUsers     *bool             `json:"hasUsers,omitempty"`
@@ -547,23 +547,23 @@ func (i *GroupWhereInput) P() (predicate.Group, error) {
 		predicates = append(predicates, group.DescriptionContainsFold(*i.DescriptionContainsFold))
 	}
 
-	if i.HasRootWords != nil {
-		p := group.HasRootWords()
-		if !*i.HasRootWords {
+	if i.HasWords != nil {
+		p := group.HasWords()
+		if !*i.HasWords {
 			p = group.Not(p)
 		}
 		predicates = append(predicates, p)
 	}
-	if len(i.HasRootWordsWith) > 0 {
-		with := make([]predicate.Word, 0, len(i.HasRootWordsWith))
-		for _, w := range i.HasRootWordsWith {
+	if len(i.HasWordsWith) > 0 {
+		with := make([]predicate.Word, 0, len(i.HasWordsWith))
+		for _, w := range i.HasWordsWith {
 			p, err := w.P()
 			if err != nil {
-				return nil, fmt.Errorf("%w: field 'HasRootWordsWith'", err)
+				return nil, fmt.Errorf("%w: field 'HasWordsWith'", err)
 			}
 			with = append(with, p)
 		}
-		predicates = append(predicates, group.HasRootWordsWith(with...))
+		predicates = append(predicates, group.HasWordsWith(with...))
 	}
 	if i.HasUsers != nil {
 		p := group.HasUsers()

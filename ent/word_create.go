@@ -82,14 +82,6 @@ func (wc *WordCreate) SetGroupID(id int) *WordCreate {
 	return wc
 }
 
-// SetNillableGroupID sets the "group" edge to the Group entity by ID if the given value is not nil.
-func (wc *WordCreate) SetNillableGroupID(id *int) *WordCreate {
-	if id != nil {
-		wc = wc.SetGroupID(*id)
-	}
-	return wc
-}
-
 // SetGroup sets the "group" edge to the Group entity.
 func (wc *WordCreate) SetGroup(g *Group) *WordCreate {
 	return wc.SetGroupID(g.ID)
@@ -201,6 +193,9 @@ func (wc *WordCreate) check() error {
 			return &ValidationError{Name: "description", err: fmt.Errorf(`ent: validator failed for field "Word.description": %w`, err)}
 		}
 	}
+	if _, ok := wc.mutation.GroupID(); !ok {
+		return &ValidationError{Name: "group", err: errors.New(`ent: missing required edge "Word.group"`)}
+	}
 	return nil
 }
 
@@ -270,7 +265,7 @@ func (wc *WordCreate) createSpec() (*Word, *sqlgraph.CreateSpec) {
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		_node.group_root_words = &nodes[0]
+		_node.group_words = &nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := wc.mutation.DefinitionsIDs(); len(nodes) > 0 {

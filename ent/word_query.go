@@ -652,10 +652,10 @@ func (wq *WordQuery) loadGroup(ctx context.Context, query *GroupQuery, nodes []*
 	ids := make([]int, 0, len(nodes))
 	nodeids := make(map[int][]*Word)
 	for i := range nodes {
-		if nodes[i].group_root_words == nil {
+		if nodes[i].group_words == nil {
 			continue
 		}
-		fk := *nodes[i].group_root_words
+		fk := *nodes[i].group_words
 		if _, ok := nodeids[fk]; !ok {
 			ids = append(ids, fk)
 		}
@@ -672,7 +672,7 @@ func (wq *WordQuery) loadGroup(ctx context.Context, query *GroupQuery, nodes []*
 	for _, n := range neighbors {
 		nodes, ok := nodeids[n.ID]
 		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "group_root_words" returned %v`, n.ID)
+			return fmt.Errorf(`unexpected foreign-key "group_words" returned %v`, n.ID)
 		}
 		for i := range nodes {
 			assign(nodes[i], n)

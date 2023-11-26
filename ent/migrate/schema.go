@@ -71,7 +71,7 @@ var (
 		{Name: "create_time", Type: field.TypeTime},
 		{Name: "update_time", Type: field.TypeTime},
 		{Name: "description", Type: field.TypeString},
-		{Name: "group_root_words", Type: field.TypeInt, Nullable: true},
+		{Name: "group_words", Type: field.TypeInt},
 		{Name: "user_words", Type: field.TypeInt, Nullable: true},
 	}
 	// WordsTable holds the schema information for the "words" table.
@@ -81,10 +81,10 @@ var (
 		PrimaryKey: []*schema.Column{WordsColumns[0]},
 		ForeignKeys: []*schema.ForeignKey{
 			{
-				Symbol:     "words_groups_rootWords",
+				Symbol:     "words_groups_words",
 				Columns:    []*schema.Column{WordsColumns[4]},
 				RefColumns: []*schema.Column{GroupsColumns[0]},
-				OnDelete:   schema.SetNull,
+				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "words_users_words",
