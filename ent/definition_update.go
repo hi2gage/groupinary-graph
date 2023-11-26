@@ -40,6 +40,14 @@ func (du *DefinitionUpdate) SetDescription(s string) *DefinitionUpdate {
 	return du
 }
 
+// SetNillableDescription sets the "description" field if the given value is not nil.
+func (du *DefinitionUpdate) SetNillableDescription(s *string) *DefinitionUpdate {
+	if s != nil {
+		du.SetDescription(*s)
+	}
+	return du
+}
+
 // Mutation returns the DefinitionMutation object of the builder.
 func (du *DefinitionUpdate) Mutation() *DefinitionMutation {
 	return du.mutation
@@ -138,6 +146,14 @@ func (duo *DefinitionUpdateOne) SetUpdateTime(t time.Time) *DefinitionUpdateOne 
 // SetDescription sets the "description" field.
 func (duo *DefinitionUpdateOne) SetDescription(s string) *DefinitionUpdateOne {
 	duo.mutation.SetDescription(s)
+	return duo
+}
+
+// SetNillableDescription sets the "description" field if the given value is not nil.
+func (duo *DefinitionUpdateOne) SetNillableDescription(s *string) *DefinitionUpdateOne {
+	if s != nil {
+		duo.SetDescription(*s)
+	}
 	return duo
 }
 
