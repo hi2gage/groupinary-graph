@@ -1,0 +1,14 @@
+- id: 1
+  create_time: "2023-11-26T22:49:23.705302-07:00"
+  update_time: "2023-11-26T22:49:23.705302-07:00"
+  auth_id: "test_auth_id_1"
+  first_name: "Test"
+  last_name: "User"
+  nick_name: "TestNick"
+- id: 2
+  create_time: "2023-11-26T22:49:23.705302-07:00"
+  update_time: "2023-11-26T22:49:23.705302-07:00"
+  auth_id: "test_auth_id_2"
+  first_name: "Test 2"
+  last_name: "User 2"
+  nick_name: "TestNick 2"
