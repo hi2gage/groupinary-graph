@@ -23,7 +23,6 @@ func TestCurrentUser(t *testing.T) {
 	// Create a query resolver with the test client
 	resolver := &queryResolver{
 		Resolver: &Resolver{
-			// Assuming the Resolver struct also has a client field
 			client: client,
 		},
 	}
@@ -95,6 +94,7 @@ func TestCurrentUser(t *testing.T) {
 	}
 }
 
+// Helper functions
 func compareUsers(t *testing.T, expected, actual *ent.User) {
 	assert.Equal(t, expected.ID, actual.ID, "User ID should match")
 	assert.True(t, expected.CreateTime.Equal(actual.CreateTime.UTC()), "User CreateTime should match")
