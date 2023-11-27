@@ -1,0 +1,3 @@
+#!/bin/zsh
+
+go run gotest.tools/gotestsum@latest -- -race -p 1 -covermode=atomic ./...
