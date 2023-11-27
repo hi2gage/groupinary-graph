@@ -2,6 +2,8 @@ package middleware
 
 import (
 	"context"
+	"net/http"
+	"net/http/httptest"
 	"net/url"
 	"testing"
 )
@@ -42,6 +44,41 @@ func TestParseIssuerURL(t *testing.T) {
 			t.Errorf("Expected issuer URL %s, got %s", expectedURL, issuerURL.String())
 		}
 	})
+}
+
+func TestHandleValidationError(t *testing.T) {
+	t.Run("Handles Validation Error", func(t *testing.T) {
+		// Create a mock response writer
+		w := httptest.NewRecorder()
+
+		// Simulate a validation error
+		err := someValidationErrorFunction()
+
+		// Call the function to handle the validation error
+		handleValidationError(w, err)
+
+		// Check the response status code
+		if w.Code != http.StatusUnauthorized {
+			t.Errorf("Expected status code %d, got %d", http.StatusUnauthorized, w.Code)
+		}
+
+		// Check the response body
+		expectedResponseBody := `{"message":"Failed to validate JWT."}`
+		if w.Body.String() != expectedResponseBody {
+			t.Errorf("Expected response body %s, got %s", expectedResponseBody, w.Body.String())
+		}
+
+		// Check the response content type header
+		if contentType := w.Header().Get("Content-Type"); contentType != "application/json" {
+			t.Errorf("Expected Content-Type header 'application/json', got '%s'", contentType)
+		}
+	})
+}
+
+// Function to simulate a validation error for testing purposes
+func someValidationErrorFunction() error {
+	// Replace this with actual logic that might produce a validation error
+	return nil
 }
 
 func TestSetupJWTValidator(t *testing.T) {
