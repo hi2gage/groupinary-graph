@@ -27,45 +27,69 @@ func (c CustomClaims) Validate(ctx context.Context) error {
 	return nil
 }
 
-// EnsureValidToken is a middleware that will check the validity of our JWT.
-func EnsureValidToken(client *ent.Client) func(next http.Handler) http.Handler {
+func parseIssuerURL() *url.URL {
 	issuerURL, err := url.Parse("https://dev-afmzazq3cr35ktpl.us.auth0.com/")
 	if err != nil {
 		log.Fatalf("Failed to parse the issuer URL: %v", err)
 	}
 	log.Printf("issuerURL: %s", issuerURL)
+	return issuerURL
+}
 
+func setupJWTValidator(issuerURL *url.URL) (*validator.Validator, error) {
 	provider := jwks.NewCachingProvider(issuerURL, 5*time.Minute)
-
 	jwtValidator, err := validator.New(
 		provider.KeyFunc,
 		validator.RS256,
 		issuerURL.String(),
 		[]string{"https://shrektionary.com/api", "4W01gsxupS4xoLLxbe8jdVVlGTFOKjd3"},
-		validator.WithCustomClaims(
-			func() validator.CustomClaims {
-				return &CustomClaims{}
-			},
-		),
+		validator.WithCustomClaims(func() validator.CustomClaims {
+			return &CustomClaims{}
+		}),
 		validator.WithAllowedClockSkew(time.Minute),
 	)
 	if err != nil {
-		log.Fatalf("Failed to set up the JWT validator")
+		return nil, fmt.Errorf("failed to set up the JWT validator: %w", err)
 	}
+	return jwtValidator, nil
+}
 
+func handleValidationError(w http.ResponseWriter, err error) {
+	log.Printf("Encountered error while validating JWT: %v", err)
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusUnauthorized)
+	w.Write([]byte(`{"message":"Failed to validate JWT."}`))
+}
+
+// EnsureValidToken is a middleware that will check the validity of our JWT.
+func EnsureValidToken(client *ent.Client) func(next http.Handler) http.Handler {
+	issuerURL := parseIssuerURL()
 	errorHandler := func(w http.ResponseWriter, r *http.Request, err error) {
-		log.Printf("Encountered error while validating JWT: %v", err)
-
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusUnauthorized)
-		w.Write([]byte(`{"message":"Failed to validate JWT."}`))
+		handleValidationError(w, err)
 	}
 
-	middleware := jwtmiddleware.New(
+	jwtValidator, err := setupJWTValidator(issuerURL)
+	if err != nil {
+		return func(next http.Handler) http.Handler {
+			return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				errorHandler(w, r, err)
+			})
+		}
+	}
+
+	middleware := createJWTMiddleware(jwtValidator, errorHandler, client)
+
+	return validateJWTAndHandleUser(client, middleware)
+}
+
+func createJWTMiddleware(jwtValidator *validator.Validator, errorHandler jwtmiddleware.ErrorHandler, client *ent.Client) *jwtmiddleware.JWTMiddleware {
+	return jwtmiddleware.New(
 		jwtValidator.ValidateToken,
 		jwtmiddleware.WithErrorHandler(errorHandler),
 	)
+}
 
+func validateJWTAndHandleUser(client *ent.Client, middleware *jwtmiddleware.JWTMiddleware) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return middleware.CheckJWT(
 			http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
