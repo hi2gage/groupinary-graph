@@ -13,7 +13,7 @@ import (
 )
 
 // CurrentUser is the resolver for the currentUser field.
-func (r *queryResolver) CurrentUser(ctx context.Context, input *int) (*ent.User, error) {
+func (r *queryResolver) CurrentUser(ctx context.Context) (*ent.User, error) {
 	creatorID, err := utils.GetCreatorIDFromContext(ctx)
 	if err != nil {
 		return nil, err
