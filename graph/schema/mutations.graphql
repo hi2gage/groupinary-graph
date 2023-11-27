@@ -15,7 +15,7 @@ extend type Mutation {
 }
 
 extend type Mutation {
-    addRootWord(rootWord: String!, rootDefinition: String): Word!
+    addRootWord(rootWord: String!, groupID: ID!, rootDefinition: String): Word!
 
     "AddChildWord Testing documentation"
     addChildWord(

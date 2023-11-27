@@ -69,7 +69,7 @@ func (r *mutationResolver) UpdateUserName(ctx context.Context, firstName string,
 }
 
 // AddRootWord is the resolver for the addRootWord field.
-func (r *mutationResolver) AddRootWord(ctx context.Context, rootWord string, rootDefinition *string) (*ent.Word, error) {
+func (r *mutationResolver) AddRootWord(ctx context.Context, rootWord string, groupID int, rootDefinition *string) (*ent.Word, error) {
 	creatorID, err := utils.GetCreatorIDFromContext(ctx)
 	if err != nil {
 		return nil, err
@@ -77,7 +77,8 @@ func (r *mutationResolver) AddRootWord(ctx context.Context, rootWord string, roo
 
 	wordCreate := r.client.Word.Create().
 		SetCreatorID(creatorID).
-		SetDescription(rootWord)
+		SetDescription(rootWord).
+		SetGroupID(groupID)
 
 	if rootDefinition != nil {
 		definition, err := r.client.Definition.Create().

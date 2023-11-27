@@ -82,7 +82,7 @@ type ComplexityRoot struct {
 	Mutation struct {
 		AddChildWord     func(childComplexity int, rootIds []int, childWord string, childDefinition *string) int
 		AddDefinition    func(childComplexity int, wordID int, definition string) int
-		AddRootWord      func(childComplexity int, rootWord string, rootDefinition *string) int
+		AddRootWord      func(childComplexity int, rootWord string, groupID int, rootDefinition *string) int
 		ConnectWords     func(childComplexity int, parentID int, childID int) int
 		CreateGroup      func(childComplexity int, name string, description *string) int
 		DeleteDefinition func(childComplexity int, id int) int
@@ -156,7 +156,7 @@ type MutationResolver interface {
 	DeleteWord(ctx context.Context, id int) (bool, error)
 	DeleteDefinition(ctx context.Context, id int) (bool, error)
 	UpdateUserName(ctx context.Context, firstName string, lastName *string, nickName *string) (*ent.User, error)
-	AddRootWord(ctx context.Context, rootWord string, rootDefinition *string) (*ent.Word, error)
+	AddRootWord(ctx context.Context, rootWord string, groupID int, rootDefinition *string) (*ent.Word, error)
 	AddChildWord(ctx context.Context, rootIds []int, childWord string, childDefinition *string) (*ent.Word, error)
 	AddDefinition(ctx context.Context, wordID int, definition string) (*ent.Definition, error)
 	ConnectWords(ctx context.Context, parentID int, childID int) (*ent.Word, error)
@@ -358,7 +358,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.AddRootWord(childComplexity, args["rootWord"].(string), args["rootDefinition"].(*string)), true
+		return e.complexity.Mutation.AddRootWord(childComplexity, args["rootWord"].(string), args["groupID"].(int), args["rootDefinition"].(*string)), true
 
 	case "Mutation.connectWords":
 		if e.complexity.Mutation.ConnectWords == nil {
@@ -1033,15 +1033,24 @@ func (ec *executionContext) field_Mutation_addRootWord_args(ctx context.Context,
 		}
 	}
 	args["rootWord"] = arg0
-	var arg1 *string
-	if tmp, ok := rawArgs["rootDefinition"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("rootDefinition"))
-		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+	var arg1 int
+	if tmp, ok := rawArgs["groupID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("groupID"))
+		arg1, err = ec.unmarshalNID2int(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["rootDefinition"] = arg1
+	args["groupID"] = arg1
+	var arg2 *string
+	if tmp, ok := rawArgs["rootDefinition"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("rootDefinition"))
+		arg2, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["rootDefinition"] = arg2
 	return args, nil
 }
 
@@ -3040,7 +3049,7 @@ func (ec *executionContext) _Mutation_addRootWord(ctx context.Context, field gra
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().AddRootWord(rctx, fc.Args["rootWord"].(string), fc.Args["rootDefinition"].(*string))
+		return ec.resolvers.Mutation().AddRootWord(rctx, fc.Args["rootWord"].(string), fc.Args["groupID"].(int), fc.Args["rootDefinition"].(*string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
