@@ -2,9 +2,12 @@ package resolvers
 
 import (
 	"context"
+	"groupinary/ent"
 	"groupinary/ent/enttest"
 	"groupinary/ent/group"
+	"groupinary/utils"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -197,6 +200,180 @@ func TestDeleteGroup(t *testing.T) {
 				deletedGroup, err := client.Group.Query().Where(group.ID(tc.id)).Only(tc.ctx)
 				assert.Error(t, err, "Expecting an error when trying to query a deleted group")
 				assert.Nil(t, deletedGroup, "Deleted group should be nil")
+			}
+		})
+	}
+}
+
+func TestDeleteWord(t *testing.T) {
+	client := enttest.Open(t, "sqlite3", "file:ent?mode=memory&_fk=1")
+	defer client.Close()
+
+	// Create a mutation resolver with the test client
+	resolver := &mutationResolver{
+		Resolver: &Resolver{
+			client: client.Debug(),
+		},
+	}
+
+	// Create a test user
+	baseUser := &ent.User{
+		ID:         123,
+		CreateTime: time.Now(),
+		UpdateTime: time.Now(),
+		AuthID:     "test_auth_id",
+		FirstName:  "Test",
+		LastName:   "User",
+		NickName:   "TestNick",
+	}
+
+	testUser, err := client.User.Create().
+		SetCreateTime(baseUser.CreateTime).
+		SetUpdateTime(baseUser.UpdateTime).
+		SetAuthID(baseUser.AuthID).
+		SetFirstName(baseUser.FirstName).
+		SetLastName(baseUser.LastName).
+		SetNickName(baseUser.NickName).
+		Save(context.Background())
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	ctx := utils.AddUserIdToContext(context.Background(), testUser.ID)
+
+	// Create a test group
+	groupName := "Test Group"
+	testGroup, err := resolver.CreateGroup(ctx, groupName, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Create a test word, referencing the group
+	testWord, err := resolver.AddRootWord(ctx, "TestRootWord", testGroup.ID, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	testCases := []struct {
+		name          string
+		ctx           context.Context
+		id            int
+		expectedError string
+	}{
+		{
+			name:          "Happy Path",
+			ctx:           context.Background(),
+			id:            testWord.ID,
+			expectedError: "",
+		},
+		{
+			name:          "Non-Existent Word",
+			ctx:           context.Background(),
+			id:            999, // Non-existent ID
+			expectedError: "ent: word not found",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			deleted, err := resolver.DeleteWord(tc.ctx, tc.id)
+
+			if err != nil {
+				assert.Contains(t, err.Error(), tc.expectedError, "Error message should contain the expected substring")
+				assert.False(t, deleted, "Deleted should be false on error")
+			} else {
+				assert.NoError(t, err, "Unexpected error")
+				assert.True(t, deleted, "Deleted should be true")
+			}
+		})
+	}
+}
+
+func TestDeleteDefinition(t *testing.T) {
+	client := enttest.Open(t, "sqlite3", "file:ent?mode=memory&_fk=1")
+	defer client.Close()
+
+	// Create a mutation resolver with the test client
+	resolver := &mutationResolver{
+		Resolver: &Resolver{
+			client: client,
+		},
+	}
+
+	// Create a test user
+	baseUser := &ent.User{
+		ID:         123,
+		CreateTime: time.Now(),
+		UpdateTime: time.Now(),
+		AuthID:     "test_auth_id",
+		FirstName:  "Test",
+		LastName:   "User",
+		NickName:   "TestNick",
+	}
+
+	testUser, err := client.User.Create().
+		SetCreateTime(baseUser.CreateTime).
+		SetUpdateTime(baseUser.UpdateTime).
+		SetAuthID(baseUser.AuthID).
+		SetFirstName(baseUser.FirstName).
+		SetLastName(baseUser.LastName).
+		SetNickName(baseUser.NickName).
+		Save(context.Background())
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	ctx := utils.AddUserIdToContext(context.Background(), testUser.ID)
+
+	// Create a test group
+	groupName := "Test Group"
+	testGroup, err := resolver.CreateGroup(ctx, groupName, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Create a test word, referencing the group
+	testWord, err := resolver.AddRootWord(ctx, "TestRootWord", testGroup.ID, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Create a test definition to delete
+	testDefinition, err := resolver.AddDefinition(ctx, testWord.ID, "TestDefinition")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	testCases := []struct {
+		name          string
+		ctx           context.Context
+		id            int
+		expectedError string
+	}{
+		{
+			name:          "Happy Path",
+			ctx:           context.Background(),
+			id:            testDefinition.ID,
+			expectedError: "",
+		},
+		{
+			name:          "Non-Existent Definition",
+			ctx:           context.Background(),
+			id:            999, // Non-existent ID
+			expectedError: "ent: definition not found",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			deleted, err := resolver.DeleteDefinition(tc.ctx, tc.id)
+
+			if err != nil {
+				assert.Contains(t, err.Error(), tc.expectedError, "Error message should contain the expected substring")
+				assert.False(t, deleted, "Deleted should be false on error")
+			} else {
+				assert.NoError(t, err, "Unexpected error")
+				assert.True(t, deleted, "Deleted should be true")
 			}
 		})
 	}
