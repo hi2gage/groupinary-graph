@@ -168,6 +168,69 @@ func TestCreateGroup(t *testing.T) {
 	}
 }
 
+func TestUpdateGroupName(t *testing.T) {
+	client := enttest.Open(t, "sqlite3", "file:ent?mode=memory&_fk=1")
+	defer client.Close()
+
+	// Create a mutation resolver with the test client
+	resolver := &mutationResolver{
+		Resolver: &Resolver{
+			client: client,
+		},
+	}
+
+	// Create a test group to update
+	testGroup, err := resolver.CreateGroup(context.Background(), "TestGroup", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	testCases := []struct {
+		name          string
+		ctx           context.Context
+		id            int
+		newName       string
+		expectedError string
+	}{
+		{
+			name:          "Happy Path",
+			ctx:           context.Background(),
+			id:            testGroup.ID,
+			newName:       "UpdatedGroupName",
+			expectedError: "",
+		},
+		{
+			name:          "Invalid Input (empty name)",
+			ctx:           context.Background(),
+			id:            testGroup.ID,
+			newName:       "",
+			expectedError: "ent: validator failed for field \"Group.name\": value is less than the required length",
+		},
+		{
+			name:          "Non-Existent Group",
+			ctx:           context.Background(),
+			id:            999, // Non-existent ID
+			newName:       "UpdatedGroupName",
+			expectedError: "ent: group not found",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			group, err := resolver.UpdateGroupName(tc.ctx, tc.id, tc.newName)
+
+			if err != nil {
+				assert.Contains(t, err.Error(), tc.expectedError, "Error message should contain the expected substring")
+				assert.Nil(t, group, "Group should be nil on error")
+			} else {
+				assert.NoError(t, err, "Unexpected error")
+				assert.NotNil(t, group, "Group should not be nil")
+				assert.Equal(t, tc.newName, group.Name, "Group name should match the updated name")
+			}
+		})
+	}
+}
+
 func compareUsers(t *testing.T, expected, actual *ent.User) {
 	assert.Equal(t, expected.ID, actual.ID, "User ID should match")
 	assert.True(t, expected.CreateTime.Equal(actual.CreateTime.UTC()), "User CreateTime should match")
