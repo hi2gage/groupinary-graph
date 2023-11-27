@@ -23,7 +23,6 @@ func TestCurrentUser(t *testing.T) {
 	// Create a query resolver with the test client
 	resolver := &queryResolver{
 		Resolver: &Resolver{
-			// Assuming the Resolver struct also has a client field
 			client: client,
 		},
 	}
@@ -90,6 +89,80 @@ func TestCurrentUser(t *testing.T) {
 			if !tc.expectedErr {
 				assert.NotNil(t, resultUser, "User should not be nil when there is no error")
 				compareUsers(t, testUser, resultUser)
+			}
+		})
+	}
+}
+
+func TestCreateGroup(t *testing.T) {
+	client := enttest.Open(t, "sqlite3", "file:ent?mode=memory&_fk=1")
+	defer client.Close()
+
+	// Create a mutation resolver with the test client
+	resolver := &mutationResolver{
+		Resolver: &Resolver{
+			client: client,
+		},
+	}
+
+	expectedDescription := "description"
+	expectedEmptyDescription := "description"
+
+	testCases := []struct {
+		name             string
+		ctx              context.Context
+		nameInput        string
+		descriptionInput *string
+		expectedError    string
+	}{
+		{
+			name:             "Happy Path",
+			ctx:              context.Background(),
+			nameInput:        "TestGroup",
+			descriptionInput: nil,
+			expectedError:    "",
+		},
+		{
+			name:             "Happy Path with description",
+			ctx:              context.Background(),
+			nameInput:        "TestGroup",
+			descriptionInput: &expectedDescription,
+			expectedError:    "",
+		},
+		{
+			name:             "Happy Path with (empty description)",
+			ctx:              context.Background(),
+			nameInput:        "TestGroup",
+			descriptionInput: &expectedEmptyDescription,
+			expectedError:    "",
+		},
+		{
+			name:             "Invalid Input (empty name)",
+			ctx:              context.Background(),
+			nameInput:        "",
+			descriptionInput: nil,
+			expectedError:    "ent: validator failed for field \"Group.name\": value is less than the required length",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			group, err := resolver.CreateGroup(tc.ctx, tc.nameInput, tc.descriptionInput)
+
+			if err != nil {
+				assert.Contains(t, err.Error(), tc.expectedError, "Error message should contain the expected substring")
+				assert.Nil(t, group, "Group should be nil on error")
+			} else {
+				assert.NoError(t, err, "Unexpected error")
+				assert.NotNil(t, group, "Group should not be nil")
+				assert.Equal(t, tc.nameInput, group.Name, "Group name should match")
+
+				// Check if the description matches or is nil
+				if tc.descriptionInput != nil {
+					assert.Equal(t, *tc.descriptionInput, group.Description, "Group description should match")
+				} else {
+					assert.Equal(t, "", group.Description, "Group description should be an empty string // Got: %v", group.Description)
+				}
 			}
 		})
 	}
