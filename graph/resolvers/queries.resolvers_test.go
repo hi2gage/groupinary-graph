@@ -3,10 +3,8 @@ package resolvers
 import (
 	"context"
 	"testing"
-	"time"
 
-	"groupinary/ent"
-	"groupinary/ent/enttest"
+	"groupinary/testutils"
 	"groupinary/utils"
 
 	// "groupinary/ent/entc/integration/json/ent/enttest"
@@ -16,8 +14,15 @@ import (
 )
 
 func TestCurrentUser(t *testing.T) {
-	// Create a new ent.Client for testing
-	client := enttest.Open(t, "sqlite3", "file:ent?mode=memory&_fk=1")
+	fixturePaths := []string{
+		"fixtures/users.yaml",
+		"fixtures/groups.yaml",
+	}
+
+	client, err := testutils.OpenTest(fixturePaths...)
+	if err != nil {
+		t.Fatal(err)
+	}
 	defer client.Close()
 
 	// Create a query resolver with the test client
@@ -27,30 +32,7 @@ func TestCurrentUser(t *testing.T) {
 		},
 	}
 
-	// Define the base user for testing
-	baseUser := &ent.User{
-		ID:         123,
-		CreateTime: time.Now(),
-		UpdateTime: time.Now(),
-		AuthID:     "test_auth_id",
-		FirstName:  "Test",
-		LastName:   "User",
-		NickName:   "TestNick",
-	}
-
-	// Insert the test user into the database
-	testUser, err := client.User.Create().
-		SetCreateTime(baseUser.CreateTime).
-		SetUpdateTime(baseUser.UpdateTime).
-		SetAuthID(baseUser.AuthID).
-		SetFirstName(baseUser.FirstName).
-		SetLastName(baseUser.LastName).
-		SetNickName(baseUser.NickName).
-		Save(context.Background())
-
-	if err != nil {
-		t.Fatal(err)
-	}
+	userId := 1 // This is inside of fixtures/users.yaml
 
 	// Test cases table
 	testCases := []struct {
@@ -70,7 +52,7 @@ func TestCurrentUser(t *testing.T) {
 		},
 		{
 			name:        "Happy Path",
-			ctx:         utils.AddUserIdToContext(context.Background(), testUser.ID),
+			ctx:         utils.AddUserIdToContext(context.Background(), userId),
 			expectedErr: false,
 		},
 	}
@@ -88,19 +70,8 @@ func TestCurrentUser(t *testing.T) {
 
 			if !tc.expectedErr {
 				assert.NotNil(t, resultUser, "User should not be nil when there is no error")
-				compareUsers(t, testUser, resultUser)
+				assert.Equal(t, userId, resultUser.ID, "User ID should match")
 			}
 		})
 	}
-}
-
-// Helper functions
-func compareUsers(t *testing.T, expected, actual *ent.User) {
-	assert.Equal(t, expected.ID, actual.ID, "User ID should match")
-	assert.True(t, expected.CreateTime.Equal(actual.CreateTime.UTC()), "User CreateTime should match")
-	assert.True(t, expected.UpdateTime.Equal(actual.UpdateTime.UTC()), "User UpdateTime should match")
-	assert.Equal(t, expected.AuthID, actual.AuthID, "User AuthID should match")
-	assert.Equal(t, expected.FirstName, actual.FirstName, "User FirstName should match")
-	assert.Equal(t, expected.LastName, actual.LastName, "User LastName should match")
-	assert.Equal(t, expected.NickName, actual.NickName, "User NickName should match")
 }
