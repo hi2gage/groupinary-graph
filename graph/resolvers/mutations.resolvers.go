@@ -23,7 +23,7 @@ func (r *mutationResolver) CreateGroup(ctx context.Context, name string, descrip
 func (r *mutationResolver) UpdateGroupName(ctx context.Context, id int, name string) (*ent.Group, error) {
 	groupUpdate := r.client.Group.UpdateOneID(id)
 
-	groupUpdate.SetDescription(name)
+	groupUpdate.SetName(name)
 
 	return groupUpdate.Save(ctx)
 }
