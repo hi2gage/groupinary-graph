@@ -27,3 +27,6 @@ Temporary Items
 
 # Air Related
 tmp/
+
+# Testing
+coverage.txt
