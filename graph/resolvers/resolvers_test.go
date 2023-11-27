@@ -28,11 +28,9 @@ func TestCurrentUser(t *testing.T) {
 		},
 	}
 
-	testCreatorID := 1
-	ctx := context.Background()
-
-	testUser := &ent.User{
-		ID:         testCreatorID,
+	// Define the base user for testing
+	baseUser := &ent.User{
+		ID:         123,
 		CreateTime: time.Now(),
 		UpdateTime: time.Now(),
 		AuthID:     "test_auth_id",
@@ -42,27 +40,59 @@ func TestCurrentUser(t *testing.T) {
 	}
 
 	// Insert the test user into the database
-	user, err := client.User.Create().
-		SetCreateTime(testUser.CreateTime).
-		SetUpdateTime(testUser.UpdateTime).
-		SetAuthID(testUser.AuthID).
-		SetFirstName(testUser.FirstName).
-		SetLastName(testUser.LastName).
-		SetNickName(testUser.NickName).
-		Save(ctx)
+	testUser, err := client.User.Create().
+		SetCreateTime(baseUser.CreateTime).
+		SetUpdateTime(baseUser.UpdateTime).
+		SetAuthID(baseUser.AuthID).
+		SetFirstName(baseUser.FirstName).
+		SetLastName(baseUser.LastName).
+		SetNickName(baseUser.NickName).
+		Save(context.Background())
 
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	// Add user.ID into the context
-	ctx = utils.AddUserIdToContext(ctx, user.ID)
+	// Test cases table
+	testCases := []struct {
+		name        string
+		ctx         context.Context
+		expectedErr bool
+	}{
+		{
+			name:        "User ID Not Added to Context",
+			ctx:         context.Background(),
+			expectedErr: true,
+		},
+		{
+			name:        "User Not Found in Database",
+			ctx:         utils.AddUserIdToContext(context.Background(), 999999),
+			expectedErr: true,
+		},
+		{
+			name:        "Happy Path",
+			ctx:         utils.AddUserIdToContext(context.Background(), testUser.ID),
+			expectedErr: false,
+		},
+	}
 
-	// Call the function and check the result
-	resultUser, err := resolver.CurrentUser(ctx)
-	assert.NoError(t, err, "Unexpected error")
-	assert.NotNil(t, resultUser, "User should not be nil")
-	compareUsers(t, testUser, resultUser)
+	// Run test cases
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			resultUser, err := resolver.CurrentUser(tc.ctx)
+
+			if tc.expectedErr {
+				assert.Error(t, err, "Expected error")
+			} else {
+				assert.NoError(t, err, "Unexpected error")
+			}
+
+			if !tc.expectedErr {
+				assert.NotNil(t, resultUser, "User should not be nil when there is no error")
+				compareUsers(t, testUser, resultUser)
+			}
+		})
+	}
 }
 
 func compareUsers(t *testing.T, expected, actual *ent.User) {
