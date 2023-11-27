@@ -2,15 +2,15 @@ package resolvers
 
 import (
 	"context"
-	"groupinary/ent"
 	"groupinary/ent/enttest"
 	"groupinary/ent/group"
-	"groupinary/utils"
+	"groupinary/testutils"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/assert"
 )
+
+// Groups
 
 func TestCreateGroup(t *testing.T) {
 	client := enttest.Open(t, "sqlite3", "file:ent?mode=memory&_fk=1")
@@ -23,8 +23,9 @@ func TestCreateGroup(t *testing.T) {
 		},
 	}
 
+	userId := 1
 	expectedDescription := "description"
-	expectedEmptyDescription := "description"
+	expectedEmptyDescription := ""
 
 	testCases := []struct {
 		name             string
@@ -35,28 +36,28 @@ func TestCreateGroup(t *testing.T) {
 	}{
 		{
 			name:             "Happy Path",
-			ctx:              context.Background(),
+			ctx:              testutils.TestContext(userId),
 			nameInput:        "TestGroup",
 			descriptionInput: nil,
 			expectedError:    "",
 		},
 		{
 			name:             "Happy Path with description",
-			ctx:              context.Background(),
+			ctx:              testutils.TestContext(userId),
 			nameInput:        "TestGroup",
 			descriptionInput: &expectedDescription,
 			expectedError:    "",
 		},
 		{
 			name:             "Happy Path with (empty description)",
-			ctx:              context.Background(),
+			ctx:              testutils.TestContext(userId),
 			nameInput:        "TestGroup",
 			descriptionInput: &expectedEmptyDescription,
 			expectedError:    "",
 		},
 		{
 			name:             "Invalid Input (empty name)",
-			ctx:              context.Background(),
+			ctx:              testutils.TestContext(userId),
 			nameInput:        "",
 			descriptionInput: nil,
 			expectedError:    "ent: validator failed for field \"Group.name\": value is less than the required length",
@@ -87,7 +88,15 @@ func TestCreateGroup(t *testing.T) {
 }
 
 func TestUpdateGroupName(t *testing.T) {
-	client := enttest.Open(t, "sqlite3", "file:ent?mode=memory&_fk=1")
+	fixturePaths := []string{
+		"fixtures/users.yaml",
+		"fixtures/groups.yaml",
+	}
+
+	client, err := testutils.OpenTest(fixturePaths...)
+	if err != nil {
+		t.Fatal(err)
+	}
 	defer client.Close()
 
 	// Create a mutation resolver with the test client
@@ -97,11 +106,8 @@ func TestUpdateGroupName(t *testing.T) {
 		},
 	}
 
-	// Create a test group to update
-	testGroup, err := resolver.CreateGroup(context.Background(), "TestGroup", nil)
-	if err != nil {
-		t.Fatal(err)
-	}
+	userId := 1      // This is inside of fixtures/users.yaml
+	testGroupId := 1 // This is inside of fixtures/groups.yaml
 
 	testCases := []struct {
 		name          string
@@ -112,21 +118,21 @@ func TestUpdateGroupName(t *testing.T) {
 	}{
 		{
 			name:          "Happy Path",
-			ctx:           context.Background(),
-			id:            testGroup.ID,
+			ctx:           testutils.TestContext(userId),
+			id:            testGroupId,
 			newName:       "UpdatedGroupName",
 			expectedError: "",
 		},
 		{
 			name:          "Invalid Input (empty name)",
-			ctx:           context.Background(),
-			id:            testGroup.ID,
+			ctx:           testutils.TestContext(userId),
+			id:            testGroupId,
 			newName:       "",
 			expectedError: "ent: validator failed for field \"Group.name\": value is less than the required length",
 		},
 		{
 			name:          "Non-Existent Group",
-			ctx:           context.Background(),
+			ctx:           testutils.TestContext(userId),
 			id:            999, // Non-existent ID
 			newName:       "UpdatedGroupName",
 			expectedError: "ent: group not found",
@@ -150,7 +156,15 @@ func TestUpdateGroupName(t *testing.T) {
 }
 
 func TestDeleteGroup(t *testing.T) {
-	client := enttest.Open(t, "sqlite3", "file:ent?mode=memory&_fk=1")
+	fixturePaths := []string{
+		"fixtures/users.yaml",
+		"fixtures/groups.yaml",
+	}
+
+	client, err := testutils.OpenTest(fixturePaths...)
+	if err != nil {
+		t.Fatal(err)
+	}
 	defer client.Close()
 
 	// Create a mutation resolver with the test client
@@ -160,11 +174,8 @@ func TestDeleteGroup(t *testing.T) {
 		},
 	}
 
-	// Create a test group to delete
-	testGroup, err := resolver.CreateGroup(context.Background(), "TestGroup", nil)
-	if err != nil {
-		t.Fatal(err)
-	}
+	userId := 1      // This is inside of fixtures/users.yaml
+	testGroupId := 1 // This is inside of fixtures/groups.yaml
 
 	testCases := []struct {
 		name          string
@@ -174,13 +185,13 @@ func TestDeleteGroup(t *testing.T) {
 	}{
 		{
 			name:          "Happy Path",
-			ctx:           context.Background(),
-			id:            testGroup.ID,
+			ctx:           testutils.TestContext(userId),
+			id:            testGroupId,
 			expectedError: "",
 		},
 		{
 			name:          "Non-Existent Group",
-			ctx:           context.Background(),
+			ctx:           testutils.TestContext(userId),
 			id:            999, // Non-existent ID
 			expectedError: "ent: group not found",
 		},
@@ -205,54 +216,197 @@ func TestDeleteGroup(t *testing.T) {
 	}
 }
 
-func TestDeleteWord(t *testing.T) {
-	client := enttest.Open(t, "sqlite3", "file:ent?mode=memory&_fk=1")
+// Words
+
+func TestCreateWord(t *testing.T) {
+	fixturePaths := []string{
+		"fixtures/users.yaml",
+		"fixtures/groups.yaml",
+		"fixtures/user_groups.yaml",
+	}
+
+	client, err := testutils.OpenTest(fixturePaths...)
+	if err != nil {
+		t.Fatal(err)
+	}
 	defer client.Close()
 
 	// Create a mutation resolver with the test client
 	resolver := &mutationResolver{
 		Resolver: &Resolver{
-			client: client.Debug(),
+			client: client,
 		},
 	}
 
-	// Create a test user
-	baseUser := &ent.User{
-		ID:         123,
-		CreateTime: time.Now(),
-		UpdateTime: time.Now(),
-		AuthID:     "test_auth_id",
-		FirstName:  "Test",
-		LastName:   "User",
-		NickName:   "TestNick",
+	userId := 1      // This is inside of fixtures/users.yaml
+	testGroupId := 1 // This is inside of fixtures/groups.yaml
+
+	expectedDescription := "description"
+	expectedEmptyDescription := ""
+
+	testCases := []struct {
+		name            string
+		ctx             context.Context
+		rootWordInput   string
+		groupID         int
+		definitionInput *string
+		expectedError   string
+	}{
+		{
+			name:            "Happy Path",
+			ctx:             testutils.TestContext(userId),
+			rootWordInput:   "Test Root Word",
+			groupID:         testGroupId,
+			definitionInput: nil,
+			expectedError:   "ent: definition not found",
+		},
+		{
+			name:            "Happy Path with defintion",
+			ctx:             testutils.TestContext(userId),
+			rootWordInput:   "Test Root Word",
+			groupID:         testGroupId,
+			definitionInput: &expectedDescription,
+			expectedError:   "",
+		},
+		{
+			name:            "Invalid Input (empty defintion)",
+			ctx:             testutils.TestContext(userId),
+			rootWordInput:   "Test Root Word",
+			groupID:         testGroupId,
+			definitionInput: &expectedEmptyDescription,
+			expectedError:   "ent: validator failed for field \"Definition.description\": value is less than the required length",
+		},
+		{
+			name:            "Invalid Input (empty name)",
+			ctx:             testutils.TestContext(userId),
+			rootWordInput:   "",
+			groupID:         testGroupId,
+			definitionInput: nil,
+			expectedError:   "ent: validator failed for field \"Word.description\": value is less than the required length",
+		},
 	}
 
-	testUser, err := client.User.Create().
-		SetCreateTime(baseUser.CreateTime).
-		SetUpdateTime(baseUser.UpdateTime).
-		SetAuthID(baseUser.AuthID).
-		SetFirstName(baseUser.FirstName).
-		SetLastName(baseUser.LastName).
-		SetNickName(baseUser.NickName).
-		Save(context.Background())
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			word, err := resolver.AddRootWord(tc.ctx, tc.rootWordInput, tc.groupID, tc.definitionInput)
+
+			if err != nil {
+				assert.Contains(t, err.Error(), tc.expectedError, "Error message should contain the expected substring")
+				assert.Nil(t, word, "Word should be nil on error")
+			} else {
+				assert.NoError(t, err, "Unexpected error")
+				assert.NotNil(t, word, "Word should not be nil")
+				assert.Equal(t, tc.rootWordInput, word.Description, "Word name should match")
+
+				// Check if the definitionInput matches or is nil
+				if tc.definitionInput != nil {
+					definition, err := word.QueryDefinitions().First(tc.ctx)
+					assert.NoError(t, err, "Error should be nil")
+					assert.NotNil(t, definition, "Definition should not be nil")
+					assert.Equal(t, *tc.definitionInput, definition.Description, "Definition description should match")
+				} else {
+					definition, err := word.QueryDefinitions().First(tc.ctx)
+					assert.Contains(t, err.Error(), tc.expectedError, "Error message should contain the expected substring")
+					assert.Nil(t, definition, "Definition should be nil")
+				}
+			}
+		})
+	}
+}
+
+func TestUpdateWordName(t *testing.T) {
+	fixturePaths := []string{
+		"fixtures/users.yaml",
+		"fixtures/groups.yaml",
+		"fixtures/user_groups.yaml",
+		"fixtures/words.yaml",
+	}
+
+	client, err := testutils.OpenTest(fixturePaths...)
 	if err != nil {
 		t.Fatal(err)
 	}
+	defer client.Close()
 
-	ctx := utils.AddUserIdToContext(context.Background(), testUser.ID)
+	// Create a mutation resolver with the test client
+	resolver := &mutationResolver{
+		Resolver: &Resolver{
+			client: client,
+		},
+	}
 
-	// Create a test group
-	groupName := "Test Group"
-	testGroup, err := resolver.CreateGroup(ctx, groupName, nil)
+	userId := 1      // This is inside of fixtures/users.yaml
+	testGroupId := 1 // This is inside of fixtures/groups.yaml
+
+	testCases := []struct {
+		name          string
+		ctx           context.Context
+		id            int
+		newName       string
+		expectedError string
+	}{
+		{
+			name:          "Happy Path",
+			ctx:           testutils.TestContext(userId),
+			id:            testGroupId,
+			newName:       "UpdatedGroupName",
+			expectedError: "",
+		},
+		{
+			name:          "Invalid Input (empty name)",
+			ctx:           testutils.TestContext(userId),
+			id:            testGroupId,
+			newName:       "",
+			expectedError: "ent: validator failed for field \"Word.description\": value is less than the required length",
+		},
+		{
+			name:          "Non-Existent Word",
+			ctx:           testutils.TestContext(userId),
+			id:            999, // Non-existent ID
+			newName:       "UpdatedWordName",
+			expectedError: "ent: word not found",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			word, err := resolver.UpdateWord(tc.ctx, tc.id, tc.newName)
+
+			if err != nil {
+				assert.Contains(t, err.Error(), tc.expectedError, "Error message should contain the expected substring")
+				assert.Nil(t, word, "Word should be nil on error")
+			} else {
+				assert.NoError(t, err, "Unexpected error")
+				assert.NotNil(t, word, "Word should not be nil")
+				assert.Equal(t, tc.newName, word.Description, "Word name should match the updated name")
+			}
+		})
+	}
+}
+
+func TestDeleteWord(t *testing.T) {
+	fixturePaths := []string{
+		"fixtures/users.yaml",
+		"fixtures/groups.yaml",
+		"fixtures/user_groups.yaml",
+		"fixtures/words.yaml",
+	}
+
+	client, err := testutils.OpenTest(fixturePaths...)
 	if err != nil {
 		t.Fatal(err)
 	}
+	defer client.Close()
 
-	// Create a test word, referencing the group
-	testWord, err := resolver.AddRootWord(ctx, "TestRootWord", testGroup.ID, nil)
-	if err != nil {
-		t.Fatal(err)
+	// Create a mutation resolver with the test client
+	resolver := &mutationResolver{
+		Resolver: &Resolver{
+			client: client,
+		},
 	}
+
+	userId := 1     // This is inside of fixtures/users.yaml
+	testWordId := 1 // This is inside of fixtures/words.yaml
 
 	testCases := []struct {
 		name          string
@@ -262,13 +416,13 @@ func TestDeleteWord(t *testing.T) {
 	}{
 		{
 			name:          "Happy Path",
-			ctx:           context.Background(),
-			id:            testWord.ID,
+			ctx:           testutils.TestContext(userId),
+			id:            testWordId,
 			expectedError: "",
 		},
 		{
 			name:          "Non-Existent Word",
-			ctx:           context.Background(),
+			ctx:           testutils.TestContext(userId),
 			id:            999, // Non-existent ID
 			expectedError: "ent: word not found",
 		},
@@ -289,8 +443,21 @@ func TestDeleteWord(t *testing.T) {
 	}
 }
 
-func TestDeleteDefinition(t *testing.T) {
-	client := enttest.Open(t, "sqlite3", "file:ent?mode=memory&_fk=1")
+// Definitions
+
+func TestUpdateDefinitionName(t *testing.T) {
+	fixturePaths := []string{
+		"fixtures/users.yaml",
+		"fixtures/groups.yaml",
+		"fixtures/user_groups.yaml",
+		"fixtures/words.yaml",
+		"fixtures/definitions.yaml",
+	}
+
+	client, err := testutils.OpenTest(fixturePaths...)
+	if err != nil {
+		t.Fatal(err)
+	}
 	defer client.Close()
 
 	// Create a mutation resolver with the test client
@@ -300,49 +467,79 @@ func TestDeleteDefinition(t *testing.T) {
 		},
 	}
 
-	// Create a test user
-	baseUser := &ent.User{
-		ID:         123,
-		CreateTime: time.Now(),
-		UpdateTime: time.Now(),
-		AuthID:     "test_auth_id",
-		FirstName:  "Test",
-		LastName:   "User",
-		NickName:   "TestNick",
+	userId := 1           // This is inside of fixtures/users.yaml
+	testDefinitionId := 1 // This is inside of fixtures/words.yaml
+
+	testCases := []struct {
+		name          string
+		ctx           context.Context
+		id            int
+		newName       string
+		expectedError string
+	}{
+		{
+			name:          "Happy Path",
+			ctx:           testutils.TestContext(userId),
+			id:            testDefinitionId,
+			newName:       "UpdatedGroupName",
+			expectedError: "",
+		},
+		{
+			name:          "Invalid Input (empty name)",
+			ctx:           testutils.TestContext(userId),
+			id:            testDefinitionId,
+			newName:       "",
+			expectedError: "ent: validator failed for field \"Definition.description\": value is less than the required length",
+		},
+		{
+			name:          "Non-Existent Word",
+			ctx:           testutils.TestContext(userId),
+			id:            999, // Non-existent ID
+			newName:       "UpdatedWordName",
+			expectedError: "ent: definition not found",
+		},
 	}
 
-	testUser, err := client.User.Create().
-		SetCreateTime(baseUser.CreateTime).
-		SetUpdateTime(baseUser.UpdateTime).
-		SetAuthID(baseUser.AuthID).
-		SetFirstName(baseUser.FirstName).
-		SetLastName(baseUser.LastName).
-		SetNickName(baseUser.NickName).
-		Save(context.Background())
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			definition, err := resolver.UpdateDefinition(tc.ctx, tc.id, tc.newName)
+
+			if err != nil {
+				assert.Contains(t, err.Error(), tc.expectedError, "Error message should contain the expected substring")
+				assert.Nil(t, definition, "Word should be nil on error")
+			} else {
+				assert.NoError(t, err, "Unexpected error")
+				assert.NotNil(t, definition, "Word should not be nil")
+				assert.Equal(t, tc.newName, definition.Description, "Word name should match the updated name")
+			}
+		})
+	}
+}
+
+func TestDeleteDefinition(t *testing.T) {
+	fixturePaths := []string{
+		"fixtures/users.yaml",
+		"fixtures/groups.yaml",
+		"fixtures/user_groups.yaml",
+		"fixtures/words.yaml",
+		"fixtures/definitions.yaml",
+	}
+
+	client, err := testutils.OpenTest(fixturePaths...)
 	if err != nil {
 		t.Fatal(err)
 	}
+	defer client.Close()
 
-	ctx := utils.AddUserIdToContext(context.Background(), testUser.ID)
-
-	// Create a test group
-	groupName := "Test Group"
-	testGroup, err := resolver.CreateGroup(ctx, groupName, nil)
-	if err != nil {
-		t.Fatal(err)
+	// Create a mutation resolver with the test client
+	resolver := &mutationResolver{
+		Resolver: &Resolver{
+			client: client,
+		},
 	}
 
-	// Create a test word, referencing the group
-	testWord, err := resolver.AddRootWord(ctx, "TestRootWord", testGroup.ID, nil)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	// Create a test definition to delete
-	testDefinition, err := resolver.AddDefinition(ctx, testWord.ID, "TestDefinition")
-	if err != nil {
-		t.Fatal(err)
-	}
+	userId := 1           // This is inside of fixtures/users.yaml
+	testDefinitionId := 1 // This is inside of fixtures/words.yaml
 
 	testCases := []struct {
 		name          string
@@ -352,13 +549,13 @@ func TestDeleteDefinition(t *testing.T) {
 	}{
 		{
 			name:          "Happy Path",
-			ctx:           context.Background(),
-			id:            testDefinition.ID,
+			ctx:           testutils.TestContext(userId),
+			id:            testDefinitionId,
 			expectedError: "",
 		},
 		{
 			name:          "Non-Existent Definition",
-			ctx:           context.Background(),
+			ctx:           testutils.TestContext(userId),
 			id:            999, // Non-existent ID
 			expectedError: "ent: definition not found",
 		},
