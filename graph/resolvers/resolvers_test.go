@@ -7,6 +7,7 @@ import (
 
 	"groupinary/ent"
 	"groupinary/ent/enttest"
+	"groupinary/ent/group"
 	"groupinary/utils"
 
 	// "groupinary/ent/entc/integration/json/ent/enttest"
@@ -226,6 +227,62 @@ func TestUpdateGroupName(t *testing.T) {
 				assert.NoError(t, err, "Unexpected error")
 				assert.NotNil(t, group, "Group should not be nil")
 				assert.Equal(t, tc.newName, group.Name, "Group name should match the updated name")
+			}
+		})
+	}
+}
+
+func TestDeleteGroup(t *testing.T) {
+	client := enttest.Open(t, "sqlite3", "file:ent?mode=memory&_fk=1")
+	defer client.Close()
+
+	// Create a mutation resolver with the test client
+	resolver := &mutationResolver{
+		Resolver: &Resolver{
+			client: client,
+		},
+	}
+
+	// Create a test group to delete
+	testGroup, err := resolver.CreateGroup(context.Background(), "TestGroup", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	testCases := []struct {
+		name          string
+		ctx           context.Context
+		id            int
+		expectedError string
+	}{
+		{
+			name:          "Happy Path",
+			ctx:           context.Background(),
+			id:            testGroup.ID,
+			expectedError: "",
+		},
+		{
+			name:          "Non-Existent Group",
+			ctx:           context.Background(),
+			id:            999, // Non-existent ID
+			expectedError: "ent: group not found",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			result, err := resolver.DeleteGroup(tc.ctx, tc.id)
+
+			if err != nil {
+				assert.Contains(t, err.Error(), tc.expectedError, "Error message should contain the expected substring")
+				assert.False(t, result, "DeleteGroup should return false on error")
+			} else {
+				assert.NoError(t, err, "Unexpected error")
+				assert.True(t, result, "DeleteGroup should return true on success")
+
+				deletedGroup, err := client.Group.Query().Where(group.ID(tc.id)).Only(tc.ctx)
+				assert.Error(t, err, "Expecting an error when trying to query a deleted group")
+				assert.Nil(t, deletedGroup, "Deleted group should be nil")
 			}
 		})
 	}
