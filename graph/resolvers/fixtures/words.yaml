@@ -1,6 +1,18 @@
 - id: 1
   create_time: "2023-11-26T22:49:23.705302-07:00"
   update_time: "2023-11-26T22:49:23.705302-07:00"
-  description: "Test Word"
+  description: "Word 1"
+  user_words: 1
+  group_words: 1
+- id: 2
+  create_time: "2023-11-26T22:49:23.705302-07:00"
+  update_time: "2023-11-26T22:49:23.705302-07:00"
+  description: "Word 2"
+  user_words: 1
+  group_words: 1
+- id: 3
+  create_time: "2023-11-26T22:49:23.705302-07:00"
+  update_time: "2023-11-26T22:49:23.705302-07:00"
+  description: "Word 3"
   user_words: 1
   group_words: 1
