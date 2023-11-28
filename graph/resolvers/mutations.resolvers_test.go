@@ -568,6 +568,77 @@ func TestDeleteWord(t *testing.T) {
 	}
 }
 
+func TestConnectWords(t *testing.T) {
+	fixturePaths := []string{
+		"fixtures/users.yaml",
+		"fixtures/groups.yaml",
+		"fixtures/user_groups.yaml",
+		"fixtures/words.yaml",
+	}
+
+	client, err := testutils.OpenTest(fixturePaths...)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer client.Close()
+
+	// Create a mutation resolver with the test client
+	resolver := &mutationResolver{
+		Resolver: &Resolver{
+			client: client,
+		},
+	}
+
+	userId := 1       // This is inside of fixtures/users.yaml
+	parentWordId := 1 // This is inside of fixtures/words.yaml
+	childWordId := 2  // This is inside of fixtures/words.yaml
+
+	testCases := []struct {
+		name          string
+		ctx           context.Context
+		parentWordId  int
+		childWordId   int
+		expectedError string
+	}{
+		{
+			name:          "Happy Path",
+			ctx:           testutils.TestContext(userId),
+			parentWordId:  parentWordId,
+			childWordId:   childWordId,
+			expectedError: "",
+		},
+		{
+			name:          "Non-Existent Word",
+			ctx:           testutils.TestContext(userId),
+			parentWordId:  parentWordId, // Non-existent ID
+			childWordId:   999,          // Non-existent ID
+			expectedError: "ent: constraint failed: add m2m edge for table word_descendants: FOREIGN KEY constraint failed",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			word, err := resolver.ConnectWords(tc.ctx, tc.parentWordId, tc.childWordId)
+
+			if err != nil {
+				assert.Contains(t, err.Error(), tc.expectedError, "Error message should contain the expected substring")
+				assert.Nil(t, word, "Word should be nil on error")
+			} else {
+				assert.NoError(t, err, "Unexpected error")
+				assert.NotNil(t, word, "Word should not be nil")
+				assert.Equal(t, tc.childWordId, word.ID, "Word id should match the updated name")
+
+				// Check if the return parent word is corect
+				parentWord, err := word.QueryParents().First(tc.ctx)
+				assert.NoError(t, err, "Error should be nil")
+				assert.NotNil(t, parentWord, "Definition should not be nil")
+				assert.Equal(t, tc.parentWordId, parentWord.ID, "Definition description should match")
+
+			}
+		})
+	}
+}
+
 // Definitions
 
 func TestUpdateDefinitionName(t *testing.T) {
@@ -700,6 +771,8 @@ func TestDeleteDefinition(t *testing.T) {
 		})
 	}
 }
+
+// Mutation
 
 func TestMutation(t *testing.T) {
 	// Create a new instance of Resolver
