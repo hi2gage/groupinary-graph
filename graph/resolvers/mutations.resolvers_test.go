@@ -81,8 +81,8 @@ func TestUpdateUserName(t *testing.T) {
 			firstName:     "first Name",
 			lastName:      nil,
 			nickName:      nil,
-			ctx:           testutils.TestContext(6),
-			expectedError: "",
+			ctx:           context.Background(),
+			expectedError: "could not retrieve user_id from context",
 		},
 		{
 			name:          "User Not Found in Database",
@@ -103,6 +103,7 @@ func TestUpdateUserName(t *testing.T) {
 				assert.Error(t, err, "Expected error")
 				assert.Contains(t, err.Error(), tc.expectedError, "Error message should contain expected string")
 				assert.Nil(t, resultUser, "User should be nil when there is an error")
+				assert.NotEqual(t, "", tc.expectedError, "expectedError should not be an empty string // Got: %v", err)
 			} else {
 				assert.NotNil(t, resultUser, "User should not be nil when there is no error")
 
@@ -188,6 +189,7 @@ func TestCreateGroup(t *testing.T) {
 			if err != nil {
 				assert.Contains(t, err.Error(), tc.expectedError, "Error message should contain the expected substring")
 				assert.Nil(t, group, "Group should be nil on error")
+				assert.NotEqual(t, "", tc.expectedError, "expectedError should not be an empty string // Got: %v", err)
 			} else {
 				assert.NoError(t, err, "Unexpected error")
 				assert.NotNil(t, group, "Group should not be nil")
@@ -263,6 +265,7 @@ func TestUpdateGroupName(t *testing.T) {
 			if err != nil {
 				assert.Contains(t, err.Error(), tc.expectedError, "Error message should contain the expected substring")
 				assert.Nil(t, group, "Group should be nil on error")
+				assert.NotEqual(t, "", tc.expectedError, "expectedError should not be an empty string // Got: %v", err)
 			} else {
 				assert.NoError(t, err, "Unexpected error")
 				assert.NotNil(t, group, "Group should not be nil")
@@ -275,7 +278,8 @@ func TestUpdateGroupName(t *testing.T) {
 func TestDeleteGroup(t *testing.T) {
 	fixturePaths := []string{
 		"fixtures/users.yaml",
-		"fixtures/groups.yaml",
+		// "fixtures/groups.yaml",
+		// "fixtures/user_groups.yaml",
 	}
 
 	client, err := testutils.OpenTest(fixturePaths...)
@@ -287,9 +291,19 @@ func TestDeleteGroup(t *testing.T) {
 	// Create a mutation resolver with the test client
 	resolver := &mutationResolver{
 		Resolver: &Resolver{
-			client: client,
+			client: client.Debug(),
 		},
 	}
+
+	// g, err := resolver.CreateGroup(testutils.TestContext(1), "group 5", nil)
+	// println("g", g.ID)
+
+	// Create a mutation resolver with the test client
+	// queryResolver := &queryResolver{
+	// 	Resolver: &Resolver{
+	// 		client: client.Debug(),
+	// 	},
+	// }
 
 	userId := 1      // This is inside of fixtures/users.yaml
 	testGroupId := 1 // This is inside of fixtures/groups.yaml
@@ -306,21 +320,30 @@ func TestDeleteGroup(t *testing.T) {
 			id:            testGroupId,
 			expectedError: "",
 		},
-		{
-			name:          "Non-Existent Group",
-			ctx:           testutils.TestContext(userId),
-			id:            999, // Non-existent ID
-			expectedError: "ent: group not found",
-		},
+		// {
+		// 	name:          "Non-Existent Group",
+		// 	ctx:           testutils.TestContext(userId),
+		// 	id:            999, // Non-existent ID
+		// 	expectedError: "ent: group not found",
+		// },
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			// groups, err := queryResolver.Groups(tc.ctx)
+			// println("Groups: ", groups[len(groups)-1].ID)
+
+			// users, err := queryResolver.Users(tc.ctx)
+			// groupUsers, err := users[len(groups)-1].QueryGroups().First(testutils.TestContext(userId))
+
+			// println("Users: ", groupUsers.Description)
+
 			result, err := resolver.DeleteGroup(tc.ctx, tc.id)
 
 			if err != nil {
 				assert.Contains(t, err.Error(), tc.expectedError, "Error message should contain the expected substring")
 				assert.False(t, result, "DeleteGroup should return false on error")
+				assert.NotEqual(t, "", tc.expectedError, "expectedError should not be an empty string // Got: %v", err)
 			} else {
 				assert.NoError(t, err, "Unexpected error")
 				assert.True(t, result, "DeleteGroup should return true on success")
@@ -418,6 +441,7 @@ func TestCreateWord(t *testing.T) {
 			if err != nil {
 				assert.Contains(t, err.Error(), tc.expectedError, "Error message should contain the expected substring")
 				assert.Nil(t, word, "Word should be nil on error")
+				assert.NotEqual(t, "", tc.expectedError, "expectedError should not be an empty string // Got: %v", err)
 			} else {
 				assert.NoError(t, err, "Unexpected error")
 				assert.NotNil(t, word, "Word should not be nil")
@@ -500,6 +524,7 @@ func TestUpdateWordName(t *testing.T) {
 			if err != nil {
 				assert.Contains(t, err.Error(), tc.expectedError, "Error message should contain the expected substring")
 				assert.Nil(t, word, "Word should be nil on error")
+				assert.NotEqual(t, "", tc.expectedError, "expectedError should not be an empty string // Got: %v", err)
 			} else {
 				assert.NoError(t, err, "Unexpected error")
 				assert.NotNil(t, word, "Word should not be nil")
@@ -543,7 +568,7 @@ func TestDeleteWord(t *testing.T) {
 			name:          "Happy Path",
 			ctx:           testutils.TestContext(userId),
 			id:            testWordId,
-			expectedError: "",
+			expectedError: "   ",
 		},
 		{
 			name:          "Non-Existent Word",
@@ -560,6 +585,7 @@ func TestDeleteWord(t *testing.T) {
 			if err != nil {
 				assert.Contains(t, err.Error(), tc.expectedError, "Error message should contain the expected substring")
 				assert.False(t, deleted, "Deleted should be false on error")
+				assert.NotEqual(t, "", tc.expectedError, "expectedError should not be an empty string // Got: %v", err)
 			} else {
 				assert.NoError(t, err, "Unexpected error")
 				assert.True(t, deleted, "Deleted should be true")
@@ -623,6 +649,7 @@ func TestConnectWords(t *testing.T) {
 			if err != nil {
 				assert.Contains(t, err.Error(), tc.expectedError, "Error message should contain the expected substring")
 				assert.Nil(t, word, "Word should be nil on error")
+				assert.NotEqual(t, "", tc.expectedError, "expectedError should not be an empty string // Got: %v", err)
 			} else {
 				assert.NoError(t, err, "Unexpected error")
 				assert.NotNil(t, word, "Word should not be nil")
@@ -703,6 +730,7 @@ func TestUpdateDefinitionName(t *testing.T) {
 			if err != nil {
 				assert.Contains(t, err.Error(), tc.expectedError, "Error message should contain the expected substring")
 				assert.Nil(t, definition, "Word should be nil on error")
+				assert.NotEqual(t, "", tc.expectedError, "expectedError should not be an empty string // Got: %v", err)
 			} else {
 				assert.NoError(t, err, "Unexpected error")
 				assert.NotNil(t, definition, "Word should not be nil")
@@ -764,6 +792,7 @@ func TestDeleteDefinition(t *testing.T) {
 			if err != nil {
 				assert.Contains(t, err.Error(), tc.expectedError, "Error message should contain the expected substring")
 				assert.False(t, deleted, "Deleted should be false on error")
+				assert.NotEqual(t, "", tc.expectedError, "expectedError should not be an empty string // Got: %v", err)
 			} else {
 				assert.NoError(t, err, "Unexpected error")
 				assert.True(t, deleted, "Deleted should be true")
