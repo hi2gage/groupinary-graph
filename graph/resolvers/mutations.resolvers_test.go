@@ -2,12 +2,12 @@ package resolvers
 
 import (
 	"context"
-	"groupinary/ent/enttest"
 	"groupinary/ent/group"
 	"groupinary/graph"
 	"groupinary/testutils"
 	"testing"
 
+	_ "github.com/mattn/go-sqlite3"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -16,14 +16,16 @@ import (
 func TestUpdateUserName(t *testing.T) {
 	fixturePaths := []string{
 		"fixtures/users.yaml",
-		"fixtures/groups.yaml",
 	}
 
-	client, err := testutils.OpenTest(fixturePaths...)
+	client, db, err := testutils.OpenTest()
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer client.Close()
+	// Register the cleanup function from testutils.
+	t.Cleanup(func() {
+		testutils.CleanupTestEnvironment(t, client)
+	})
 
 	// Create a query resolver with the test client
 	resolver := &mutationResolver{
@@ -97,6 +99,7 @@ func TestUpdateUserName(t *testing.T) {
 	// Run test cases
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			testutils.LoadFixtures(db, fixturePaths...)
 			resultUser, err := resolver.UpdateUserName(tc.ctx, tc.firstName, tc.lastName, tc.nickName)
 
 			if err != nil {
@@ -131,8 +134,14 @@ func TestUpdateUserName(t *testing.T) {
 // Groups
 
 func TestCreateGroup(t *testing.T) {
-	client := enttest.Open(t, "sqlite3", "file:ent?mode=memory&_fk=1")
-	defer client.Close()
+	client, db, err := testutils.OpenTest()
+	if err != nil {
+		t.Fatal(err)
+	}
+	// Register the cleanup function from testutils.
+	t.Cleanup(func() {
+		testutils.CleanupTestEnvironment(t, client)
+	})
 
 	// Create a mutation resolver with the test client
 	resolver := &mutationResolver{
@@ -142,7 +151,7 @@ func TestCreateGroup(t *testing.T) {
 	}
 
 	userId := 1
-	expectedDescription := "description"
+	expectedDescription := "description1"
 	expectedEmptyDescription := ""
 
 	testCases := []struct {
@@ -184,6 +193,8 @@ func TestCreateGroup(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			array := []string{}
+			testutils.LoadFixtures(db, array...)
 			group, err := resolver.CreateGroup(tc.ctx, tc.nameInput, tc.descriptionInput)
 
 			if err != nil {
@@ -212,11 +223,14 @@ func TestUpdateGroupName(t *testing.T) {
 		"fixtures/groups.yaml",
 	}
 
-	client, err := testutils.OpenTest(fixturePaths...)
+	client, db, err := testutils.OpenTest()
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer client.Close()
+	// Register the cleanup function from testutils.
+	t.Cleanup(func() {
+		testutils.CleanupTestEnvironment(t, client)
+	})
 
 	// Create a mutation resolver with the test client
 	resolver := &mutationResolver{
@@ -260,6 +274,7 @@ func TestUpdateGroupName(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			testutils.LoadFixtures(db, fixturePaths...)
 			group, err := resolver.UpdateGroupName(tc.ctx, tc.id, tc.newName)
 
 			if err != nil {
@@ -278,15 +293,17 @@ func TestUpdateGroupName(t *testing.T) {
 func TestDeleteGroup(t *testing.T) {
 	fixturePaths := []string{
 		"fixtures/users.yaml",
-		// "fixtures/groups.yaml",
-		// "fixtures/user_groups.yaml",
+		"fixtures/groups.yaml",
 	}
 
-	client, err := testutils.OpenTest(fixturePaths...)
+	client, db, err := testutils.OpenTest()
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer client.Close()
+	// Register the cleanup function from testutils.
+	t.Cleanup(func() {
+		testutils.CleanupTestEnvironment(t, client)
+	})
 
 	// Create a mutation resolver with the test client
 	resolver := &mutationResolver{
@@ -294,16 +311,6 @@ func TestDeleteGroup(t *testing.T) {
 			client: client.Debug(),
 		},
 	}
-
-	// g, err := resolver.CreateGroup(testutils.TestContext(1), "group 5", nil)
-	// println("g", g.ID)
-
-	// Create a mutation resolver with the test client
-	// queryResolver := &queryResolver{
-	// 	Resolver: &Resolver{
-	// 		client: client.Debug(),
-	// 	},
-	// }
 
 	userId := 1      // This is inside of fixtures/users.yaml
 	testGroupId := 1 // This is inside of fixtures/groups.yaml
@@ -320,24 +327,17 @@ func TestDeleteGroup(t *testing.T) {
 			id:            testGroupId,
 			expectedError: "",
 		},
-		// {
-		// 	name:          "Non-Existent Group",
-		// 	ctx:           testutils.TestContext(userId),
-		// 	id:            999, // Non-existent ID
-		// 	expectedError: "ent: group not found",
-		// },
+		{
+			name:          "Non-Existent Group",
+			ctx:           testutils.TestContext(userId),
+			id:            999, // Non-existent ID
+			expectedError: "ent: group not found",
+		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			// groups, err := queryResolver.Groups(tc.ctx)
-			// println("Groups: ", groups[len(groups)-1].ID)
-
-			// users, err := queryResolver.Users(tc.ctx)
-			// groupUsers, err := users[len(groups)-1].QueryGroups().First(testutils.TestContext(userId))
-
-			// println("Users: ", groupUsers.Description)
-
+			testutils.LoadFixtures(db, fixturePaths...)
 			result, err := resolver.DeleteGroup(tc.ctx, tc.id)
 
 			if err != nil {
@@ -365,11 +365,14 @@ func TestCreateWord(t *testing.T) {
 		"fixtures/user_groups.yaml",
 	}
 
-	client, err := testutils.OpenTest(fixturePaths...)
+	client, db, err := testutils.OpenTest()
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer client.Close()
+	// Register the cleanup function from testutils.
+	t.Cleanup(func() {
+		testutils.CleanupTestEnvironment(t, client)
+	})
 
 	// Create a mutation resolver with the test client
 	resolver := &mutationResolver{
@@ -436,6 +439,7 @@ func TestCreateWord(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			testutils.LoadFixtures(db, fixturePaths...)
 			word, err := resolver.AddRootWord(tc.ctx, tc.rootWordInput, tc.groupID, tc.definitionInput)
 
 			if err != nil {
@@ -471,11 +475,14 @@ func TestUpdateWordName(t *testing.T) {
 		"fixtures/words.yaml",
 	}
 
-	client, err := testutils.OpenTest(fixturePaths...)
+	client, db, err := testutils.OpenTest()
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer client.Close()
+	// Register the cleanup function from testutils.
+	t.Cleanup(func() {
+		testutils.CleanupTestEnvironment(t, client)
+	})
 
 	// Create a mutation resolver with the test client
 	resolver := &mutationResolver{
@@ -519,6 +526,7 @@ func TestUpdateWordName(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			testutils.LoadFixtures(db, fixturePaths...)
 			word, err := resolver.UpdateWord(tc.ctx, tc.id, tc.newName)
 
 			if err != nil {
@@ -542,11 +550,14 @@ func TestDeleteWord(t *testing.T) {
 		"fixtures/words.yaml",
 	}
 
-	client, err := testutils.OpenTest(fixturePaths...)
+	client, db, err := testutils.OpenTest()
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer client.Close()
+	// Register the cleanup function from testutils.
+	t.Cleanup(func() {
+		testutils.CleanupTestEnvironment(t, client)
+	})
 
 	// Create a mutation resolver with the test client
 	resolver := &mutationResolver{
@@ -580,6 +591,7 @@ func TestDeleteWord(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			testutils.LoadFixtures(db, fixturePaths...)
 			deleted, err := resolver.DeleteWord(tc.ctx, tc.id)
 
 			if err != nil {
@@ -602,11 +614,14 @@ func TestConnectWords(t *testing.T) {
 		"fixtures/words.yaml",
 	}
 
-	client, err := testutils.OpenTest(fixturePaths...)
+	client, db, err := testutils.OpenTest()
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer client.Close()
+	// Register the cleanup function from testutils.
+	t.Cleanup(func() {
+		testutils.CleanupTestEnvironment(t, client)
+	})
 
 	// Create a mutation resolver with the test client
 	resolver := &mutationResolver{
@@ -644,6 +659,7 @@ func TestConnectWords(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			testutils.LoadFixtures(db, fixturePaths...)
 			word, err := resolver.ConnectWords(tc.ctx, tc.parentWordId, tc.childWordId)
 
 			if err != nil {
@@ -677,11 +693,14 @@ func TestUpdateDefinitionName(t *testing.T) {
 		"fixtures/definitions.yaml",
 	}
 
-	client, err := testutils.OpenTest(fixturePaths...)
+	client, db, err := testutils.OpenTest()
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer client.Close()
+	// Register the cleanup function from testutils.
+	t.Cleanup(func() {
+		testutils.CleanupTestEnvironment(t, client)
+	})
 
 	// Create a mutation resolver with the test client
 	resolver := &mutationResolver{
@@ -725,6 +744,7 @@ func TestUpdateDefinitionName(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			testutils.LoadFixtures(db, fixturePaths...)
 			definition, err := resolver.UpdateDefinition(tc.ctx, tc.id, tc.newName)
 
 			if err != nil {
@@ -749,11 +769,14 @@ func TestDeleteDefinition(t *testing.T) {
 		"fixtures/definitions.yaml",
 	}
 
-	client, err := testutils.OpenTest(fixturePaths...)
+	client, db, err := testutils.OpenTest()
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer client.Close()
+	// Register the cleanup function from testutils.
+	t.Cleanup(func() {
+		testutils.CleanupTestEnvironment(t, client)
+	})
 
 	// Create a mutation resolver with the test client
 	resolver := &mutationResolver{
@@ -787,6 +810,7 @@ func TestDeleteDefinition(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			testutils.LoadFixtures(db, fixturePaths...)
 			deleted, err := resolver.DeleteDefinition(tc.ctx, tc.id)
 
 			if err != nil {
