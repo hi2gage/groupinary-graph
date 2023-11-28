@@ -4,11 +4,128 @@ import (
 	"context"
 	"groupinary/ent/enttest"
 	"groupinary/ent/group"
+	"groupinary/graph"
 	"groupinary/testutils"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
+
+// Users
+
+func TestUpdateUserName(t *testing.T) {
+	fixturePaths := []string{
+		"fixtures/users.yaml",
+		"fixtures/groups.yaml",
+	}
+
+	client, err := testutils.OpenTest(fixturePaths...)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer client.Close()
+
+	// Create a query resolver with the test client
+	resolver := &mutationResolver{
+		Resolver: &Resolver{
+			client: client,
+		},
+	}
+
+	lastName := "last Name"
+	nickName := "nick Name"
+
+	// Test cases table
+	testCases := []struct {
+		name          string
+		firstName     string
+		lastName      *string
+		nickName      *string
+		ctx           context.Context
+		expectedError string
+	}{
+		{
+			name:          "valid firstName, nil lastname, nil nickName",
+			firstName:     "first name",
+			lastName:      nil,
+			nickName:      nil,
+			ctx:           testutils.TestContext(2),
+			expectedError: "",
+		},
+		{
+			name:          "empty string firstName, nil lastname, nil nickName",
+			firstName:     "",
+			lastName:      nil,
+			nickName:      nil,
+			ctx:           testutils.TestContext(3),
+			expectedError: "",
+		},
+		{
+			name:          "valid firstName, valid lastname, nil nickName",
+			firstName:     "first Name",
+			lastName:      &lastName,
+			nickName:      nil,
+			ctx:           testutils.TestContext(4),
+			expectedError: "",
+		},
+		{
+			name:          "valid firstName, valid lastname, valid nickName",
+			firstName:     "first Name",
+			lastName:      &lastName,
+			nickName:      &nickName,
+			ctx:           testutils.TestContext(5),
+			expectedError: "",
+		},
+		{
+			name:          "User ID Not Added to Context",
+			firstName:     "first Name",
+			lastName:      nil,
+			nickName:      nil,
+			ctx:           testutils.TestContext(6),
+			expectedError: "",
+		},
+		{
+			name:          "User Not Found in Database",
+			firstName:     "first Name",
+			lastName:      nil,
+			nickName:      nil,
+			ctx:           testutils.TestContext(999999),
+			expectedError: "ent: user not found",
+		},
+	}
+
+	// Run test cases
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			resultUser, err := resolver.UpdateUserName(tc.ctx, tc.firstName, tc.lastName, tc.nickName)
+
+			if err != nil {
+				assert.Error(t, err, "Expected error")
+				assert.Contains(t, err.Error(), tc.expectedError, "Error message should contain expected string")
+				assert.Nil(t, resultUser, "User should be nil when there is an error")
+			} else {
+				assert.NotNil(t, resultUser, "User should not be nil when there is no error")
+
+				// Check if firstName matches
+				assert.Equal(t, tc.firstName, resultUser.FirstName, "User ID should match")
+
+				// Check if lastName matches or is nil
+				if tc.lastName != nil {
+					assert.Equal(t, *tc.lastName, resultUser.LastName, "User lastName should match")
+				} else {
+					assert.Equal(t, "", resultUser.LastName, "User lastName should be an empty string // Got: %v", resultUser.LastName)
+				}
+
+				// Check if nickName matches or is nil
+				if tc.nickName != nil {
+					assert.Equal(t, *tc.nickName, resultUser.NickName, "User nickName should match")
+				} else {
+					assert.Equal(t, "", resultUser.NickName, "User nickName should be an empty string // Got: %v", resultUser.NickName)
+				}
+			}
+		})
+	}
+}
 
 // Groups
 
@@ -283,6 +400,14 @@ func TestCreateWord(t *testing.T) {
 			groupID:         testGroupId,
 			definitionInput: nil,
 			expectedError:   "ent: validator failed for field \"Word.description\": value is less than the required length",
+		},
+		{
+			name:            "User Not Found in Database",
+			ctx:             context.Background(),
+			rootWordInput:   "Test Root Word",
+			groupID:         testGroupId,
+			definitionInput: nil,
+			expectedError:   "could not retrieve user_id from context",
 		},
 	}
 
@@ -573,5 +698,25 @@ func TestDeleteDefinition(t *testing.T) {
 				assert.True(t, deleted, "Deleted should be true")
 			}
 		})
+	}
+}
+
+func TestMutation(t *testing.T) {
+	// Create a new instance of Resolver
+	resolver := &Resolver{} // You may need to initialize fields or dependencies if required
+
+	// Call the Mutation method
+	mutationResolver := resolver.Mutation()
+
+	// Assert that the returned object is not nil
+	if mutationResolver == nil {
+		t.Error("Expected non-nil MutationResolver, got nil")
+	}
+
+	//lint:ignore S1040 ignoring type assertion warning because MutationResolver is explicitly declared
+	// Assert that the returned object is of the correct type (graph.MutationResolver)
+	_, isMutationResolver := mutationResolver.(graph.MutationResolver)
+	if !isMutationResolver {
+		t.Error("Expected MutationResolver to implement graph.MutationResolver interface")
 	}
 }
