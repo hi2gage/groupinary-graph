@@ -2,19 +2,146 @@ package resolvers
 
 import (
 	"context"
-	"groupinary/ent/enttest"
 	"groupinary/ent/group"
+	"groupinary/graph"
 	"groupinary/testutils"
 	"testing"
 
+	_ "github.com/mattn/go-sqlite3"
 	"github.com/stretchr/testify/assert"
 )
+
+// Users
+
+func TestUpdateUserName(t *testing.T) {
+	fixturePaths := []string{
+		"fixtures/users.yaml",
+	}
+
+	client, db, err := testutils.OpenTest()
+	if err != nil {
+		t.Fatal(err)
+	}
+	// Register the cleanup function from testutils.
+	t.Cleanup(func() {
+		testutils.CleanupTestEnvironment(t, client)
+	})
+
+	// Create a query resolver with the test client
+	resolver := &mutationResolver{
+		Resolver: &Resolver{
+			client: client,
+		},
+	}
+
+	lastName := "last Name"
+	nickName := "nick Name"
+
+	// Test cases table
+	testCases := []struct {
+		name          string
+		firstName     string
+		lastName      *string
+		nickName      *string
+		ctx           context.Context
+		expectedError string
+	}{
+		{
+			name:          "valid firstName, nil lastname, nil nickName",
+			firstName:     "first name",
+			lastName:      nil,
+			nickName:      nil,
+			ctx:           testutils.TestContext(2),
+			expectedError: "",
+		},
+		{
+			name:          "empty string firstName, nil lastname, nil nickName",
+			firstName:     "",
+			lastName:      nil,
+			nickName:      nil,
+			ctx:           testutils.TestContext(3),
+			expectedError: "",
+		},
+		{
+			name:          "valid firstName, valid lastname, nil nickName",
+			firstName:     "first Name",
+			lastName:      &lastName,
+			nickName:      nil,
+			ctx:           testutils.TestContext(4),
+			expectedError: "",
+		},
+		{
+			name:          "valid firstName, valid lastname, valid nickName",
+			firstName:     "first Name",
+			lastName:      &lastName,
+			nickName:      &nickName,
+			ctx:           testutils.TestContext(5),
+			expectedError: "",
+		},
+		{
+			name:          "User ID Not Added to Context",
+			firstName:     "first Name",
+			lastName:      nil,
+			nickName:      nil,
+			ctx:           context.Background(),
+			expectedError: "could not retrieve user_id from context",
+		},
+		{
+			name:          "User Not Found in Database",
+			firstName:     "first Name",
+			lastName:      nil,
+			nickName:      nil,
+			ctx:           testutils.TestContext(999999),
+			expectedError: "ent: user not found",
+		},
+	}
+
+	// Run test cases
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			testutils.LoadFixtures(db, fixturePaths...)
+			resultUser, err := resolver.UpdateUserName(tc.ctx, tc.firstName, tc.lastName, tc.nickName)
+
+			if err != nil {
+				assert.Error(t, err, "Expected error")
+				assert.Contains(t, err.Error(), tc.expectedError, "Error message should contain expected string")
+				assert.Nil(t, resultUser, "User should be nil when there is an error")
+				assert.NotEqual(t, "", tc.expectedError, "expectedError should not be an empty string // Got: %v", err)
+			} else {
+				assert.NotNil(t, resultUser, "User should not be nil when there is no error")
+
+				// Check if firstName matches
+				assert.Equal(t, tc.firstName, resultUser.FirstName, "User ID should match")
+
+				// Check if lastName matches or is nil
+				if tc.lastName != nil {
+					assert.Equal(t, *tc.lastName, resultUser.LastName, "User lastName should match")
+				} else {
+					assert.Equal(t, "", resultUser.LastName, "User lastName should be an empty string // Got: %v", resultUser.LastName)
+				}
+
+				// Check if nickName matches or is nil
+				if tc.nickName != nil {
+					assert.Equal(t, *tc.nickName, resultUser.NickName, "User nickName should match")
+				} else {
+					assert.Equal(t, "", resultUser.NickName, "User nickName should be an empty string // Got: %v", resultUser.NickName)
+				}
+			}
+		})
+	}
+}
 
 // Groups
 
 func TestCreateGroup(t *testing.T) {
-	client := enttest.Open(t, "sqlite3", "file:ent?mode=memory&_fk=1")
-	defer client.Close()
+	client, db, err := testutils.OpenTest()
+	if err != nil {
+		t.Fatal(err)
+	}
+	// Register the cleanup function from testutils.
+	t.Cleanup(func() {
+		testutils.CleanupTestEnvironment(t, client)
+	})
 
 	// Create a mutation resolver with the test client
 	resolver := &mutationResolver{
@@ -24,7 +151,7 @@ func TestCreateGroup(t *testing.T) {
 	}
 
 	userId := 1
-	expectedDescription := "description"
+	expectedDescription := "description1"
 	expectedEmptyDescription := ""
 
 	testCases := []struct {
@@ -66,11 +193,14 @@ func TestCreateGroup(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			array := []string{}
+			testutils.LoadFixtures(db, array...)
 			group, err := resolver.CreateGroup(tc.ctx, tc.nameInput, tc.descriptionInput)
 
 			if err != nil {
 				assert.Contains(t, err.Error(), tc.expectedError, "Error message should contain the expected substring")
 				assert.Nil(t, group, "Group should be nil on error")
+				assert.NotEqual(t, "", tc.expectedError, "expectedError should not be an empty string // Got: %v", err)
 			} else {
 				assert.NoError(t, err, "Unexpected error")
 				assert.NotNil(t, group, "Group should not be nil")
@@ -93,11 +223,14 @@ func TestUpdateGroupName(t *testing.T) {
 		"fixtures/groups.yaml",
 	}
 
-	client, err := testutils.OpenTest(fixturePaths...)
+	client, db, err := testutils.OpenTest()
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer client.Close()
+	// Register the cleanup function from testutils.
+	t.Cleanup(func() {
+		testutils.CleanupTestEnvironment(t, client)
+	})
 
 	// Create a mutation resolver with the test client
 	resolver := &mutationResolver{
@@ -141,11 +274,13 @@ func TestUpdateGroupName(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			testutils.LoadFixtures(db, fixturePaths...)
 			group, err := resolver.UpdateGroupName(tc.ctx, tc.id, tc.newName)
 
 			if err != nil {
 				assert.Contains(t, err.Error(), tc.expectedError, "Error message should contain the expected substring")
 				assert.Nil(t, group, "Group should be nil on error")
+				assert.NotEqual(t, "", tc.expectedError, "expectedError should not be an empty string // Got: %v", err)
 			} else {
 				assert.NoError(t, err, "Unexpected error")
 				assert.NotNil(t, group, "Group should not be nil")
@@ -161,16 +296,19 @@ func TestDeleteGroup(t *testing.T) {
 		"fixtures/groups.yaml",
 	}
 
-	client, err := testutils.OpenTest(fixturePaths...)
+	client, db, err := testutils.OpenTest()
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer client.Close()
+	// Register the cleanup function from testutils.
+	t.Cleanup(func() {
+		testutils.CleanupTestEnvironment(t, client)
+	})
 
 	// Create a mutation resolver with the test client
 	resolver := &mutationResolver{
 		Resolver: &Resolver{
-			client: client,
+			client: client.Debug(),
 		},
 	}
 
@@ -199,11 +337,13 @@ func TestDeleteGroup(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			testutils.LoadFixtures(db, fixturePaths...)
 			result, err := resolver.DeleteGroup(tc.ctx, tc.id)
 
 			if err != nil {
 				assert.Contains(t, err.Error(), tc.expectedError, "Error message should contain the expected substring")
 				assert.False(t, result, "DeleteGroup should return false on error")
+				assert.NotEqual(t, "", tc.expectedError, "expectedError should not be an empty string // Got: %v", err)
 			} else {
 				assert.NoError(t, err, "Unexpected error")
 				assert.True(t, result, "DeleteGroup should return true on success")
@@ -225,11 +365,14 @@ func TestCreateWord(t *testing.T) {
 		"fixtures/user_groups.yaml",
 	}
 
-	client, err := testutils.OpenTest(fixturePaths...)
+	client, db, err := testutils.OpenTest()
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer client.Close()
+	// Register the cleanup function from testutils.
+	t.Cleanup(func() {
+		testutils.CleanupTestEnvironment(t, client)
+	})
 
 	// Create a mutation resolver with the test client
 	resolver := &mutationResolver{
@@ -284,15 +427,25 @@ func TestCreateWord(t *testing.T) {
 			definitionInput: nil,
 			expectedError:   "ent: validator failed for field \"Word.description\": value is less than the required length",
 		},
+		{
+			name:            "User Not Found in Database",
+			ctx:             context.Background(),
+			rootWordInput:   "Test Root Word",
+			groupID:         testGroupId,
+			definitionInput: nil,
+			expectedError:   "could not retrieve user_id from context",
+		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			testutils.LoadFixtures(db, fixturePaths...)
 			word, err := resolver.AddRootWord(tc.ctx, tc.rootWordInput, tc.groupID, tc.definitionInput)
 
 			if err != nil {
 				assert.Contains(t, err.Error(), tc.expectedError, "Error message should contain the expected substring")
 				assert.Nil(t, word, "Word should be nil on error")
+				assert.NotEqual(t, "", tc.expectedError, "expectedError should not be an empty string // Got: %v", err)
 			} else {
 				assert.NoError(t, err, "Unexpected error")
 				assert.NotNil(t, word, "Word should not be nil")
@@ -322,11 +475,14 @@ func TestUpdateWordName(t *testing.T) {
 		"fixtures/words.yaml",
 	}
 
-	client, err := testutils.OpenTest(fixturePaths...)
+	client, db, err := testutils.OpenTest()
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer client.Close()
+	// Register the cleanup function from testutils.
+	t.Cleanup(func() {
+		testutils.CleanupTestEnvironment(t, client)
+	})
 
 	// Create a mutation resolver with the test client
 	resolver := &mutationResolver{
@@ -370,11 +526,13 @@ func TestUpdateWordName(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			testutils.LoadFixtures(db, fixturePaths...)
 			word, err := resolver.UpdateWord(tc.ctx, tc.id, tc.newName)
 
 			if err != nil {
 				assert.Contains(t, err.Error(), tc.expectedError, "Error message should contain the expected substring")
 				assert.Nil(t, word, "Word should be nil on error")
+				assert.NotEqual(t, "", tc.expectedError, "expectedError should not be an empty string // Got: %v", err)
 			} else {
 				assert.NoError(t, err, "Unexpected error")
 				assert.NotNil(t, word, "Word should not be nil")
@@ -392,11 +550,14 @@ func TestDeleteWord(t *testing.T) {
 		"fixtures/words.yaml",
 	}
 
-	client, err := testutils.OpenTest(fixturePaths...)
+	client, db, err := testutils.OpenTest()
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer client.Close()
+	// Register the cleanup function from testutils.
+	t.Cleanup(func() {
+		testutils.CleanupTestEnvironment(t, client)
+	})
 
 	// Create a mutation resolver with the test client
 	resolver := &mutationResolver{
@@ -418,7 +579,7 @@ func TestDeleteWord(t *testing.T) {
 			name:          "Happy Path",
 			ctx:           testutils.TestContext(userId),
 			id:            testWordId,
-			expectedError: "",
+			expectedError: "   ",
 		},
 		{
 			name:          "Non-Existent Word",
@@ -430,14 +591,92 @@ func TestDeleteWord(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			testutils.LoadFixtures(db, fixturePaths...)
 			deleted, err := resolver.DeleteWord(tc.ctx, tc.id)
 
 			if err != nil {
 				assert.Contains(t, err.Error(), tc.expectedError, "Error message should contain the expected substring")
 				assert.False(t, deleted, "Deleted should be false on error")
+				assert.NotEqual(t, "", tc.expectedError, "expectedError should not be an empty string // Got: %v", err)
 			} else {
 				assert.NoError(t, err, "Unexpected error")
 				assert.True(t, deleted, "Deleted should be true")
+			}
+		})
+	}
+}
+
+func TestConnectWords(t *testing.T) {
+	fixturePaths := []string{
+		"fixtures/users.yaml",
+		"fixtures/groups.yaml",
+		"fixtures/user_groups.yaml",
+		"fixtures/words.yaml",
+	}
+
+	client, db, err := testutils.OpenTest()
+	if err != nil {
+		t.Fatal(err)
+	}
+	// Register the cleanup function from testutils.
+	t.Cleanup(func() {
+		testutils.CleanupTestEnvironment(t, client)
+	})
+
+	// Create a mutation resolver with the test client
+	resolver := &mutationResolver{
+		Resolver: &Resolver{
+			client: client,
+		},
+	}
+
+	userId := 1       // This is inside of fixtures/users.yaml
+	parentWordId := 1 // This is inside of fixtures/words.yaml
+	childWordId := 2  // This is inside of fixtures/words.yaml
+
+	testCases := []struct {
+		name          string
+		ctx           context.Context
+		parentWordId  int
+		childWordId   int
+		expectedError string
+	}{
+		{
+			name:          "Happy Path",
+			ctx:           testutils.TestContext(userId),
+			parentWordId:  parentWordId,
+			childWordId:   childWordId,
+			expectedError: "",
+		},
+		{
+			name:          "Non-Existent Word",
+			ctx:           testutils.TestContext(userId),
+			parentWordId:  parentWordId, // Non-existent ID
+			childWordId:   999,          // Non-existent ID
+			expectedError: "ent: constraint failed: add m2m edge for table word_descendants: FOREIGN KEY constraint failed",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			testutils.LoadFixtures(db, fixturePaths...)
+			word, err := resolver.ConnectWords(tc.ctx, tc.parentWordId, tc.childWordId)
+
+			if err != nil {
+				assert.Contains(t, err.Error(), tc.expectedError, "Error message should contain the expected substring")
+				assert.Nil(t, word, "Word should be nil on error")
+				assert.NotEqual(t, "", tc.expectedError, "expectedError should not be an empty string // Got: %v", err)
+			} else {
+				assert.NoError(t, err, "Unexpected error")
+				assert.NotNil(t, word, "Word should not be nil")
+				assert.Equal(t, tc.childWordId, word.ID, "Word id should match the updated name")
+
+				// Check if the return parent word is corect
+				parentWord, err := word.QueryParents().First(tc.ctx)
+				assert.NoError(t, err, "Error should be nil")
+				assert.NotNil(t, parentWord, "Definition should not be nil")
+				assert.Equal(t, tc.parentWordId, parentWord.ID, "Definition description should match")
+
 			}
 		})
 	}
@@ -454,11 +693,14 @@ func TestUpdateDefinitionName(t *testing.T) {
 		"fixtures/definitions.yaml",
 	}
 
-	client, err := testutils.OpenTest(fixturePaths...)
+	client, db, err := testutils.OpenTest()
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer client.Close()
+	// Register the cleanup function from testutils.
+	t.Cleanup(func() {
+		testutils.CleanupTestEnvironment(t, client)
+	})
 
 	// Create a mutation resolver with the test client
 	resolver := &mutationResolver{
@@ -502,11 +744,13 @@ func TestUpdateDefinitionName(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			testutils.LoadFixtures(db, fixturePaths...)
 			definition, err := resolver.UpdateDefinition(tc.ctx, tc.id, tc.newName)
 
 			if err != nil {
 				assert.Contains(t, err.Error(), tc.expectedError, "Error message should contain the expected substring")
 				assert.Nil(t, definition, "Word should be nil on error")
+				assert.NotEqual(t, "", tc.expectedError, "expectedError should not be an empty string // Got: %v", err)
 			} else {
 				assert.NoError(t, err, "Unexpected error")
 				assert.NotNil(t, definition, "Word should not be nil")
@@ -525,11 +769,14 @@ func TestDeleteDefinition(t *testing.T) {
 		"fixtures/definitions.yaml",
 	}
 
-	client, err := testutils.OpenTest(fixturePaths...)
+	client, db, err := testutils.OpenTest()
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer client.Close()
+	// Register the cleanup function from testutils.
+	t.Cleanup(func() {
+		testutils.CleanupTestEnvironment(t, client)
+	})
 
 	// Create a mutation resolver with the test client
 	resolver := &mutationResolver{
@@ -563,15 +810,39 @@ func TestDeleteDefinition(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			testutils.LoadFixtures(db, fixturePaths...)
 			deleted, err := resolver.DeleteDefinition(tc.ctx, tc.id)
 
 			if err != nil {
 				assert.Contains(t, err.Error(), tc.expectedError, "Error message should contain the expected substring")
 				assert.False(t, deleted, "Deleted should be false on error")
+				assert.NotEqual(t, "", tc.expectedError, "expectedError should not be an empty string // Got: %v", err)
 			} else {
 				assert.NoError(t, err, "Unexpected error")
 				assert.True(t, deleted, "Deleted should be true")
 			}
 		})
+	}
+}
+
+// Mutation
+
+func TestMutation(t *testing.T) {
+	// Create a new instance of Resolver
+	resolver := &Resolver{} // You may need to initialize fields or dependencies if required
+
+	// Call the Mutation method
+	mutationResolver := resolver.Mutation()
+
+	// Assert that the returned object is not nil
+	if mutationResolver == nil {
+		t.Error("Expected non-nil MutationResolver, got nil")
+	}
+
+	//lint:ignore S1040 ignoring type assertion warning because MutationResolver is explicitly declared
+	// Assert that the returned object is of the correct type (graph.MutationResolver)
+	_, isMutationResolver := mutationResolver.(graph.MutationResolver)
+	if !isMutationResolver {
+		t.Error("Expected MutationResolver to implement graph.MutationResolver interface")
 	}
 }

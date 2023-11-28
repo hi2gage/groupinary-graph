@@ -19,11 +19,14 @@ func TestCurrentUser(t *testing.T) {
 		"fixtures/groups.yaml",
 	}
 
-	client, err := testutils.OpenTest(fixturePaths...)
+	client, db, err := testutils.OpenTest()
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer client.Close()
+	// Register the cleanup function from testutils.
+	t.Cleanup(func() {
+		testutils.CleanupTestEnvironment(t, client)
+	})
 
 	// Create a query resolver with the test client
 	resolver := &queryResolver{
@@ -60,6 +63,7 @@ func TestCurrentUser(t *testing.T) {
 	// Run test cases
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			testutils.LoadFixtures(db, fixturePaths...)
 			resultUser, err := resolver.CurrentUser(tc.ctx)
 
 			if tc.expectedErr {
