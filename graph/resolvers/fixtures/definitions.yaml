@@ -4,3 +4,9 @@
   description: "Test Definition"
   user_definitions: 1
   word_definitions: 1
+- id: 100
+  create_time: "2023-11-26T22:49:23.705302-07:00"
+  update_time: "2023-11-26T22:49:23.705302-07:00"
+  description: "Test Definition"
+  user_definitions: 33
+  word_definitions: 33
