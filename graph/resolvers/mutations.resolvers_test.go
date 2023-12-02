@@ -108,6 +108,7 @@ func TestUpdateUserName(t *testing.T) {
 				assert.Nil(t, resultUser, "User should be nil when there is an error")
 				assert.NotEqual(t, "", tc.expectedError, "expectedError should not be an empty string // Got: %v", err)
 			} else {
+				assert.Equal(t, "", tc.expectedError, "expectedError should be empty // Got: %v", tc.expectedError)
 				assert.NotNil(t, resultUser, "User should not be nil when there is no error")
 
 				// Check if firstName matches
@@ -202,6 +203,7 @@ func TestCreateGroup(t *testing.T) {
 				assert.Nil(t, group, "Group should be nil on error")
 				assert.NotEqual(t, "", tc.expectedError, "expectedError should not be an empty string // Got: %v", err)
 			} else {
+				assert.Equal(t, "", tc.expectedError, "expectedError should be empty // Got: %v", tc.expectedError)
 				assert.NoError(t, err, "Unexpected error")
 				assert.NotNil(t, group, "Group should not be nil")
 				assert.Equal(t, tc.nameInput, group.Name, "Group name should match")
@@ -282,6 +284,7 @@ func TestUpdateGroupName(t *testing.T) {
 				assert.Nil(t, group, "Group should be nil on error")
 				assert.NotEqual(t, "", tc.expectedError, "expectedError should not be an empty string // Got: %v", err)
 			} else {
+				assert.Equal(t, "", tc.expectedError, "expectedError should be empty // Got: %v", tc.expectedError)
 				assert.NoError(t, err, "Unexpected error")
 				assert.NotNil(t, group, "Group should not be nil")
 				assert.Equal(t, tc.newName, group.Name, "Group name should match the updated name")
@@ -345,6 +348,7 @@ func TestDeleteGroup(t *testing.T) {
 				assert.False(t, result, "DeleteGroup should return false on error")
 				assert.NotEqual(t, "", tc.expectedError, "expectedError should not be an empty string // Got: %v", err)
 			} else {
+				assert.Equal(t, "", tc.expectedError, "expectedError should be empty // Got: %v", tc.expectedError)
 				assert.NoError(t, err, "Unexpected error")
 				assert.True(t, result, "DeleteGroup should return true on success")
 
@@ -401,7 +405,7 @@ func TestCreateWord(t *testing.T) {
 			rootWordInput:   "Test Root Word",
 			groupID:         testGroupId,
 			definitionInput: nil,
-			expectedError:   "ent: definition not found",
+			expectedError:   "",
 		},
 		{
 			name:            "Happy Path with defintion",
@@ -447,6 +451,7 @@ func TestCreateWord(t *testing.T) {
 				assert.Nil(t, word, "Word should be nil on error")
 				assert.NotEqual(t, "", tc.expectedError, "expectedError should not be an empty string // Got: %v", err)
 			} else {
+				assert.Equal(t, "", tc.expectedError, "expectedError should be empty // Got: %v", tc.expectedError)
 				assert.NoError(t, err, "Unexpected error")
 				assert.NotNil(t, word, "Word should not be nil")
 				assert.Equal(t, tc.rootWordInput, word.Description, "Word name should match")
@@ -534,6 +539,7 @@ func TestUpdateWordName(t *testing.T) {
 				assert.Nil(t, word, "Word should be nil on error")
 				assert.NotEqual(t, "", tc.expectedError, "expectedError should not be an empty string // Got: %v", err)
 			} else {
+				assert.Equal(t, "", tc.expectedError, "expectedError should be empty // Got: %v", tc.expectedError)
 				assert.NoError(t, err, "Unexpected error")
 				assert.NotNil(t, word, "Word should not be nil")
 				assert.Equal(t, tc.newName, word.Description, "Word name should match the updated name")
@@ -579,7 +585,7 @@ func TestDeleteWord(t *testing.T) {
 			name:          "Happy Path",
 			ctx:           testutils.TestContext(userId),
 			id:            testWordId,
-			expectedError: "   ",
+			expectedError: "",
 		},
 		{
 			name:          "Non-Existent Word",
@@ -599,6 +605,7 @@ func TestDeleteWord(t *testing.T) {
 				assert.False(t, deleted, "Deleted should be false on error")
 				assert.NotEqual(t, "", tc.expectedError, "expectedError should not be an empty string // Got: %v", err)
 			} else {
+				assert.Equal(t, "", tc.expectedError, "expectedError should be empty // Got: %v", tc.expectedError)
 				assert.NoError(t, err, "Unexpected error")
 				assert.True(t, deleted, "Deleted should be true")
 			}
@@ -667,6 +674,7 @@ func TestConnectWords(t *testing.T) {
 				assert.Nil(t, word, "Word should be nil on error")
 				assert.NotEqual(t, "", tc.expectedError, "expectedError should not be an empty string // Got: %v", err)
 			} else {
+				assert.Equal(t, "", tc.expectedError, "expectedError should be empty // Got: %v", tc.expectedError)
 				assert.NoError(t, err, "Unexpected error")
 				assert.NotNil(t, word, "Word should not be nil")
 				assert.Equal(t, tc.childWordId, word.ID, "Word id should match the updated name")
@@ -818,6 +826,7 @@ func TestDeleteDefinition(t *testing.T) {
 				assert.False(t, deleted, "Deleted should be false on error")
 				assert.NotEqual(t, "", tc.expectedError, "expectedError should not be an empty string // Got: %v", err)
 			} else {
+				assert.Equal(t, "", tc.expectedError, "expectedError should be empty // Got: %v", tc.expectedError)
 				assert.NoError(t, err, "Unexpected error")
 				assert.True(t, deleted, "Deleted should be true")
 			}

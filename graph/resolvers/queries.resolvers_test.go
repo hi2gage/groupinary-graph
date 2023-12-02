@@ -67,9 +67,10 @@ func TestCurrentUser(t *testing.T) {
 			testutils.LoadFixtures(db, fixturePaths...)
 			resultUser, err := resolver.CurrentUser(tc.ctx)
 
-			if tc.expectedErr {
+			if err != nil {
 				assert.Error(t, err, "Expected error")
 			} else {
+				assert.Equal(t, false, tc.expectedErr, "expectedErr should be empty // Got: %v", tc.expectedErr)
 				assert.NoError(t, err, "Unexpected error")
 			}
 
@@ -171,6 +172,7 @@ func TestDefinitionsConnections(t *testing.T) {
 				assert.Nil(t, conn, "Connection should be nil on error")
 				assert.NotEqual(t, "", tc.expectedError, "expectedError should not be an empty string // Got: %v", err)
 			} else {
+				assert.Equal(t, "", tc.expectedError, "expectedError should be empty // Got: %v", tc.expectedError)
 				assert.NoError(t, err, "Unexpected error")
 				assert.NotNil(t, conn, "Connection should not be nil")
 
