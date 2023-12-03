@@ -3,10 +3,12 @@ package resolvers
 import (
 	"context"
 	"groupinary/ent"
+	"groupinary/graph"
 	"groupinary/testutils"
 	"groupinary/utils"
 	"testing"
 
+	"entgo.io/contrib/entgql"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -207,5 +209,370 @@ func TestNodes(t *testing.T) {
 				}
 			}
 		})
+	}
+}
+
+func TestDefinitions(t *testing.T) {
+	fixturePaths := []string{
+		"fixtures/users.yaml",
+		"fixtures/groups.yaml",
+		"fixtures/user_groups.yaml",
+		"fixtures/words.yaml",
+		"fixtures/definitions.yaml",
+	}
+
+	client, db, err := testutils.OpenTest()
+	if err != nil {
+		t.Fatal(err)
+	}
+	// Register the cleanup function from testutils.
+	t.Cleanup(func() {
+		testutils.CleanupTestEnvironment(t, client)
+	})
+
+	// Create a query resolver with the test client
+	resolver := &queryResolver{
+		Resolver: &Resolver{
+			client: client,
+		},
+	}
+
+	userId := 33
+	wordID := 33
+	first := 10
+
+	type expectedValues struct {
+		count    int
+		firstId  int
+		pageInfo entgql.PageInfo[int]
+	}
+
+	testCases := []struct {
+		name           string
+		ctx            context.Context
+		wordID         *int
+		after          *entgql.Cursor[int]
+		first          *int
+		before         *entgql.Cursor[int]
+		last           *int
+		orderBy        *ent.DefinitionOrder
+		where          *ent.DefinitionWhereInput
+		expectedValues *expectedValues
+		expectedError  string
+	}{
+		{
+			name:    "Happy path",
+			ctx:     testutils.TestContext(userId),
+			wordID:  &wordID,
+			after:   nil,
+			first:   &first,
+			before:  nil,
+			last:    nil,
+			orderBy: nil,
+			expectedValues: &expectedValues{
+				count:   3,
+				firstId: 1,
+				pageInfo: entgql.PageInfo[int]{
+					HasNextPage:     false,
+					HasPreviousPage: false,
+					StartCursor: &entgql.Cursor[int]{
+						ID:    1,
+						Value: nil,
+					},
+					EndCursor: &entgql.Cursor[int]{
+						ID:    100,
+						Value: nil,
+					},
+				},
+			},
+			where: nil,
+
+			expectedError: "",
+		},
+		// Add test cases here
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			testutils.LoadFixtures(db, fixturePaths...)
+			conn, err := resolver.Definitions(tc.ctx, tc.after, tc.first, tc.before, tc.last, tc.orderBy, tc.where)
+
+			if err != nil {
+				assert.Contains(t, err.Error(), tc.expectedError, "Error message should contain the expected substring")
+				assert.Nil(t, conn, "Connection should be nil on error")
+				assert.NotEqual(t, "", tc.expectedError, "expectedError should not be an empty string // Got: %v", err)
+			} else {
+				assert.Equal(t, "", tc.expectedError, "expectedError should be empty // Got: %v", tc.expectedError)
+				assert.NoError(t, err, "Unexpected error")
+				assert.NotNil(t, conn, "Connection should not be nil")
+
+				// expected values:
+				assert.Equal(t, tc.expectedValues.count, len(conn.Edges))
+				assert.Equal(t, tc.expectedValues.count, conn.TotalCount)
+				assert.Equal(t, conn.Edges[0].Node.ID, tc.expectedValues.firstId, "first edge should match")
+
+				// pageInfo
+				assert.Equal(t, conn.PageInfo.HasNextPage, tc.expectedValues.pageInfo.HasNextPage)
+				assert.Equal(t, conn.PageInfo.HasPreviousPage, tc.expectedValues.pageInfo.HasPreviousPage)
+				assert.Equal(t, conn.PageInfo.StartCursor, tc.expectedValues.pageInfo.StartCursor)
+				assert.Equal(t, conn.PageInfo.EndCursor, tc.expectedValues.pageInfo.EndCursor)
+			}
+		})
+	}
+}
+
+func TestGroups(t *testing.T) {
+	fixturePaths := []string{
+		"fixtures/users.yaml",
+		"fixtures/groups.yaml",
+	}
+
+	client, db, err := testutils.OpenTest()
+	if err != nil {
+		t.Fatal(err)
+	}
+	// Register the cleanup function from testutils.
+	t.Cleanup(func() {
+		testutils.CleanupTestEnvironment(t, client)
+	})
+
+	// Create a query resolver with the test client
+	resolver := &queryResolver{
+		Resolver: &Resolver{
+			client: client,
+		},
+	}
+
+	userId := 33
+
+	testCases := []struct {
+		name          string
+		ctx           context.Context
+		expectedID    int
+		expectedCount int
+		expectedError string
+	}{
+		{
+			name:          "Happy path",
+			ctx:           testutils.TestContext(userId),
+			expectedID:    1,
+			expectedCount: 3,
+			expectedError: "",
+		},
+		// Add test cases here
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			testutils.LoadFixtures(db, fixturePaths...)
+			groups, err := resolver.Groups(tc.ctx)
+
+			if err != nil {
+				assert.Contains(t, err.Error(), tc.expectedError, "Error message should contain the expected substring")
+				assert.Nil(t, groups, "Connection should be nil on error")
+				assert.NotEqual(t, "", tc.expectedError, "expectedError should not be an empty string // Got: %v", err)
+			} else {
+				assert.Equal(t, "", tc.expectedError, "expectedError should be empty // Got: %v", tc.expectedError)
+				assert.NoError(t, err, "Unexpected error")
+				assert.NotNil(t, groups, "Connection should not be nil")
+
+				// expected values:
+				assert.Equal(t, tc.expectedID, groups[0].ID)
+				assert.Equal(t, tc.expectedCount, len(groups))
+			}
+		})
+	}
+}
+
+func TestUsers(t *testing.T) {
+	fixturePaths := []string{
+		"fixtures/users.yaml",
+		"fixtures/groups.yaml",
+	}
+
+	client, db, err := testutils.OpenTest()
+	if err != nil {
+		t.Fatal(err)
+	}
+	// Register the cleanup function from testutils.
+	t.Cleanup(func() {
+		testutils.CleanupTestEnvironment(t, client)
+	})
+
+	// Create a query resolver with the test client
+	resolver := &queryResolver{
+		Resolver: &Resolver{
+			client: client,
+		},
+	}
+
+	userId := 33
+
+	testCases := []struct {
+		name          string
+		ctx           context.Context
+		expectedID    int
+		expectedCount int
+		expectedError string
+	}{
+		{
+			name:          "Happy path",
+			ctx:           testutils.TestContext(userId),
+			expectedID:    1,
+			expectedCount: 7,
+			expectedError: "",
+		},
+		// Add test cases here
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			testutils.LoadFixtures(db, fixturePaths...)
+			users, err := resolver.Users(tc.ctx)
+
+			if err != nil {
+				assert.Contains(t, err.Error(), tc.expectedError, "Error message should contain the expected substring")
+				assert.Nil(t, users, "Connection should be nil on error")
+				assert.NotEqual(t, "", tc.expectedError, "expectedError should not be an empty string // Got: %v", err)
+			} else {
+				assert.Equal(t, "", tc.expectedError, "expectedError should be empty // Got: %v", tc.expectedError)
+				assert.NoError(t, err, "Unexpected error")
+				assert.NotNil(t, users, "Connection should not be nil")
+
+				// expected values:
+				assert.Equal(t, tc.expectedID, users[0].ID)
+				assert.Equal(t, tc.expectedCount, len(users))
+			}
+		})
+	}
+}
+
+func TestWords(t *testing.T) {
+	fixturePaths := []string{
+		"fixtures/users.yaml",
+		"fixtures/groups.yaml",
+		"fixtures/user_groups.yaml",
+		"fixtures/words.yaml",
+	}
+
+	client, db, err := testutils.OpenTest()
+	if err != nil {
+		t.Fatal(err)
+	}
+	// Register the cleanup function from testutils.
+	t.Cleanup(func() {
+		testutils.CleanupTestEnvironment(t, client)
+	})
+
+	// Create a query resolver with the test client
+	resolver := &queryResolver{
+		Resolver: &Resolver{
+			client: client,
+		},
+	}
+
+	userId := 33
+	wordID := 33
+	first := 10
+
+	type expectedValues struct {
+		count    int
+		firstId  int
+		pageInfo entgql.PageInfo[int]
+	}
+
+	testCases := []struct {
+		name           string
+		ctx            context.Context
+		wordID         *int
+		after          *entgql.Cursor[int]
+		first          *int
+		before         *entgql.Cursor[int]
+		last           *int
+		orderBy        *ent.WordOrder
+		where          *ent.WordWhereInput
+		expectedValues *expectedValues
+		expectedError  string
+	}{
+		{
+			name:    "Happy path",
+			ctx:     testutils.TestContext(userId),
+			wordID:  &wordID,
+			after:   nil,
+			first:   &first,
+			before:  nil,
+			last:    nil,
+			orderBy: nil,
+			expectedValues: &expectedValues{
+				count:   4,
+				firstId: 1,
+				pageInfo: entgql.PageInfo[int]{
+					HasNextPage:     false,
+					HasPreviousPage: false,
+					StartCursor: &entgql.Cursor[int]{
+						ID:    1,
+						Value: nil,
+					},
+					EndCursor: &entgql.Cursor[int]{
+						ID:    33,
+						Value: nil,
+					},
+				},
+			},
+			where: nil,
+
+			expectedError: "",
+		},
+		// Add test cases here
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			testutils.LoadFixtures(db, fixturePaths...)
+			conn, err := resolver.Words(tc.ctx, tc.after, tc.first, tc.before, tc.last, tc.orderBy, tc.where)
+
+			if err != nil {
+				assert.Contains(t, err.Error(), tc.expectedError, "Error message should contain the expected substring")
+				assert.Nil(t, conn, "Connection should be nil on error")
+				assert.NotEqual(t, "", tc.expectedError, "expectedError should not be an empty string // Got: %v", err)
+			} else {
+				assert.Equal(t, "", tc.expectedError, "expectedError should be empty // Got: %v", tc.expectedError)
+				assert.NoError(t, err, "Unexpected error")
+				assert.NotNil(t, conn, "Connection should not be nil")
+
+				// expected values:
+				assert.Equal(t, tc.expectedValues.count, len(conn.Edges))
+				assert.Equal(t, tc.expectedValues.count, conn.TotalCount)
+				assert.Equal(t, tc.expectedValues.firstId, conn.Edges[0].Node.ID, "first edge should match")
+
+				// pageInfo
+				assert.Equal(t, tc.expectedValues.pageInfo.HasNextPage, conn.PageInfo.HasNextPage)
+				assert.Equal(t, tc.expectedValues.pageInfo.HasPreviousPage, conn.PageInfo.HasPreviousPage)
+				assert.Equal(t, tc.expectedValues.pageInfo.StartCursor, conn.PageInfo.StartCursor)
+				assert.Equal(t, tc.expectedValues.pageInfo.EndCursor, conn.PageInfo.EndCursor)
+			}
+		})
+	}
+}
+
+// Mutation
+
+func TestQuery(t *testing.T) {
+	// Create a new instance of Resolver
+	resolver := &Resolver{} // You may need to initialize fields or dependencies if required
+
+	// Call the Mutation method
+	queryResolver := resolver.Query()
+
+	// Assert that the returned object is not nil
+	if queryResolver == nil {
+		t.Error("Expected non-nil QueryResolver, got nil")
+	}
+
+	//lint:ignore S1040 ignoring type assertion warning because QueryResolver is explicitly declared
+	// Assert that the returned object is of the correct type (graph.QueryResolver)
+	_, isMutationResolver := queryResolver.(graph.QueryResolver)
+	if !isMutationResolver {
+		t.Error("Expected QueryResolver to implement graph.QueryResolver interface")
 	}
 }
