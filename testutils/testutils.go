@@ -41,6 +41,7 @@ func LoadFixtures(db *sql.DB, paths ...string) error {
 func OpenTest() (*ent.Client, *sql.DB, error) {
 	// Use SQLite in-memory database for testing.
 	dbPath := "file:test:memory:?_fk=1"
+	// dbPath := "database.db?_fk=1"
 	db, err := sql.Open("sqlite3", dbPath)
 	if err != nil {
 		return nil, nil, err
@@ -62,7 +63,8 @@ func OpenTest() (*ent.Client, *sql.DB, error) {
 }
 
 func runMigrations(client *ent.Client) error {
-	return client.Schema.Create(context.Background(), schema.WithDropIndex(true))
+	ctx := context.Background()
+	return client.Schema.Create(ctx, schema.WithDropIndex(true), schema.WithGlobalUniqueID(true))
 }
 
 func TestContext(userID int) context.Context {
