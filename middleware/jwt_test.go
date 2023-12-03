@@ -204,25 +204,61 @@ func TestCheckUserExists(t *testing.T) {
 				assert.NotNil(t, id, "User should not be nil when there is no error")
 
 			}
-			// if err != nil {
-			// 	assert.Error(t, err, "Expected error")
-			// } else {
-			// 	assert.Equal(t, false, tc.expectedErr, "expectedErr should be empty // Got: %v", tc.expectedErr)
-			// 	assert.NoError(t, err, "Unexpected error")
-			// }
+		})
+	}
+}
 
-			// if tc.wantErr {
-			// 	if err == nil {
-			// 		t.Fatalf("Expected an error but got nil")
-			// 	}
-			// } else {
-			// 	if err != nil {
-			// 		t.Fatalf("Did not expect an error but got: %v", err)
-			// 	}
-			// }
-			// if id != tc.expected {
-			// 	t.Fatalf("Expected %d but got %d", tc.expected, id)
-			// }
+func TestAddUserToGraph(t *testing.T) {
+	fixturePaths := []string{
+		"fixtures/users.yaml",
+		"fixtures/groups.yaml",
+	}
+
+	client, db, err := testutils.OpenTest()
+	if err != nil {
+		t.Fatal(err)
+	}
+	// Register the cleanup function from testutils.
+	t.Cleanup(func() {
+		testutils.CleanupTestEnvironment(t, client)
+	})
+
+	// Test the addUserToGraph function
+	testCases := []struct {
+		name          string
+		authID        string
+		expected      *int
+		expectedError string
+	}{
+		{
+			name:          "Add user to graph",
+			authID:        "testAuthID",
+			expected:      nil,
+			expectedError: "",
+		},
+		{
+			name:          "Add user to graph empty authID",
+			authID:        "",
+			expected:      nil,
+			expectedError: "creating user: ent: validator failed for field \"User.authID\": value is less than the required length",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			testutils.LoadFixtures(db, fixturePaths...)
+			id, err := addUserToGraph(client, tc.authID)
+
+			if err != nil {
+				assert.Error(t, err, "Expected error")
+				assert.Contains(t, err.Error(), tc.expectedError, "Error message should contain expected string")
+				assert.Nil(t, id, "User should be nil when there is an error")
+				assert.NotEqual(t, "", tc.expectedError, "expectedError should not be an empty string // Got: %v", err)
+			} else {
+				assert.Equal(t, "", tc.expectedError, "expectedError should be empty // Got: %v", tc.expectedError)
+				assert.NotNil(t, id, "User should not be nil when there is no error")
+
+			}
 		})
 	}
 }
