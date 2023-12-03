@@ -96,7 +96,7 @@ func (r *mutationResolver) AddRootWord(ctx context.Context, rootWord string, gro
 }
 
 // AddChildWord is the resolver for the addChildWord field.
-func (r *mutationResolver) AddChildWord(ctx context.Context, rootIds []int, childWord string, childDefinition *string) (*ent.Word, error) {
+func (r *mutationResolver) AddChildWord(ctx context.Context, rootIds []int, groupID int, childWord string, childDefinition *string) (*ent.Word, error) {
 	creatorID, err := utils.GetCreatorIDFromContext(ctx)
 	if err != nil {
 		return nil, err
@@ -104,6 +104,7 @@ func (r *mutationResolver) AddChildWord(ctx context.Context, rootIds []int, chil
 
 	wordCreate := r.client.Word.Create().
 		SetCreatorID(creatorID).
+		SetGroupID(groupID).
 		SetDescription(childWord)
 
 	if childDefinition != nil {
