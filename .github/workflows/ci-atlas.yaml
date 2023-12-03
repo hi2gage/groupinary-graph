@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - main
+      - develop
     paths:
       - .github/workflows/ci-atlas.yaml
       - 'ent/migrate/migrations/*'
