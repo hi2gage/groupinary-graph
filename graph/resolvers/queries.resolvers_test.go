@@ -67,9 +67,10 @@ func TestCurrentUser(t *testing.T) {
 			testutils.LoadFixtures(db, fixturePaths...)
 			resultUser, err := resolver.CurrentUser(tc.ctx)
 
-			if tc.expectedErr {
+			if err != nil {
 				assert.Error(t, err, "Expected error")
 			} else {
+				assert.Equal(t, false, tc.expectedErr, "expectedErr should be empty // Got: %v", tc.expectedErr)
 				assert.NoError(t, err, "Unexpected error")
 			}
 
@@ -139,7 +140,7 @@ func TestDefinitionsConnections(t *testing.T) {
 			last:    nil,
 			orderBy: nil,
 			expectedValues: &expectedValues{
-				count:   2,
+				count:   3,
 				firstId: 1,
 				pageInfo: entgql.PageInfo[int]{
 					HasNextPage:     false,
@@ -171,12 +172,13 @@ func TestDefinitionsConnections(t *testing.T) {
 				assert.Nil(t, conn, "Connection should be nil on error")
 				assert.NotEqual(t, "", tc.expectedError, "expectedError should not be an empty string // Got: %v", err)
 			} else {
+				assert.Equal(t, "", tc.expectedError, "expectedError should be empty // Got: %v", tc.expectedError)
 				assert.NoError(t, err, "Unexpected error")
 				assert.NotNil(t, conn, "Connection should not be nil")
 
 				// expected values:
-				assert.Equal(t, len(conn.Edges), tc.expectedValues.count)
-				assert.Equal(t, conn.TotalCount, tc.expectedValues.count)
+				assert.Equal(t, tc.expectedValues.count, len(conn.Edges))
+				assert.Equal(t, tc.expectedValues.count, conn.TotalCount)
 				assert.Equal(t, conn.Edges[0].Node.ID, tc.expectedValues.firstId, "first edge should match")
 
 				// pageInfo
