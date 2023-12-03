@@ -309,13 +309,13 @@ func TestDefinitions(t *testing.T) {
 				// expected values:
 				assert.Equal(t, tc.expectedValues.count, len(conn.Edges))
 				assert.Equal(t, tc.expectedValues.count, conn.TotalCount)
-				assert.Equal(t, conn.Edges[0].Node.ID, tc.expectedValues.firstId, "first edge should match")
+				assert.Equal(t, tc.expectedValues.firstId, conn.Edges[0].Node.ID, "first edge should match")
 
 				// pageInfo
-				assert.Equal(t, conn.PageInfo.HasNextPage, tc.expectedValues.pageInfo.HasNextPage)
-				assert.Equal(t, conn.PageInfo.HasPreviousPage, tc.expectedValues.pageInfo.HasPreviousPage)
-				assert.Equal(t, conn.PageInfo.StartCursor, tc.expectedValues.pageInfo.StartCursor)
-				assert.Equal(t, conn.PageInfo.EndCursor, tc.expectedValues.pageInfo.EndCursor)
+				assert.Equal(t, tc.expectedValues.pageInfo.HasNextPage, conn.PageInfo.HasNextPage)
+				assert.Equal(t, tc.expectedValues.pageInfo.HasPreviousPage, conn.PageInfo.HasPreviousPage)
+				assert.Equal(t, tc.expectedValues.pageInfo.StartCursor, conn.PageInfo.StartCursor)
+				assert.Equal(t, tc.expectedValues.pageInfo.EndCursor, conn.PageInfo.EndCursor)
 			}
 		})
 	}
@@ -356,7 +356,7 @@ func TestGroups(t *testing.T) {
 			name:          "Happy path",
 			ctx:           testutils.TestContext(userId),
 			expectedID:    1,
-			expectedCount: 3,
+			expectedCount: 5,
 			expectedError: "",
 		},
 		// Add test cases here
@@ -419,7 +419,7 @@ func TestUsers(t *testing.T) {
 			name:          "Happy path",
 			ctx:           testutils.TestContext(userId),
 			expectedID:    1,
-			expectedCount: 7,
+			expectedCount: 9,
 			expectedError: "",
 		},
 		// Add test cases here
@@ -504,7 +504,7 @@ func TestWords(t *testing.T) {
 			last:    nil,
 			orderBy: nil,
 			expectedValues: &expectedValues{
-				count:   4,
+				count:   6,
 				firstId: 1,
 				pageInfo: entgql.PageInfo[int]{
 					HasNextPage:     false,
@@ -514,7 +514,7 @@ func TestWords(t *testing.T) {
 						Value: nil,
 					},
 					EndCursor: &entgql.Cursor[int]{
-						ID:    33,
+						ID:    50,
 						Value: nil,
 					},
 				},
