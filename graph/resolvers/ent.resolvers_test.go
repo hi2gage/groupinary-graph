@@ -356,7 +356,7 @@ func TestGroups(t *testing.T) {
 			name:          "Happy path",
 			ctx:           testutils.TestContext(userId),
 			expectedID:    1,
-			expectedCount: 4,
+			expectedCount: 5,
 			expectedError: "",
 		},
 		// Add test cases here
@@ -419,7 +419,7 @@ func TestUsers(t *testing.T) {
 			name:          "Happy path",
 			ctx:           testutils.TestContext(userId),
 			expectedID:    1,
-			expectedCount: 8,
+			expectedCount: 9,
 			expectedError: "",
 		},
 		// Add test cases here
@@ -504,7 +504,7 @@ func TestWords(t *testing.T) {
 			last:    nil,
 			orderBy: nil,
 			expectedValues: &expectedValues{
-				count:   5,
+				count:   6,
 				firstId: 1,
 				pageInfo: entgql.PageInfo[int]{
 					HasNextPage:     false,
@@ -514,7 +514,7 @@ func TestWords(t *testing.T) {
 						Value: nil,
 					},
 					EndCursor: &entgql.Cursor[int]{
-						ID:    40,
+						ID:    50,
 						Value: nil,
 					},
 				},

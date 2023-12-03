@@ -6,6 +6,7 @@ import (
 	"groupinary/ent/group"
 	"groupinary/graph"
 	"groupinary/testutils"
+	"groupinary/utils"
 	"testing"
 
 	_ "github.com/mattn/go-sqlite3"
@@ -952,6 +953,84 @@ func TestDeleteDefinition(t *testing.T) {
 				assert.Equal(t, "", tc.expectedError, "expectedError should be empty // Got: %v", tc.expectedError)
 				assert.NoError(t, err, "Unexpected error")
 				assert.True(t, deleted, "Deleted should be true")
+			}
+		})
+	}
+}
+
+func TestAddDefinition(t *testing.T) {
+	fixturePaths := []string{
+		"fixtures/users.yaml",
+		"fixtures/groups.yaml",
+		"fixtures/user_groups.yaml",
+		"fixtures/words.yaml",
+		"fixtures/definitions.yaml",
+	}
+
+	client, db, err := testutils.OpenTest()
+	if err != nil {
+		t.Fatal(err)
+	}
+	// Register the cleanup function from testutils.
+	t.Cleanup(func() {
+		testutils.CleanupTestEnvironment(t, client)
+	})
+
+	// Create a mutation resolver with the test client
+	mutationResolver := &mutationResolver{
+		Resolver: &Resolver{
+			client: client.Debug(),
+		},
+	}
+
+	// Test cases table
+	testCases := []struct {
+		name          string
+		ctx           context.Context
+		wordID        int
+		definition    string
+		expectedError string
+	}{
+		{
+			name:          "Happy Path",
+			ctx:           utils.AddUserIdToContext(context.Background(), 50),
+			wordID:        50,
+			definition:    "definition",
+			expectedError: "",
+		},
+		{
+			name:          "No Word in Database",
+			ctx:           utils.AddUserIdToContext(context.Background(), 1),
+			wordID:        999999,
+			definition:    "definition",
+			expectedError: "ent: constraint failed: FOREIGN KEY constraint failed",
+		},
+		{
+			name:          "User Not Found in Database",
+			ctx:           context.Background(),
+			wordID:        50,
+			definition:    "definition",
+			expectedError: "could not retrieve user_id from context",
+		},
+	}
+
+	// Run test cases
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			testutils.LoadFixtures(db, fixturePaths...)
+
+			resultDefinition, err := mutationResolver.AddDefinition(tc.ctx, tc.wordID, tc.definition)
+
+			if err != nil {
+				assert.Error(t, err, "Expected error")
+				assert.Contains(t, err.Error(), tc.expectedError, "Error message should contain expected string")
+				assert.Nil(t, resultDefinition, "Definition should be nil when there is an error")
+				assert.NotEqual(t, "", tc.expectedError, "expectedError should not be an empty string // Got: %v", err)
+			} else {
+				assert.Equal(t, "", tc.expectedError, "expectedError should be empty // Got: %v", tc.expectedError)
+				assert.NotNil(t, resultDefinition, "Definition should not be nil when there is no error")
+
+				assert.Equal(t, tc.definition, resultDefinition.Description, "Description should match")
 			}
 		})
 	}
