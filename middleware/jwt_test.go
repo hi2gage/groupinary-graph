@@ -2,10 +2,15 @@ package middleware
 
 import (
 	"context"
+	"groupinary/testutils"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
 	"testing"
+
+	_ "github.com/mattn/go-sqlite3"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestCustomClaimsValidate(t *testing.T) {
@@ -35,15 +40,35 @@ func TestCustomClaimsValidate(t *testing.T) {
 }
 
 func TestParseIssuerURL(t *testing.T) {
-	t.Run("Valid Issuer URL", func(t *testing.T) {
-		expectedURL := "https://dev-afmzazq3cr35ktpl.us.auth0.com/"
-		issuerURL := parseIssuerURL()
+	// rr := httptest.NewRecorder()
+	testCases := []struct {
+		name          string
+		expectedURL   string
+		expectedError string
+	}{
+		{
+			name:          "Correct URL",
+			expectedURL:   "https://dev-afmzazq3cr35ktpl.us.auth0.com/",
+			expectedError: "",
+		},
+		{
+			name:          "Blank URL",
+			expectedURL:   "",
+			expectedError: "",
+		},
+	}
 
-		// Assert that the parsed URL matches the expected URL
-		if issuerURL.String() != expectedURL {
-			t.Errorf("Expected issuer URL %s, got %s", expectedURL, issuerURL.String())
-		}
-	})
+	// Run test cases
+	for _, tc := range testCases {
+		t.Run("Valid Issuer URL", func(t *testing.T) {
+			issuerURL := parseIssuerURL(tc.expectedURL)
+
+			// Assert that the parsed URL matches the expected URL
+			if issuerURL.String() != tc.expectedURL {
+				t.Errorf("Expected issuer URL %s, got %s", tc.expectedURL, issuerURL.String())
+			}
+		})
+	}
 }
 
 func TestHandleValidationError(t *testing.T) {
@@ -116,6 +141,88 @@ func TestSetupJWTValidator(t *testing.T) {
 			if (jwtValidator == nil) != tc.expectedNilJWT {
 				t.Errorf("Expected nil JWT validator: %v, got: %v", tc.expectedNilJWT, jwtValidator)
 			}
+		})
+	}
+}
+
+func TestCheckUserExists(t *testing.T) {
+	fixturePaths := []string{
+		"fixtures/users.yaml",
+		"fixtures/groups.yaml",
+	}
+
+	client, db, err := testutils.OpenTest()
+	if err != nil {
+		t.Fatal(err)
+	}
+	// Register the cleanup function from testutils.
+	t.Cleanup(func() {
+		testutils.CleanupTestEnvironment(t, client)
+	})
+
+	expectedId := 50
+
+	// Test the checkUserExists function
+	testCases := []struct {
+		name          string
+		authID        string
+		expected      *int
+		expectedError string
+	}{
+		{
+			name:          "User exists",
+			authID:        "test_auth_id_1",
+			expected:      &expectedId,
+			expectedError: "",
+		},
+		{
+			name:          "User does not exist",
+			authID:        "nonexistentAuthID",
+			expected:      nil,
+			expectedError: "user does not exist: ent: user not found",
+		},
+		{
+			name:          "Multiple Users with same authID",
+			authID:        "test_auth_id_duplicate",
+			expected:      nil,
+			expectedError: "querying user: ent: user not singula",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			testutils.LoadFixtures(db, fixturePaths...)
+			id, err := checkUserExists(client, tc.authID)
+
+			if err != nil {
+				assert.Error(t, err, "Expected error")
+				assert.Contains(t, err.Error(), tc.expectedError, "Error message should contain expected string")
+				assert.Nil(t, id, "User should be nil when there is an error")
+				assert.NotEqual(t, "", tc.expectedError, "expectedError should not be an empty string // Got: %v", err)
+			} else {
+				assert.Equal(t, "", tc.expectedError, "expectedError should be empty // Got: %v", tc.expectedError)
+				assert.NotNil(t, id, "User should not be nil when there is no error")
+
+			}
+			// if err != nil {
+			// 	assert.Error(t, err, "Expected error")
+			// } else {
+			// 	assert.Equal(t, false, tc.expectedErr, "expectedErr should be empty // Got: %v", tc.expectedErr)
+			// 	assert.NoError(t, err, "Unexpected error")
+			// }
+
+			// if tc.wantErr {
+			// 	if err == nil {
+			// 		t.Fatalf("Expected an error but got nil")
+			// 	}
+			// } else {
+			// 	if err != nil {
+			// 		t.Fatalf("Did not expect an error but got: %v", err)
+			// 	}
+			// }
+			// if id != tc.expected {
+			// 	t.Fatalf("Expected %d but got %d", tc.expected, id)
+			// }
 		})
 	}
 }
