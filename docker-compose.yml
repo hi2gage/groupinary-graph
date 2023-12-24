@@ -12,6 +12,10 @@ services:
       - db
     environment:
       - DATABASE_URL=postgres://yourusername:yourpassword@db:5432/yourdatabase?sslmode=disable
+      - AUDIENCE_API=${AUDIENCE_API}
+      - AUDIENCE_HASH=${AUDIENCE_HASH}
+      - ENVIRONMENT=${ENVIRONMENT}
+      - ISSUERURL=${ISSUERURL}
   db:
     image: postgres
     restart: always
