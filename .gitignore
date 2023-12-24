@@ -31,3 +31,6 @@ tmp/
 # Testing
 coverage.txt
 **/test:memory:
+
+# ENV
+.env

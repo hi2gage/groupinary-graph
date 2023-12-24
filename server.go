@@ -99,7 +99,17 @@ func main() {
 		})
 	}
 
-	authMiddleware := middleware.EnsureValidToken(client)
+	issueURL := os.Getenv("ISSUERURL")
+	audienceAPI := os.Getenv("AUDIENCE_API")
+	audienceHash := os.Getenv("AUDIENCE_HASH")
+
+	jwtENV := middleware.EnvJWTStruct{
+		IssuerURL: issueURL,
+		Audience:  []string{audienceAPI, audienceHash},
+	}
+
+	userTokenOperations := middleware.NewUserTokenOperator(client)
+	authMiddleware := middleware.EnsureValidToken(userTokenOperations, jwtENV)
 
 	http.Handle("/", playground.Handler("GraphQL playground", "/query"))
 	http.Handle("/viz", ent.ServeEntviz())
