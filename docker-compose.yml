@@ -12,6 +12,10 @@ services:
       - db
     environment:
       - DATABASE_URL=postgres://yourusername:yourpassword@db:5432/yourdatabase?sslmode=disable
+      - AUDIENCE_API=https://shrektionary.com/api
+      - AUDIENCE_HASH=4W01gsxupS4xoLLxbe8jdVVlGTFOKjd3
+      - ENVIRONMENT=dev
+      - ISSUERURL=https://dev-afmzazq3cr35ktpl.us.auth0.com/
   db:
     image: postgres
     restart: always

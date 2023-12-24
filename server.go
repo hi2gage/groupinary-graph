@@ -15,7 +15,6 @@ import (
 	"entgo.io/ent/dialect"
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/playground"
-	"github.com/joho/godotenv"
 	_ "github.com/lib/pq" // Import the PostgreSQL driver package
 )
 
@@ -26,11 +25,6 @@ const (
 )
 
 func main() {
-	// Load environment variables from .env file
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatal("Error loading .env file")
-	}
 	environment := os.Getenv("ENVIRONMENT")
 	log.Printf("Starting Server in: %s ENVIRONMENT", environment)
 
