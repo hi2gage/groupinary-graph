@@ -3,8 +3,6 @@ package middleware
 import (
 	"context"
 	"fmt"
-	"groupinary/ent"
-	"groupinary/ent/user"
 	"groupinary/utils"
 	"log"
 	"net/http"
@@ -27,22 +25,23 @@ func (c CustomClaims) Validate(ctx context.Context) error {
 	return nil
 }
 
-func parseIssuerURL() *url.URL {
-	issuerURL, err := url.Parse("https://dev-afmzazq3cr35ktpl.us.auth0.com/")
-	if err != nil {
-		log.Fatalf("Failed to parse the issuer URL: %v", err)
-	}
-	log.Printf("issuerURL: %s", issuerURL)
-	return issuerURL
+type EnvJWTStruct struct {
+	IssuerURL string
+	Audience  []string
 }
 
-func setupJWTValidator(issuerURL *url.URL) (*validator.Validator, error) {
+func setupJWTValidator(env EnvJWTStruct) (*validator.Validator, error) {
+	issuerURL, err := url.Parse(env.IssuerURL)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse the issuer URL: %w", err)
+	}
+
 	provider := jwks.NewCachingProvider(issuerURL, 5*time.Minute)
 	jwtValidator, err := validator.New(
 		provider.KeyFunc,
 		validator.RS256,
 		issuerURL.String(),
-		[]string{"https://shrektionary.com/api", "4W01gsxupS4xoLLxbe8jdVVlGTFOKjd3"},
+		env.Audience,
 		validator.WithCustomClaims(func() validator.CustomClaims {
 			return &CustomClaims{}
 		}),
@@ -61,14 +60,14 @@ func handleValidationError(w http.ResponseWriter, err error) {
 	w.Write([]byte(`{"message":"Failed to validate JWT."}`))
 }
 
-// EnsureValidToken is a middleware that will check the validity of our JWT.
-func EnsureValidToken(client *ent.Client) func(next http.Handler) http.Handler {
-	issuerURL := parseIssuerURL()
-	errorHandler := func(w http.ResponseWriter, r *http.Request, err error) {
-		handleValidationError(w, err)
-	}
+func errorHandler(w http.ResponseWriter, r *http.Request, err error) {
+	handleValidationError(w, err)
+}
 
-	jwtValidator, err := setupJWTValidator(issuerURL)
+// EnsureValidToken is a middleware that will check the validity of our JWT.
+func EnsureValidToken(client UserOperations, env EnvJWTStruct) func(next http.Handler) http.Handler {
+	jwtValidator, err := setupJWTValidator(env)
+
 	if err != nil {
 		return func(next http.Handler) http.Handler {
 			return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -82,14 +81,14 @@ func EnsureValidToken(client *ent.Client) func(next http.Handler) http.Handler {
 	return validateJWTAndHandleUser(client, middleware)
 }
 
-func createJWTMiddleware(jwtValidator *validator.Validator, errorHandler jwtmiddleware.ErrorHandler, client *ent.Client) *jwtmiddleware.JWTMiddleware {
+func createJWTMiddleware(jwtValidator *validator.Validator, errorHandler jwtmiddleware.ErrorHandler, client UserOperations) *jwtmiddleware.JWTMiddleware {
 	return jwtmiddleware.New(
 		jwtValidator.ValidateToken,
 		jwtmiddleware.WithErrorHandler(errorHandler),
 	)
 }
 
-func validateJWTAndHandleUser(client *ent.Client, middleware *jwtmiddleware.JWTMiddleware) func(next http.Handler) http.Handler {
+func validateJWTAndHandleUser(client UserOperations, middleware *jwtmiddleware.JWTMiddleware) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return middleware.CheckJWT(
 			http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -100,10 +99,10 @@ func validateJWTAndHandleUser(client *ent.Client, middleware *jwtmiddleware.JWTM
 				}
 				authID := claims.RegisteredClaims.Subject
 
-				userId, err := checkUserExists(client, authID)
+				userId, err := client.CheckUserExists(authID)
 
-				if userId == 0 && err != nil {
-					userId, err = addUserToGraph(client, authID)
+				if userId == nil && err != nil {
+					userId, err = client.AddUserToGraph(authID)
 					if err != nil {
 						log.Printf("Error adding user to graph: %v", err)
 						http.Error(w, "Internal server error", http.StatusInternalServerError)
@@ -111,33 +110,11 @@ func validateJWTAndHandleUser(client *ent.Client, middleware *jwtmiddleware.JWTM
 					}
 				}
 
-				ctx := utils.AddUserIdToContext(r.Context(), userId)
+				ctx := utils.AddUserIdToContext(r.Context(), *userId)
 
 				r = r.WithContext(ctx)
 
 				next.ServeHTTP(w, r)
 			}))
 	}
-}
-
-// Based on the auth string passed in, checks to see if that authID exists in the Graph
-func checkUserExists(client *ent.Client, authID string) (int, error) {
-	user, err := client.User.Query().Where(user.AuthID(authID)).Only(context.Background())
-	if err != nil {
-		if ent.IsNotFound(err) {
-			return 0, fmt.Errorf("user does not exist: %w", err)
-		}
-		return 0, fmt.Errorf("querying user: %w", err)
-	}
-	return user.ID, nil
-}
-
-// Adds the user to Graph with the AuthID if does not exist
-func addUserToGraph(client *ent.Client, authID string) (int, error) {
-	user, err := client.User.Create().SetAuthID(authID).Save(context.Background())
-	if err != nil {
-		return 0, fmt.Errorf("creating user: %w", err)
-	}
-	log.Printf("finished addUserToGraph")
-	return user.ID, nil
 }
