@@ -88,6 +88,7 @@ type ComplexityRoot struct {
 		DeleteDefinition func(childComplexity int, id int) int
 		DeleteGroup      func(childComplexity int, id int) int
 		DeleteWord       func(childComplexity int, id int) int
+		JoinGroup        func(childComplexity int, groupID int) int
 		UpdateDefinition func(childComplexity int, id int, definitionDescription string) int
 		UpdateGroupName  func(childComplexity int, id int, name string) int
 		UpdateUserName   func(childComplexity int, firstName string, lastName *string, nickName *string) int
@@ -156,6 +157,7 @@ type MutationResolver interface {
 	DeleteWord(ctx context.Context, id int) (bool, error)
 	DeleteDefinition(ctx context.Context, id int) (bool, error)
 	UpdateUserName(ctx context.Context, firstName string, lastName *string, nickName *string) (*ent.User, error)
+	JoinGroup(ctx context.Context, groupID int) (*ent.Group, error)
 	AddRootWord(ctx context.Context, rootWord string, groupID int, rootDefinition *string) (*ent.Word, error)
 	AddChildWord(ctx context.Context, rootIds []int, groupID int, childWord string, childDefinition *string) (*ent.Word, error)
 	AddDefinition(ctx context.Context, wordID int, definition string) (*ent.Definition, error)
@@ -419,6 +421,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.DeleteWord(childComplexity, args["id"].(int)), true
+
+	case "Mutation.joinGroup":
+		if e.complexity.Mutation.JoinGroup == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_joinGroup_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.JoinGroup(childComplexity, args["groupID"].(int)), true
 
 	case "Mutation.updateDefinition":
 		if e.complexity.Mutation.UpdateDefinition == nil {
@@ -1153,6 +1167,21 @@ func (ec *executionContext) field_Mutation_deleteWord_args(ctx context.Context, 
 		}
 	}
 	args["id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_joinGroup_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["groupID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("groupID"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["groupID"] = arg0
 	return args, nil
 }
 
@@ -3038,6 +3067,77 @@ func (ec *executionContext) fieldContext_Mutation_updateUserName(ctx context.Con
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_updateUserName_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_joinGroup(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_joinGroup(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().JoinGroup(rctx, fc.Args["groupID"].(int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*ent.Group)
+	fc.Result = res
+	return ec.marshalNGroup2ᚖgroupinaryᚋentᚐGroup(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_joinGroup(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Group_id(ctx, field)
+			case "createTime":
+				return ec.fieldContext_Group_createTime(ctx, field)
+			case "updateTime":
+				return ec.fieldContext_Group_updateTime(ctx, field)
+			case "name":
+				return ec.fieldContext_Group_name(ctx, field)
+			case "description":
+				return ec.fieldContext_Group_description(ctx, field)
+			case "words":
+				return ec.fieldContext_Group_words(ctx, field)
+			case "users":
+				return ec.fieldContext_Group_users(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Group", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_joinGroup_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -10609,6 +10709,13 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		case "updateUserName":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_updateUserName(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "joinGroup":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_joinGroup(ctx, field)
 			})
 			if out.Values[i] == graphql.Null {
 				out.Invalids++

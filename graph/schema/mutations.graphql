@@ -12,6 +12,7 @@ type Mutation {
 
 extend type Mutation {
     updateUserName(firstName: String!, lastName: String, nickName: String): User!
+    joinGroup(groupID: ID!): Group!
 }
 
 extend type Mutation {
