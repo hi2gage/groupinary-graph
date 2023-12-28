@@ -1,8 +1,21 @@
 [![codecov](https://codecov.io/github/hi2gage/groupinary-graph/graph/badge.svg?token=OIPVJ3RZHG)](https://codecov.io/github/hi2gage/groupinary-graph)
 
-# Project Name
+# Groupinary GraphQL Service
 
-Brief project description goes here.
+### What is Groupinary?
+Think of it as a private urban dictionary tailored to capture and preserve the unique lexicon and language quirks of your social circles.
+
+It's more than just a dictionary; it's a linguistic time capsule, preserving the inside jokes, memes, and colloquial expressions that define the shared experience within your group.
+
+Groupinary allows users to log and organize words, phrases, and expressions specific to their social circles. Whether it's a hilarious inside joke, a memorable catchphrase, or a unique term coined within the group, Groupinary ensures that nothing is forgotten.
+
+### What is this repo?
+This repository contains the backend service for Groupinary. It's written in Go and uses Ent. The backend powers the GraphQL API
+
+
+### Why?
+After my friends moved away after college and I wanted a project to help us keep in touch because I miss them.
+
 
 ## Table of Contents
 
