@@ -27,7 +27,7 @@ jobs:
       run: |
         hash_before=$(sha256sum "${{ env.SCHEMA_PATH }}/combined_schema.graphqls" | cut -d ' ' -f 1)
         echo "Hash before: $hash_before"
-        echo "::set-output name=hash_before::$hash_before"
+        echo "HASH_BEFORE=$hash_before" >> $GITHUB_ENV
 
     - name: Run script
       run: ./scripts/combine_schema.zsh ${{ env.SCHEMA_PATH }}
@@ -37,11 +37,11 @@ jobs:
       run: |
         hash_after=$(sha256sum "${{ env.SCHEMA_PATH }}/combined_schema.graphqls" | cut -d ' ' -f 1)
         echo "Hash after: $hash_after"
-        echo "::set-output name=hash_after::$hash_after"
+        echo "HASH_AFTER=$hash_after" >> $GITHUB_ENV
 
     - name: Compare hashes
       run: |
-        if [ "${{ steps.before_script.outputs.hash_before }}" != "${{ steps.after_script.outputs.hash_after }}" ]; then
+        if [ "${{ env.HASH_BEFORE }}" != "${{ env.HASH_AFTER }}" ]; then
           echo "Hashes are different. Files have changed."
           exit 1  # Mark the action as failed
         else
