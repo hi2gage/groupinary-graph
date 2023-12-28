@@ -34,3 +34,6 @@ coverage.txt
 
 # ENV
 .env
+
+# OpenSSL
+*.pem
