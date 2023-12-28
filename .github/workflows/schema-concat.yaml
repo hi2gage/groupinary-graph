@@ -1,0 +1,32 @@
+name: Check combined_schema
+
+on:
+  push:
+    branches: [ "main", "develop"]
+  pull_request:
+    branches: [ "main", "develop"]
+
+jobs:
+  compare-schema:
+    runs-on: ubuntu-latest
+
+    env:
+      SCHEMA_PATH: 'graph/schema'  # Define the environment variable
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Install Zsh
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y zsh
+
+    - name: Run script and compare files
+      run: |
+        echo "Current directory: $(bash --version)"
+        ./scripts/combine_schema.zsh $SCHEMA_PATH
+        if ! diff -q schema.graphqls $SCHEMA_PATH/combined_schema.graphqls; then
+          echo "Files are different"
+          exit 1  # Mark the action as failed
+        fi
