@@ -48,6 +48,10 @@ docker-compose up --build
 
 # Open Web GraphQL playground
 open https://localhost:8080/
+
+# (optional) Generate key.pem and cert.pem
+openssl genrsa -out key.pem 2048
+openssl req -new -x509 -sha256 -key key.pem -out cert.pem -days 365
 ```
 
 ## Development
