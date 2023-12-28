@@ -68,6 +68,20 @@ func (r *mutationResolver) UpdateUserName(ctx context.Context, firstName string,
 	return u.Save(ctx)
 }
 
+// JoinGroup is the resolver for the joinGroup field.
+func (r *mutationResolver) JoinGroup(ctx context.Context, groupID int) (*ent.Group, error) {
+	creatorID, err := utils.GetCreatorIDFromContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	groupAppend := r.client.Group.UpdateOneID(groupID)
+
+	groupAppend.AddUserIDs(creatorID)
+
+	return groupAppend.Save(ctx)
+}
+
 // AddRootWord is the resolver for the addRootWord field.
 func (r *mutationResolver) AddRootWord(ctx context.Context, rootWord string, groupID int, rootDefinition *string) (*ent.Word, error) {
 	creatorID, err := utils.GetCreatorIDFromContext(ctx)
