@@ -1,0 +1,49 @@
+name: Check combined_schema
+
+on:
+  push:
+    branches: [ "main", "develop"]
+  pull_request:
+    branches: [ "main", "develop"]
+
+jobs:
+  compare-schema:
+    runs-on: ubuntu-latest
+
+    env:
+      SCHEMA_PATH: 'graph/schema'  # Define the environment variable
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Install Zsh
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y zsh
+
+    - name: Compute hash before script
+      id: before_script
+      run: |
+        hash_before=$(sha256sum "${{ env.SCHEMA_PATH }}/combined_schema.graphqls" | cut -d ' ' -f 1)
+        echo "Hash before: $hash_before"
+        echo "HASH_BEFORE=$hash_before" >> $GITHUB_ENV
+
+    - name: Run script
+      run: ./scripts/combine_schema.zsh ${{ env.SCHEMA_PATH }}
+
+    - name: Compute hash after script
+      id: after_script
+      run: |
+        hash_after=$(sha256sum "${{ env.SCHEMA_PATH }}/combined_schema.graphqls" | cut -d ' ' -f 1)
+        echo "Hash after: $hash_after"
+        echo "HASH_AFTER=$hash_after" >> $GITHUB_ENV
+
+    - name: Compare hashes
+      run: |
+        if [ "${{ env.HASH_BEFORE }}" != "${{ env.HASH_AFTER }}" ]; then
+          echo "Hashes are different. Files have changed."
+          exit 1  # Mark the action as failed
+        else
+          echo "Hashes are the same. Files are unchanged."
+        fi
