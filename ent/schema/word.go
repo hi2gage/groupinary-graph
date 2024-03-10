@@ -46,6 +46,7 @@ func (Word) Edges() []ent.Edge {
 			Annotations(
 				entgql.RelayConnection(),
 				entgql.OrderField("DESCENDANTS_COUNT"),
+				// entsql.Annotation{OnDelete: entsql.Cascade},
 			).
 			From("parents"),
 		// edge.From("parents", Word.Type).
