@@ -3,6 +3,7 @@ package schema
 import (
 	"entgo.io/contrib/entgql"
 	"entgo.io/ent"
+	"entgo.io/ent/dialect/entsql"
 	"entgo.io/ent/schema"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
@@ -40,17 +41,15 @@ func (Word) Edges() []ent.Edge {
 			Annotations(
 				entgql.RelayConnection(),
 				entgql.OrderField("DEFINITIONS_COUNT"),
+				entsql.Annotation{OnDelete: entsql.Cascade},
 			),
 		edge.To("descendants", Word.Type).
 			Immutable().
 			Annotations(
 				entgql.RelayConnection(),
 				entgql.OrderField("DESCENDANTS_COUNT"),
-				// entsql.Annotation{OnDelete: entsql.Cascade},
 			).
 			From("parents"),
-		// edge.From("parents", Word.Type).
-		// 	Ref("descendants"),
 	}
 }
 
