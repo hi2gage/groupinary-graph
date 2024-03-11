@@ -33,7 +33,7 @@ var (
 				Symbol:     "definitions_words_definitions",
 				Columns:    []*schema.Column{DefinitionsColumns[5]},
 				RefColumns: []*schema.Column{WordsColumns[0]},
-				OnDelete:   schema.SetNull,
+				OnDelete:   schema.Cascade,
 			},
 		},
 	}
