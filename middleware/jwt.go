@@ -6,11 +6,9 @@ import (
 	"groupinary/utils"
 	"log"
 	"net/http"
-	"net/url"
 	"time"
 
 	jwtmiddleware "github.com/auth0/go-jwt-middleware/v2"
-	"github.com/auth0/go-jwt-middleware/v2/jwks"
 	"github.com/auth0/go-jwt-middleware/v2/validator"
 )
 
@@ -28,19 +26,20 @@ func (c CustomClaims) Validate(ctx context.Context) error {
 type EnvJWTStruct struct {
 	IssuerURL string
 	Audience  []string
+	SecretKey string
 }
 
 func setupJWTValidator(env EnvJWTStruct) (*validator.Validator, error) {
-	issuerURL, err := url.Parse(env.IssuerURL)
-	if err != nil {
-		return nil, fmt.Errorf("failed to parse the issuer URL: %w", err)
+	secretKey := []byte(env.SecretKey)
+
+	keyFunc := func(ctx context.Context) (interface{}, error) {
+		return []byte(secretKey), nil
 	}
 
-	provider := jwks.NewCachingProvider(issuerURL, 5*time.Minute)
 	jwtValidator, err := validator.New(
-		provider.KeyFunc,
-		validator.RS256,
-		issuerURL.String(),
+		keyFunc,
+		validator.HS256,
+		env.IssuerURL,
 		env.Audience,
 		validator.WithCustomClaims(func() validator.CustomClaims {
 			return &CustomClaims{}

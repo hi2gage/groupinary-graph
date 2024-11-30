@@ -16,6 +16,7 @@ services:
       - AUDIENCE_HASH=${AUDIENCE_HASH}
       - ENVIRONMENT=dev
       - ISSUERURL=${ISSUERURL}
+      - SECRET_KEY=${SECRET_KEY}
   db:
     image: postgres
     restart: always
