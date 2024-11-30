@@ -96,11 +96,15 @@ func main() {
 	issueURL := os.Getenv("ISSUERURL")
 	audienceAPI := os.Getenv("AUDIENCE_API")
 	audienceHash := os.Getenv("AUDIENCE_HASH")
+	secretKey := os.Getenv("SECRET_KEY")
 
 	jwtENV := middleware.EnvJWTStruct{
 		IssuerURL: issueURL,
 		Audience:  []string{audienceAPI, audienceHash},
+		SecretKey: secretKey,
 	}
+
+	log.Printf("SECRET_KEY: %s", secretKey)
 
 	userTokenOperations := middleware.NewUserTokenOperator(client)
 	authMiddleware := middleware.EnsureValidToken(userTokenOperations, jwtENV)
